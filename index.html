@@ -4,9 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1f3a5f">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="關東家族旅行">
+<meta name="description" content="2027/2/1–2/10 日本關東10天9夜家族旅行互動行程表、A/B/C三級推薦餐廳、準備清單與離線導覽助理">
 <title>2027 日本關東 10天9夜 家族旅行助理</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗻</text></svg>">
 <style>
 :root{
@@ -51,8 +57,14 @@ header.top{position:sticky;top:0;z-index:20;background:var(--primary);color:var(
 .fontbar button{border:0;background:transparent;color:inherit;border-radius:999px;min-width:2.2rem;height:2.2rem;
   display:flex;align-items:center;justify-content:center;font-weight:700;line-height:1;padding:0 .35rem}
 .fontbar button[aria-pressed="true"]{background:var(--primary-ink);color:var(--primary)}
-.iconbtn{border:0;background:rgba(255,255,255,.14);color:inherit;border-radius:999px;height:2.4rem;min-width:2.4rem;padding:0 .7rem;font-size:1rem}
+.iconbtn{border:0;background:rgba(255,255,255,.14);color:inherit;border-radius:999px;height:2.4rem;min-width:2.4rem;padding:0 .7rem;font-size:.92rem;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:.25rem}
 [data-theme="dark"] .iconbtn{background:rgba(0,0,0,.18)}
+.net-pill{font-size:.78rem;font-weight:800;padding:.2rem .55rem;border-radius:999px;background:#d9534f;color:#fff;display:none;align-items:center;gap:.25rem}
+.net-pill.offline{display:inline-flex}
+.pwa-steps{text-align:left;background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:.75rem .95rem;margin:.65rem 0;font-size:.92rem}
+.pwa-steps h4{margin:0 0 .3rem;font-size:1rem;color:var(--primary)}
+.pwa-steps ol{margin:0;padding-left:1.25rem}
+.pwa-steps li{margin:.25rem 0}
 nav.tabs{display:none}
 
 /* ---------- Bottom nav (mobile) ---------- */
@@ -252,6 +264,8 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
         <button data-fs="3" aria-label="字級：特大" title="特大" style="font-size:1.2rem">A</button>
         <button data-fs="4" aria-label="字級：超大" title="超大" style="font-size:1.38rem">A</button>
       </div>
+      <span class="net-pill" id="netPill" role="status">📴 離線模式</span>
+      <button class="iconbtn" id="installBtn" aria-label="安裝 App 到主畫面" title="安裝 App／離線使用">📲 <span class="lbl">安裝</span></button>
       <button class="iconbtn" id="themeBtn" aria-label="切換深色／淺色模式" title="深色／淺色模式">🌙</button>
     </div>
   </div>
@@ -353,6 +367,34 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
     <div class="m-ja" id="mJa"></div>
     <div class="phrase-card ro" id="mRo" style="margin-bottom:1rem;font-size:.9rem"></div>
     <button class="btn primary" id="closeModalBtn">✕ 關閉畫面</button>
+  </div>
+</div>
+
+<!-- PWA 安裝與離線使用教學 Modal -->
+<div class="modal-backdrop" id="pwaModal" role="dialog" aria-modal="true" aria-labelledby="pwaTitle">
+  <div class="modal-card" style="max-width:34rem">
+    <h3 id="pwaTitle" style="margin:0 0 .35rem;font-size:1.25rem;justify-content:center">📲 安裝「關東家族旅行 App」</h3>
+    <div style="font-size:.9rem;color:var(--muted);margin-bottom:.6rem">安裝至手機主畫面後，可像原生 App 全螢幕開啟，在飛機上、地下鐵或山區無網路時也能<b>100% 離線查閱行程、餐廳與勾選清單</b>！</div>
+    <div id="nativeInstallWrap" style="display:none;margin-bottom:.75rem">
+      <button class="btn primary" id="triggerNativeInstallBtn" style="width:100%;justify-content:center;padding:.65rem;font-size:1.05rem">✨ 立即一鍵安裝到手機／電腦</button>
+    </div>
+    <div class="pwa-steps">
+      <h4>🍎 iPhone / iPad（Safari 瀏覽器）</h4>
+      <ol>
+        <li>點擊 Safari 底部中間的<b>「分享」按鈕 📤</b>（方框向上箭頭）</li>
+        <li>選單往下滑，點選<b>「加入主畫面 (Add to Home Screen)」➕</b></li>
+        <li>點擊右上角<b>「新增」</b>，桌面即會出現「🗻 關東家族旅行」App 圖示！</li>
+      </ol>
+    </div>
+    <div class="pwa-steps">
+      <h4>🤖 Android 手機（Chrome 瀏覽器）</h4>
+      <ol>
+        <li>點擊上方「立即一鍵安裝」按鈕，或點 Chrome 右上角選單 <b>⋮</b></li>
+        <li>點選<b>「安裝應用程式」</b>或<b>「加到主畫面」</b>即可完成！</li>
+      </ol>
+    </div>
+    <div style="font-size:.82rem;color:var(--muted);margin:.5rem 0 .8rem" id="pwaSwStatus">正在檢查離線快取狀態…</div>
+    <button class="btn primary" id="closePwaModalBtn">我知道了</button>
   </div>
 </div>
 
@@ -1381,7 +1423,21 @@ function renderInfo(){
       <li><a href="https://www.vjw.digital.go.jp/" target="_blank" rel="noopener">Visit Japan Web（入境手續官方網站）</a></li>
       <li><a href="https://docs.google.com/spreadsheets/d/1vtYwFh8HCuyi-NK5nKBQ1AQyYui49a9xOxsQALGGbRw/edit" target="_blank" rel="noopener">原始行程表（Google 試算表）</a></li>
     </ul>
-    <button class="btn" onclick="window.print()">🖨️ 列印行程表</button></div>`;
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.5rem">
+      <button class="btn" onclick="window.print()" style="margin:0">🖨️ 列印行程表</button>
+      <button class="btn" id="shareAppBtn" style="margin:0">📤 分享行程給家人</button>
+    </div></div>
+
+  <div class="box"><h3>📲 PWA 離線模式 ＆ App 安裝狀態</h3>
+    <table class="info">
+      <tr><th>網路狀態</th><td id="infoNetStatus">${navigator.onLine ? '🟢 目前在線（自動同步最新快取）' : '📴 目前為離線模式（使用本機快取）'}</td></tr>
+      <tr><th>執行模式</th><td>${(window.matchMedia('(display-mode: standalone)').matches || navigator.standalone) ? '✅ 已以獨立 App 模式開啟' : '🌐 瀏覽器分頁模式（可安裝至主畫面）'}</td></tr>
+      <tr><th>離線快取</th><td id="infoSwStatus">${esc(pwaState.swText)}</td></tr>
+    </table>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.55rem">
+      <button class="btn primary" id="infoInstallBtn" style="margin:0">📲 安裝 App／加入主畫面</button>
+      <button class="btn" id="refreshCacheBtn" style="margin:0">🔄 檢查更新並重新快取</button>
+    </div></div>`;
 
   // 綁定匯率計算器
   const rInp = $('#rateInp'), jInp = $('#jpyInp'), tInp = $('#twdInp');
@@ -1393,6 +1449,121 @@ function renderInfo(){
     jInp.value = b.dataset.jpy;
     tInp.value = Math.round((+b.dataset.jpy) * getRate());
   });
+
+  $('#infoInstallBtn').onclick = () => openPwaModal();
+  $('#shareAppBtn').onclick = async () => {
+    const shareData = {
+      title: '2027 日本關東 10天9夜 家族旅行助理',
+      text: '2027/2/1–2/10 關東家族旅行每日行程、A/B/C三級推薦餐廳與準備清單',
+      url: location.href.split('#')[0]
+    };
+    if (navigator.share) {
+      try { await navigator.share(shareData); } catch(e){}
+    } else if (navigator.clipboard) {
+      await navigator.clipboard.writeText(shareData.url);
+      alert('已複製網址，可直接貼到 LINE 群組分享給家人！');
+    }
+  };
+  $('#refreshCacheBtn').onclick = async () => {
+    if ('serviceWorker' in navigator) {
+      const reg = await navigator.serviceWorker.getRegistration();
+      if (reg) {
+        await reg.update();
+        if (reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
+        alert('✅ 已完成檢查更新與離線快取同步！');
+        return;
+      }
+    }
+    location.reload();
+  };
+}
+
+/* =========================================================
+   PWA 安裝與離線 Service Worker 管理
+   ========================================================= */
+const pwaState = {
+  deferredPrompt: null,
+  swText: '尚未啟用（需透過網站伺服器或 HTTPS 開啟）'
+};
+
+function updateSwUI(msg){
+  pwaState.swText = msg;
+  if ($('#pwaSwStatus')) $('#pwaSwStatus').textContent = msg;
+  if ($('#infoSwStatus')) $('#infoSwStatus').textContent = msg;
+}
+
+function updateNetUI(){
+  const online = navigator.onLine;
+  $('#netPill').classList.toggle('offline', !online);
+  if ($('#infoNetStatus')) {
+    $('#infoNetStatus').textContent = online ? '🟢 目前在線（自動同步最新快取）' : '📴 目前為離線模式（使用本機快取）';
+  }
+}
+window.addEventListener('online', updateNetUI);
+window.addEventListener('offline', updateNetUI);
+
+function openPwaModal(){
+  $('#nativeInstallWrap').style.display = pwaState.deferredPrompt ? 'block' : 'none';
+  $('#pwaSwStatus').textContent = pwaState.swText;
+  $('#pwaModal').classList.add('open');
+}
+$('#installBtn').onclick = () => {
+  if (pwaState.deferredPrompt) {
+    pwaState.deferredPrompt.prompt();
+    pwaState.deferredPrompt.userChoice.finally(() => { pwaState.deferredPrompt = null; });
+  } else {
+    openPwaModal();
+  }
+};
+$('#triggerNativeInstallBtn').onclick = () => {
+  if (!pwaState.deferredPrompt) return;
+  pwaState.deferredPrompt.prompt();
+  pwaState.deferredPrompt.userChoice.then(() => {
+    pwaState.deferredPrompt = null;
+    $('#nativeInstallWrap').style.display = 'none';
+    $('#pwaModal').classList.remove('open');
+  });
+};
+$('#closePwaModalBtn').onclick = () => $('#pwaModal').classList.remove('open');
+$('#pwaModal').onclick = e => { if (e.target === $('#pwaModal')) $('#pwaModal').classList.remove('open'); };
+
+// 若已於獨立 App 模式執行，隱藏頂部安裝按鈕
+if (window.matchMedia('(display-mode: standalone)').matches || navigator.standalone) {
+  $('#installBtn').style.display = 'none';
+}
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  pwaState.deferredPrompt = e;
+  $('#installBtn').style.display = 'inline-flex';
+  $('#nativeInstallWrap').style.display = 'block';
+});
+
+window.addEventListener('appinstalled', () => {
+  pwaState.deferredPrompt = null;
+  $('#installBtn').style.display = 'none';
+  $('#pwaModal').classList.remove('open');
+});
+
+// 註冊 Service Worker (支援完整離線瀏覽)
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').then(reg => {
+      updateSwUI('✅ 已完成全站離線快取（無網路時仍可完整瀏覽行程、餐廳與清單）');
+      reg.addEventListener('updatefound', () => {
+        const nw = reg.installing;
+        if (nw) nw.addEventListener('statechange', () => {
+          if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+            updateSwUI('✨ 偵測到新版行程資料，重新整理即可套用！');
+          }
+        });
+      });
+    }).catch(() => {
+      updateSwUI('⚠️ 離線快取註冊失敗');
+    });
+  });
+} else if (location.protocol === 'file:') {
+  updateSwUI('💡 目前為本機單檔直接開啟（本身即可離線使用；若部署至 GitHub Pages / Netlify 等 HTTPS 網址即可啟用手機 PWA 主畫面安裝與自動離線快取）');
 }
 
 /* =========================================================
@@ -1400,6 +1571,7 @@ function renderInfo(){
    ========================================================= */
 buildNav();
 buildPhrases();
+updateNetUI();
 const ti = todayIdx();
 state.day = ti >= 0 ? ti : store.get('day', 0);
 const hash = location.hash.slice(1);
