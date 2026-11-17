@@ -111,25 +111,80 @@
     .card-transition {
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
+
+    /* ================= 5-LEVEL FONT SCALE SYSTEM ================= */
+    :root {
+      --font-scale: 1;
+      font-size: 16px;
+      transition: font-size 0.18s ease-out;
+    }
+    html[data-font-level="1"] { --font-scale: 1; font-size: 16px; }
+    html[data-font-level="2"] { --font-scale: 1.15; font-size: 18.4px; }
+    html[data-font-level="3"] { --font-scale: 1.3; font-size: 20.8px; }
+    html[data-font-level="4"] { --font-scale: 1.5; font-size: 24px; }
+    html[data-font-level="5"] { --font-scale: 1.75; font-size: 28px; }
+
+    /* Dynamic line-height & anti-truncation adjustments for large font levels (Level 3-5) */
+    html[data-font-level="3"] .adaptive-text,
+    html[data-font-level="4"] .adaptive-text,
+    html[data-font-level="5"] .adaptive-text {
+      line-height: 1.65 !important;
+    }
+
+    /* Prevent truncation & auto-stack horizontal flex items when in XL/XXL modes (Level 4 & 5) */
+    html[data-font-level="4"] .truncate,
+    html[data-font-level="5"] .truncate {
+      overflow: visible !important;
+      text-overflow: clip !important;
+      white-space: normal !important;
+    }
+
+    html[data-font-level="4"] .auto-stack-xl,
+    html[data-font-level="5"] .auto-stack-xl {
+      flex-direction: column !important;
+      align-items: flex-start !important;
+      gap: 0.65rem !important;
+    }
+
+    html[data-font-level="4"] .auto-stack-xl > a,
+    html[data-font-level="5"] .auto-stack-xl > a,
+    html[data-font-level="4"] .auto-stack-xl > button,
+    html[data-font-level="5"] .auto-stack-xl > button {
+      width: 100% !important;
+      justify-content: center !important;
+    }
+
+    /* Expand desktop center column automatically when in Level 4 or 5 so giant text has plenty of breathing room */
+    @media (min-width: 1024px) {
+      html[data-font-level="4"] #desktopRightPanel,
+      html[data-font-level="5"] #desktopRightPanel {
+        grid-column: span 12 / span 12 !important;
+        position: static !important;
+      }
+      html[data-font-level="4"] #mainCenterCol.lg\:col-span-6,
+      html[data-font-level="5"] #mainCenterCol.lg\:col-span-6 {
+        grid-column: span 9 / span 9 !important;
+      }
+    }
   </style>
 </head>
 <body class="min-h-screen text-slate-800 flex flex-col">
 
   <!-- ================= TOP GLOBAL HEADER (Responsive Mobile + Desktop) ================= -->
   <header class="jp-header-bg text-white sticky top-0 z-40 shadow-md">
-    <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-3 lg:py-3.5 relative z-10">
-      <div class="flex flex-wrap items-center justify-between gap-3">
+    <div class="max-w-[1600px] mx-auto px-3.5 sm:px-6 lg:px-8 py-2.5 lg:py-3.5 relative z-10">
+      <div class="flex flex-wrap items-center justify-between gap-2.5">
         <!-- Brand & Trip Title -->
-        <div class="flex items-center gap-3">
-          <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-white/15 backdrop-blur-md border border-white/25 flex items-center justify-center text-2xl shadow-inner shrink-0">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-white/15 backdrop-blur-md border border-white/25 flex items-center justify-center text-2xl shadow-inner shrink-0">
             🗻
           </div>
-          <div>
+          <div class="min-w-0">
             <div class="flex items-center gap-1.5 flex-wrap">
               <span class="bg-vermilion text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full tracking-wider shadow-xs">2027 農曆春節</span>
               <span class="text-xs text-sky-200 font-medium">2/1 (一) - 2/10 (三) ・ 10天9夜</span>
             </div>
-            <h1 class="font-serif text-lg sm:text-xl lg:text-2xl font-bold tracking-wide text-white mt-0.5">
+            <h1 class="font-serif text-base sm:text-xl lg:text-2xl font-bold tracking-wide text-white mt-0.5 leading-snug">
               日本關東家族旅行小幫手
             </h1>
             <p class="text-[11px] sm:text-xs text-slate-300 hidden sm:block">
@@ -140,41 +195,76 @@
 
         <!-- Desktop Top Navigation Tabs (Visible on lg+) -->
         <div class="hidden lg:flex items-center bg-slate-900/40 backdrop-blur-md p-1 rounded-2xl border border-white/15">
-          <button onclick="switchTab('itinerary')" id="dt-nav-itinerary" class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-vermilion text-white shadow-sm">
+          <button onclick="switchTab('itinerary')" id="dt-nav-itinerary" class="px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 bg-vermilion text-white shadow-sm">
             <i class="ph-fill ph-calendar-check text-base"></i> 每日行程
           </button>
-          <button onclick="switchTab('grid')" id="dt-nav-grid" class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 text-slate-200 hover:text-white">
+          <button onclick="switchTab('grid')" id="dt-nav-grid" class="px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 text-slate-200 hover:text-white">
             <i class="ph ph-columns text-base"></i> 10天總覽看板
           </button>
-          <button onclick="switchTab('logistics')" id="dt-nav-logistics" class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 text-slate-200 hover:text-white">
+          <button onclick="switchTab('logistics')" id="dt-nav-logistics" class="px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 text-slate-200 hover:text-white">
             <i class="ph ph-bed text-base"></i> 住宿與交通自駕
           </button>
-          <button onclick="switchTab('checklist')" id="dt-nav-checklist" class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 text-slate-200 hover:text-white relative">
+          <button onclick="switchTab('checklist')" id="dt-nav-checklist" class="px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 text-slate-200 hover:text-white relative">
             <i class="ph ph-check-square-offset text-base"></i> 準備與檢查表
             <span id="dtNavPrepDot" class="w-2 h-2 rounded-full bg-amber-400"></span>
           </button>
-          <button onclick="switchTab('search')" id="dt-nav-search" class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 text-slate-200 hover:text-white">
+          <button onclick="switchTab('search')" id="dt-nav-search" class="px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 text-slate-200 hover:text-white">
             <i class="ph ph-magnifying-glass text-base"></i> 搜尋與篩選
           </button>
         </div>
 
-        <!-- Right Controls: Font Size + Overall Progress -->
-        <div class="flex items-center gap-2 sm:gap-3">
-          <button id="toggleFontBtn" onclick="toggleLargeFont()" class="flex items-center gap-1.5 bg-white/15 hover:bg-white/25 active:scale-95 px-3 py-2 rounded-xl text-xs font-bold border border-white/20 transition shadow-xs">
-            <i class="ph ph-text-aa text-base text-amber-300"></i>
-            <span id="fontBtnLabel">長輩大字版</span>
-          </button>
+        <!-- Right Controls: Multi-Level Font Scaler + Overall Progress -->
+        <div class="flex items-center gap-2 ml-auto sm:ml-0">
+          <!-- Multi-Step Font Size Control Widget -->
+          <div class="relative flex items-center bg-slate-950/45 backdrop-blur-md rounded-xl p-1 border border-white/25 shadow-xs">
+            <button onclick="stepFontLevel(-1)" id="fontDecBtn" title="縮小字體" aria-label="縮小字體"
+              class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-white/10 hover:bg-white/25 active:scale-95 flex items-center justify-center text-white font-black text-xs transition disabled:opacity-35">
+              -A
+            </button>
 
-          <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-3 py-1.5 text-right">
+            <button onclick="toggleFontDrawer()" id="fontMenuTrigger" title="選擇字體大小級距"
+              class="px-2 sm:px-3 py-1 flex flex-col items-center justify-center min-w-[76px] sm:min-w-[92px] hover:bg-white/10 rounded-lg transition">
+              <span class="text-[10px] text-amber-300 font-bold flex items-center gap-0.5 leading-none">
+                <i class="ph-bold ph-text-aa"></i> 字體級距 <i class="ph-bold ph-caret-down text-[9px]"></i>
+              </span>
+              <span id="fontLevelBadgeText" class="text-xs font-black text-white leading-tight mt-0.5">
+                標準 100%
+              </span>
+            </button>
+
+            <button onclick="stepFontLevel(1)" id="fontIncBtn" title="放大字體" aria-label="放大字體"
+              class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 active:scale-95 flex items-center justify-center font-black text-sm transition shadow-xs disabled:opacity-35">
+              +A
+            </button>
+          </div>
+
+          <div class="hidden sm:block bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-3 py-1.5 text-right">
             <div class="text-[10px] text-sky-200">行程完成度</div>
             <div id="headerProgressText" class="text-xs sm:text-sm font-black text-white">0%</div>
           </div>
         </div>
       </div>
 
+      <!-- Expandable 5-Level Font Scale Selector Bar -->
+      <div id="fontScaleDrawer" class="hidden mt-2.5 pt-2.5 border-t border-white/20">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-950/55 backdrop-blur-md p-2.5 rounded-2xl border border-white/20">
+          <div class="flex items-center justify-between sm:justify-start gap-2">
+            <span class="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+              <i class="ph-fill ph-magnifying-glass-plus text-base"></i> 請選擇最舒適的閱讀字體大小（自動記憶）：
+            </span>
+            <button onclick="toggleFontDrawer()" class="sm:hidden text-xs text-slate-300 hover:text-white px-2 py-0.5 rounded bg-white/10">
+              收起 ✕
+            </button>
+          </div>
+          <div id="fontPresetButtonsContainer" class="grid grid-cols-5 gap-1.5 w-full sm:w-auto">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+
       <!-- Mobile Subtitle / Quick Mode Switcher (< lg) -->
-      <div class="flex lg:hidden items-center justify-between pt-2 mt-2 border-t border-white/15 text-xs">
-        <div class="flex items-center gap-1 text-sky-100 truncate">
+      <div class="flex lg:hidden items-center justify-between pt-2 mt-2 border-t border-white/15 text-xs gap-2">
+        <div class="flex items-center gap-1 text-sky-100 min-w-0">
           <i class="ph-fill ph-sparkle text-amber-300 shrink-0"></i>
           <span id="currentViewSubtitle" class="truncate">點選下方日期切換每日行程</span>
         </div>
@@ -875,14 +965,24 @@
       CHECKLIST_DONE: 'kantotrip2027_checklist_done',
       CUSTOM_CHECKS: 'kantotrip2027_custom_checks',
       LARGE_FONT: 'kantotrip2027_large_font',
+      FONT_LEVEL: 'kantotrip2027_font_level',
       ACTIVE_DAY: 'kantotrip2027_active_day'
     };
+
+    const FONT_LEVELS = [
+      { level: 1, name: '標準', short: '標準', pct: '100%', px: 16, desc: '標準大小 (100%)' },
+      { level: 2, name: '舒適大字', short: '大字', pct: '115%', px: 18.4, desc: '舒適大字 (115%)' },
+      { level: 3, name: '長輩特大', short: '特大', pct: '130%', px: 20.8, desc: '長輩特大 (130%)' },
+      { level: 4, name: '超大清晰', short: '超大', pct: '150%', px: 24, desc: '超大清晰 (150%)' },
+      { level: 5, name: '巨無霸', short: '巨無霸', pct: '175%', px: 28, desc: '巨無霸極大 (175%)' }
+    ];
 
     let state = {
       activeTab: 'itinerary',
       activeDay: 1,
       hideCompleted: false,
-      largeFont: false,
+      fontLevel: 1,
+      fontDrawerOpen: false,
       searchCategory: 'ALL',
       doneItems: {},
       checklistDone: {},
@@ -900,8 +1000,15 @@
         const savedCustom = localStorage.getItem(STORAGE_KEYS.CUSTOM_CHECKS);
         if (savedCustom) state.customChecks = JSON.parse(savedCustom);
 
-        const savedFont = localStorage.getItem(STORAGE_KEYS.LARGE_FONT);
-        if (savedFont === 'true') state.largeFont = true;
+        const savedLevel = localStorage.getItem(STORAGE_KEYS.FONT_LEVEL);
+        if (savedLevel) {
+          const parsed = parseInt(savedLevel, 10);
+          if (parsed >= 1 && parsed <= 5) state.fontLevel = parsed;
+        } else {
+          // Backwards compatibility with previous boolean toggle
+          const savedFont = localStorage.getItem(STORAGE_KEYS.LARGE_FONT);
+          if (savedFont === 'true') state.fontLevel = 3;
+        }
 
         const savedDay = localStorage.getItem(STORAGE_KEYS.ACTIVE_DAY);
         if (savedDay) state.activeDay = parseInt(savedDay, 10) || 1;
@@ -915,10 +1022,75 @@
         localStorage.setItem(STORAGE_KEYS.DONE_ITEMS, JSON.stringify(state.doneItems));
         localStorage.setItem(STORAGE_KEYS.CHECKLIST_DONE, JSON.stringify(state.checklistDone));
         localStorage.setItem(STORAGE_KEYS.CUSTOM_CHECKS, JSON.stringify(state.customChecks));
-        localStorage.setItem(STORAGE_KEYS.LARGE_FONT, String(state.largeFont));
+        localStorage.setItem(STORAGE_KEYS.FONT_LEVEL, String(state.fontLevel));
         localStorage.setItem(STORAGE_KEYS.ACTIVE_DAY, String(state.activeDay));
       } catch (e) {
         console.warn('LocalStorage write error:', e);
+      }
+    }
+
+    // Apply current font scale level to <html> root & update controls
+    function applyFontScaleUI() {
+      const lvlObj = FONT_LEVELS.find(f => f.level === state.fontLevel) || FONT_LEVELS[0];
+      document.documentElement.setAttribute('data-font-level', String(lvlObj.level));
+
+      const badgeText = document.getElementById('fontLevelBadgeText');
+      if (badgeText) {
+        badgeText.textContent = `${lvlObj.short} ${lvlObj.pct}`;
+      }
+
+      const decBtn = document.getElementById('fontDecBtn');
+      const incBtn = document.getElementById('fontIncBtn');
+      if (decBtn) decBtn.disabled = state.fontLevel <= 1;
+      if (incBtn) incBtn.disabled = state.fontLevel >= 5;
+
+      const presetsContainer = document.getElementById('fontPresetButtonsContainer');
+      if (presetsContainer) {
+        presetsContainer.innerHTML = FONT_LEVELS.map(f => {
+          const active = f.level === state.fontLevel;
+          return `
+            <button onclick="setFontLevel(${f.level})"
+              class="py-2 px-1.5 sm:px-3 rounded-xl text-center transition flex flex-col items-center justify-center border ${
+                active
+                  ? 'bg-amber-400 text-slate-950 border-amber-300 font-black shadow-sm scale-[1.03]'
+                  : 'bg-white/10 text-white border-white/15 hover:bg-white/20 font-medium'
+              }">
+              <span class="text-xs leading-tight">${f.short}</span>
+              <span class="text-[10px] opacity-85 font-mono mt-0.5">${f.pct}</span>
+            </button>
+          `;
+        }).join('');
+      }
+    }
+
+    function setFontLevel(level) {
+      const clamped = Math.max(1, Math.min(5, level));
+      state.fontLevel = clamped;
+      saveState();
+      applyFontScaleUI();
+      renderDayPills();
+      renderActiveDay();
+      renderLogistics();
+      renderChecklist();
+      if (state.activeTab === 'search') renderSearchResults();
+
+      const lvlObj = FONT_LEVELS.find(f => f.level === clamped);
+      showToast(`🔍 字體已切換為：${lvlObj.desc}`);
+    }
+
+    function stepFontLevel(delta) {
+      const next = state.fontLevel + delta;
+      if (next >= 1 && next <= 5) {
+        setFontLevel(next);
+      }
+    }
+
+    function toggleFontDrawer() {
+      state.fontDrawerOpen = !state.fontDrawerOpen;
+      const drawer = document.getElementById('fontScaleDrawer');
+      if (drawer) {
+        if (state.fontDrawerOpen) drawer.classList.remove('hidden');
+        else drawer.classList.add('hidden');
       }
     }
 
@@ -1088,15 +1260,16 @@
     // 2. Render Active Day View + Desktop Right Context Panel
     function renderActiveDay() {
       const dayObj = tripDays.find(d => d.day === state.activeDay) || tripDays[0];
-      const titleFontClass = state.largeFont ? 'text-lg sm:text-xl' : 'text-[15px] sm:text-base';
-      const detailFontClass = state.largeFont ? 'text-sm sm:text-base' : 'text-xs sm:text-sm';
+      const isExtraLarge = state.fontLevel >= 3;
+      const titleFontClass = isExtraLarge ? 'text-lg sm:text-xl font-black' : 'text-[15px] sm:text-base font-bold';
+      const detailFontClass = isExtraLarge ? 'text-sm sm:text-base' : 'text-xs sm:text-sm';
 
       const doneCount = dayObj.items.filter(i => state.doneItems[i.id]).length;
       const totalCount = dayObj.items.length;
 
       // Center Day Banner
       document.getElementById('dayBanner').innerHTML = `
-        <div class="flex items-start justify-between gap-3">
+        <div class="flex items-start justify-between gap-3 auto-stack-xl">
           <div>
             <div class="flex items-center gap-1.5 flex-wrap">
               <span class="bg-indigoJp text-white text-xs font-bold px-2.5 py-0.5 rounded-lg">Day ${dayObj.day}</span>
@@ -1113,12 +1286,12 @@
           </div>
         </div>
 
-        <div class="mt-3.5 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+        <div class="mt-3.5 pt-3 border-t border-slate-100 flex items-center justify-between gap-2 auto-stack-xl">
           <div class="text-xs sm:text-sm text-slate-700 font-bold truncate">
             ${dayObj.hotel}
           </div>
           <a href="${getGoogleMapsUrl(dayObj.hotelMap)}" target="_blank" rel="noopener noreferrer"
-            class="shrink-0 text-xs font-bold text-indigoJp bg-slate-100 hover:bg-indigoJp hover:text-white px-3 py-1.5 rounded-xl flex items-center gap-1 transition">
+            class="shrink-0 text-xs font-bold text-indigoJp bg-slate-100 hover:bg-indigoJp hover:text-white px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition">
             <i class="ph-fill ph-map-pin text-vermilion"></i> 飯店導航
           </a>
         </div>
@@ -1130,12 +1303,12 @@
         prepBox.classList.remove('hidden');
         prepBox.innerHTML = `
           <div class="flex items-center gap-1.5 font-bold text-amber-950 text-xs sm:text-sm mb-1.5">
-            <i class="ph-fill ph-warning-circle text-amber-600 text-lg"></i>
+            <i class="ph-fill ph-warning-circle text-amber-600 text-lg shrink-0"></i>
             <span>當日重要提醒 & 提前準備事項</span>
           </div>
-          <ul class="space-y-1.5">
+          <ul class="space-y-2">
             ${dayObj.prepNotes.map(note => `
-              <li class="${detailFontClass} text-amber-900 leading-relaxed flex items-start gap-1.5">
+              <li class="${detailFontClass} adaptive-text text-amber-950 font-medium leading-relaxed flex items-start gap-1.5">
                 <span class="text-amber-600 font-bold">•</span>
                 <span>${note}</span>
               </li>
@@ -1176,19 +1349,19 @@
                 <i class="ph-bold ph-check text-xs"></i>
               </button>
 
-              <div class="bg-white rounded-2xl p-4 shadow-sm border hover:shadow-md transition ${isDone ? 'border-emerald-200 bg-slate-50/70' : 'border-slate-200/90'}">
-                <div class="flex items-center justify-between gap-2 mb-1.5">
+              <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border hover:shadow-md transition ${isDone ? 'border-emerald-200 bg-slate-50/70' : 'border-slate-200/90'}">
+                <div class="flex items-center justify-between gap-2 mb-2 flex-wrap">
                   <div class="flex items-center gap-2 flex-wrap">
-                    <span class="bg-slate-800 text-white text-xs font-mono font-bold px-2.5 py-0.5 rounded-md tracking-tight">
+                    <span class="bg-slate-800 text-white text-xs font-mono font-bold px-2.5 py-1 rounded-lg tracking-tight">
                       ${item.time}
                     </span>
-                    <span class="${catStyle.bg} ${catStyle.text} ${catStyle.border} border text-xs font-bold px-2.5 py-0.5 rounded-md">
+                    <span class="${catStyle.bg} ${catStyle.text} ${catStyle.border} border text-xs font-bold px-2.5 py-1 rounded-lg">
                       ${item.icon} ${item.cat}
                     </span>
                   </div>
 
                   <button onclick="toggleTimelineItem('${item.id}')"
-                    class="text-xs font-bold px-2.5 py-1 rounded-full border transition flex items-center gap-1 shrink-0 ${
+                    class="text-xs font-bold px-3 py-1 rounded-full border transition flex items-center gap-1 shrink-0 ${
                       isDone
                         ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
                         : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
@@ -1198,20 +1371,20 @@
                   </button>
                 </div>
 
-                <h4 onclick="toggleTimelineItem('${item.id}')" class="font-bold text-slate-900 ${titleFontClass} leading-snug cursor-pointer ${isDone ? 'line-through text-slate-500' : ''}">
+                <h4 onclick="toggleTimelineItem('${item.id}')" class="text-slate-900 ${titleFontClass} adaptive-text leading-snug cursor-pointer ${isDone ? 'line-through text-slate-500' : ''}">
                   ${item.title}
                 </h4>
 
-                <p class="text-slate-600 ${detailFontClass} mt-1.5 leading-relaxed">
+                <p class="text-slate-600 ${detailFontClass} adaptive-text mt-2 leading-relaxed">
                   ${item.detail}
                 </p>
 
-                <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between">
-                  <span class="text-xs text-slate-400 truncate max-w-[65%]">
+                <div class="mt-3.5 pt-3 border-t border-slate-100 flex items-center justify-between gap-2 auto-stack-xl">
+                  <span class="text-xs text-slate-500 truncate max-w-full">
                     <i class="ph ph-navigation-arrow"></i> ${item.mapQuery}
                   </span>
                   <a href="${getGoogleMapsUrl(item.mapQuery)}" target="_blank" rel="noopener noreferrer"
-                    class="bg-slate-100 hover:bg-indigoJp hover:text-white active:scale-95 text-indigoJp font-bold text-xs px-3.5 py-1.5 rounded-xl transition flex items-center gap-1">
+                    class="bg-slate-100 hover:bg-indigoJp hover:text-white active:scale-95 text-indigoJp font-bold text-xs px-4 py-2 rounded-xl transition flex items-center gap-1.5 shrink-0">
                     <i class="ph-fill ph-map-pin text-vermilion"></i>
                     <span>Google 導航</span>
                   </a>
@@ -1572,14 +1745,6 @@
       renderActiveDay();
     }
 
-    function toggleLargeFont() {
-      state.largeFont = !state.largeFont;
-      saveState();
-      document.getElementById('fontBtnLabel').textContent = state.largeFont ? '標準字體' : '長輩大字版';
-      renderActiveDay();
-      showToast(state.largeFont ? '🔍 已切換為長輩大字模式' : '已切換為標準字體模式');
-    }
-
     function switchTab(tabName) {
       state.activeTab = tabName;
       const views = ['itinerary', 'grid', 'logistics', 'checklist', 'search'];
@@ -1758,7 +1923,7 @@
     window.onload = function () {
       setupPWA();
       loadState();
-      document.getElementById('fontBtnLabel').textContent = state.largeFont ? '標準字體' : '長輩大字版';
+      applyFontScaleUI();
       renderDayPills();
       renderActiveDay();
       renderMultiDayGrid();
