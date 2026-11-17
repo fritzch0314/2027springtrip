@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>2027 日本關東 10天9夜 家族旅行小幫手</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Noto Sans TC & Noto Serif TC for Japanese Winter Vibe -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Noto+Serif+TC:wght@600;700;900&display=swap" rel="stylesheet">
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            washi: '#FAF8F5',
+            slateWarm: '#F3EFEA',
+            indigoJp: '#1E293B',
+            indigoDeep: '#0F172A',
+            vermilion: '#D9381E',
+            sakura: '#FCE7F3',
+            sakuraText: '#9D174D',
+            matcha: '#065F46',
+            matchaBg: '#D1FAE5',
+            amberWarn: '#FFFBEB',
+            amberBorder: '#F59E0B'
+          },
+          fontFamily: {
+            sans: ['"Noto Sans TC"', 'sans-serif'],
+            serif: ['"Noto Serif TC"', 'serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom Scrollbar Hiding for sleek mobile UI */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    body {
+      background-color: #E2E8F0;
+      font-family: 'Noto Sans TC', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Subtle Japanese wave/snow pattern overlay in header */
+    .jp-header-bg {
+      background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 60%, #312E81 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    .jp-header-bg::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(rgba(255,255,255,0.12) 1px, transparent 1px);
+      background-size: 16px 16px;
+      pointer-events: none;
+    }
+
+    /* Timeline vertical line */
+    .timeline-line::before {
+      content: '';
+      position: absolute;
+      top: 16px;
+      bottom: 0;
+      left: 15px;
+      width: 2px;
+      background: #CBD5E1;
+      z-index: 0;
+    }
+
+    /* Smooth transitions */
+    .card-transition {
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex justify-center items-start sm:py-6">
+
+  <!-- Mobile Phone Container (Max 480px on Desktop, Full on Mobile) -->
+  <div class="w-full max-w-[480px] bg-washi min-h-screen sm:min-h-[860px] sm:rounded-[36px] sm:shadow-2xl sm:border-[6px] sm:border-slate-800 flex flex-col relative overflow-hidden">
+
+    <!-- ================= TOP HEADER ================= -->
+    <header class="jp-header-bg text-white pt-5 pb-3 px-4 shrink-0 shadow-md z-20">
+      <div class="flex items-center justify-between mb-2 relative z-10">
+        <div>
+          <div class="flex items-center gap-1.5">
+            <span class="bg-vermilion text-white text-[11px] font-bold px-2 py-0.5 rounded-full tracking-wider shadow-sm">2027 農曆春節</span>
+            <span class="text-xs text-sky-200 font-medium">2/1 (一) - 2/10 (三)</span>
+          </div>
+          <h1 class="font-serif text-xl font-bold tracking-wide mt-1 text-white flex items-center gap-1.5">
+            <span>🗻 日本關東 10天9夜</span>
+          </h1>
+          <p class="text-xs text-slate-300 mt-0.5">東京・鎌倉・輕井澤・河口湖・川越 家族之旅</p>
+        </div>
+        <!-- Overall Trip Progress Pill -->
+        <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-3 py-2 text-right">
+          <div class="text-[10px] text-sky-200">行程完成度</div>
+          <div id="headerProgressText" class="text-sm font-black text-white">0%</div>
+        </div>
+      </div>
+
+      <!-- Font Size & Action Bar -->
+      <div class="flex items-center justify-between pt-2 border-t border-white/15 relative z-10 text-xs">
+        <div class="flex items-center gap-1 text-sky-100">
+          <i class="ph-fill ph-sparkle text-amber-300"></i>
+          <span id="currentViewSubtitle">點選下方日期切換每日行程</span>
+        </div>
+        <button id="toggleFontBtn" onclick="toggleLargeFont()" class="flex items-center gap-1 bg-white/15 hover:bg-white/25 active:scale-95 px-2.5 py-1 rounded-full text-[11px] font-medium transition">
+          <i class="ph ph-text-aa text-sm"></i>
+          <span id="fontBtnLabel">長輩大字版</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ================= STICKY DAY SELECTOR BAR (Only visible in Tab 1) ================= -->
+    <div id="daySelectorBar" class="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm px-2 py-2.5 shrink-0">
+      <div id="dayPillsContainer" class="flex items-center gap-2 overflow-x-auto no-scrollbar px-1">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+
+    <!-- ================= MAIN SCROLLABLE CONTENT AREA ================= -->
+    <main id="mainContent" class="flex-1 overflow-y-auto pb-24 px-3.5 pt-3 select-none sm:select-auto">
+
+      <!-- VIEW 1: DAILY ITINERARY (每日行程) -->
+      <section id="view-itinerary" class="space-y-3.5">
+        <!-- Day Summary Banner -->
+        <div id="dayBanner" class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Important Prep / Warning Alert Box -->
+        <div id="dayPrepAlert" class="hidden bg-amberWarn border-l-4 border-amberBorder rounded-r-2xl p-3.5 shadow-sm">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Timeline Header & Filter -->
+        <div class="flex items-center justify-between px-1 pt-1">
+          <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+            <i class="ph-bold ph-clock-clockwise text-vermilion"></i> 當日時間軸明細
+          </h3>
+          <button onclick="hideCompletedToggle()" id="hideCompletedBtn" class="text-xs text-slate-500 hover:text-slate-800 flex items-center gap-1 bg-slate-200/70 px-2.5 py-1 rounded-full font-medium">
+            <i class="ph ph-eye"></i> <span id="hideCompletedText">隱藏已完成</span>
+          </button>
+        </div>
+
+        <!-- Timeline Cards List -->
+        <div id="timelineContainer" class="relative timeline-line space-y-3 pl-1">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Quick Next/Prev Day Footer Buttons -->
+        <div class="flex items-center justify-between pt-4 pb-2 gap-3">
+          <button id="prevDayBtn" onclick="changeDayStep(-1)" class="flex-1 py-3 px-4 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-sm shadow-sm flex items-center justify-center gap-1.5 active:scale-95 transition disabled:opacity-40">
+            <i class="ph-bold ph-caret-left"></i> 前一天
+          </button>
+          <button id="nextDayBtn" onclick="changeDayStep(1)" class="flex-1 py-3 px-4 rounded-xl bg-indigoJp text-white font-bold text-sm shadow-sm flex items-center justify-center gap-1.5 active:scale-95 transition disabled:opacity-40">
+            後一天 <i class="ph-bold ph-caret-right"></i>
+          </button>
+        </div>
+      </section>
+
+      <!-- VIEW 2: HOTELS & TRANSPORT (住宿與交通) -->
+      <section id="view-logistics" class="hidden space-y-5">
+        <!-- Sub-navigation pills -->
+        <div class="flex bg-slate-200/80 p-1 rounded-xl">
+          <button onclick="switchLogisticsSub('hotels')" id="subBtn-hotels" class="flex-1 py-2 rounded-lg text-xs font-bold bg-white text-indigoJp shadow-sm transition">
+            🏨 4大住宿總覽 (9晚)
+          </button>
+          <button onclick="switchLogisticsSub('transport')" id="subBtn-transport" class="flex-1 py-2 rounded-lg text-xs font-bold text-slate-600 transition">
+            🚄 航班・租車・長途交通
+          </button>
+        </div>
+
+        <!-- Hotels List -->
+        <div id="logistics-hotels" class="space-y-3.5">
+          <!-- Luggage Forwarding Highlight Card -->
+          <div class="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-3.5 shadow-sm">
+            <div class="flex items-start gap-2.5">
+              <div class="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 mt-0.5">
+                <i class="ph-fill ph-suitcase-rolling text-lg"></i>
+              </div>
+              <div>
+                <h4 class="font-bold text-amber-950 text-sm">📦 家族大行李轉運攻略</h4>
+                <p class="text-xs text-amber-900 mt-1 leading-relaxed">
+                  <strong>Day 2 晚間：</strong>於上野整理前往輕井澤的大行李。<br>
+                  <strong>Day 4 晚間：</strong>於輕井澤王子西館打包，大行李可用<strong>黑貓宅急便</strong>先寄往河口湖 <em>Fuji View Hotel</em>（或東京），減輕 Day 5 轉乘新幹線與高速巴士負擔！
+                </p>
+              </div>
+            </div>
+          </div>
+          <div id="hotelsContainer" class="space-y-3"></div>
+        </div>
+
+        <!-- Transport List -->
+        <div id="logistics-transport" class="hidden space-y-3.5">
+          <!-- Driver License Critical Alert -->
+          <div class="bg-red-50 border-l-4 border-vermilion rounded-r-2xl p-3.5 shadow-sm">
+            <div class="flex items-start gap-2">
+              <i class="ph-fill ph-warning-octagon text-vermilion text-xl shrink-0 mt-0.5"></i>
+              <div>
+                <h4 class="font-bold text-red-900 text-sm">🚗 日本租車自駕最高原則</h4>
+                <p class="text-xs text-red-800 mt-1 leading-relaxed">
+                  台灣人於日本自駕<strong>【必須同時攜帶：台灣駕照正本 + 日文譯本正本】</strong>，絕對不可使用國際駕照！Day 5 取車前與出發前晚務必再次確認。
+                </p>
+              </div>
+            </div>
+          </div>
+          <div id="transportContainer" class="space-y-3"></div>
+        </div>
+      </section>
+
+      <!-- VIEW 3: CHECKLIST & PREP (準備與提醒) -->
+      <section id="view-checklist" class="hidden space-y-4">
+        <!-- Checklist Progress Card -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+          <div class="flex items-center justify-between mb-2">
+            <div>
+              <h2 class="font-bold text-base text-slate-800 flex items-center gap-1.5">
+                <i class="ph-fill ph-check-square-offset text-vermilion text-xl"></i> 行前與旅途必備檢查表
+              </h2>
+              <p class="text-xs text-slate-500">勾選項目會自動儲存在您的手機中</p>
+            </div>
+            <span id="prepProgressBadge" class="bg-emerald-100 text-emerald-800 font-black text-xs px-2.5 py-1 rounded-full">0 / 0</span>
+          </div>
+          <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+            <div id="prepProgressBar" class="h-full bg-emerald-600 transition-all duration-300" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- Add Custom Reminder Form -->
+        <form onsubmit="addCustomCheckItem(event)" class="flex gap-2">
+          <input type="text" id="customCheckInput" placeholder="新增家族提醒（例：帶兒童感冒藥、行動電源）..." class="flex-1 bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-indigoJp shadow-sm">
+          <button type="submit" class="bg-indigoJp text-white px-4 py-2.5 rounded-xl font-bold text-sm shadow-sm active:scale-95 transition shrink-0 flex items-center gap-1">
+            <i class="ph-bold ph-plus"></i> 新增
+          </button>
+        </form>
+
+        <!-- Checklist Items Container -->
+        <div id="checklistContainer" class="space-y-2.5">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Reset Button -->
+        <div class="pt-4 text-center">
+          <button onclick="resetAllProgress()" class="text-xs text-slate-400 hover:text-red-600 underline py-2">
+            重置所有勾選紀錄與自訂項目
+          </button>
+        </div>
+      </section>
+
+      <!-- VIEW 4: SEARCH & FILTER (搜尋與分類篩選) -->
+      <section id="view-search" class="hidden space-y-3.5">
+        <div class="bg-white rounded-2xl p-3.5 shadow-sm border border-slate-200 space-y-3 sticky top-2 z-10">
+          <!-- Search Input -->
+          <div class="relative">
+            <i class="ph ph-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
+            <input type="text" id="searchInput" oninput="renderSearchResults()" placeholder="搜尋關鍵字：花火、早餐、接駁車、Outlet、大佛..." class="w-full bg-slate-100 border border-slate-200 rounded-xl pl-10 pr-9 py-2.5 text-sm focus:bg-white focus:outline-none focus:border-indigoJp">
+            <button onclick="clearSearchInput()" id="clearSearchBtn" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+              <i class="ph-fill ph-x-circle text-lg"></i>
+            </button>
+          </div>
+
+          <!-- Quick Keyword Chips -->
+          <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
+            <span class="text-[11px] text-slate-400 shrink-0">熱門：</span>
+            <button onclick="setQuickSearch('冬花火')" class="text-xs bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-1 rounded-full shrink-0">🎇 冬花火</button>
+            <button onclick="setQuickSearch('Outlet')" class="text-xs bg-pink-50 text-pink-800 border border-pink-200 px-2.5 py-1 rounded-full shrink-0">🛍️ Outlet</button>
+            <button onclick="setQuickSearch('接駁車')" class="text-xs bg-blue-50 text-blue-800 border border-blue-200 px-2.5 py-1 rounded-full shrink-0">🚌 接駁車</button>
+            <button onclick="setQuickSearch('自駕')" class="text-xs bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-1 rounded-full shrink-0">🚗 自駕</button>
+            <button onclick="setQuickSearch('早餐')" class="text-xs bg-orange-50 text-orange-800 border border-orange-200 px-2.5 py-1 rounded-full shrink-0">🍽️ 早餐</button>
+          </div>
+
+          <!-- Category Filter Pills -->
+          <div class="grid grid-cols-5 gap-1.5 pt-1 border-t border-slate-100" id="categoryFilterBar">
+            <button onclick="setCategoryFilter('ALL')" data-cat="ALL" class="cat-btn bg-indigoJp text-white py-1.5 rounded-lg text-xs font-bold transition">全部</button>
+            <button onclick="setCategoryFilter('景點')" data-cat="景點" class="cat-btn bg-slate-100 text-slate-600 py-1.5 rounded-lg text-xs font-bold transition">📍景點</button>
+            <button onclick="setCategoryFilter('美食')" data-cat="美食" class="cat-btn bg-slate-100 text-slate-600 py-1.5 rounded-lg text-xs font-bold transition">🍽️美食</button>
+            <button onclick="setCategoryFilter('交通')" data-cat="交通" class="cat-btn bg-slate-100 text-slate-600 py-1.5 rounded-lg text-xs font-bold transition">🚆交通</button>
+            <button onclick="setCategoryFilter('住宿')" data-cat="住宿" class="cat-btn bg-slate-100 text-slate-600 py-1.5 rounded-lg text-xs font-bold transition">🏨住宿</button>
+          </div>
+        </div>
+
+        <div id="searchCountText" class="text-xs text-slate-500 px-1 font-medium"></div>
+        <div id="searchResultsContainer" class="space-y-2.5">
+          <!-- Populated by JS -->
+        </div>
+      </section>
+
+    </main>
+
+    <!-- ================= STICKY BOTTOM NAVIGATION BAR ================= -->
+    <nav class="sticky bottom-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200 px-2 py-1.5 grid grid-cols-4 gap-1 shadow-[0_-4px_12px_rgba(0,0,0,0.04)]">
+      <button onclick="switchTab('itinerary')" id="nav-itinerary" class="nav-btn flex flex-col items-center justify-center py-1 rounded-xl text-vermilion font-bold transition">
+        <i class="ph-fill ph-calendar-check text-xl mb-0.5"></i>
+        <span class="text-[11px]">每日行程</span>
+      </button>
+      <button onclick="switchTab('logistics')" id="nav-logistics" class="nav-btn flex flex-col items-center justify-center py-1 rounded-xl text-slate-400 font-medium hover:text-slate-700 transition">
+        <i class="ph ph-bed text-xl mb-0.5"></i>
+        <span class="text-[11px]">住宿與交通</span>
+      </button>
+      <button onclick="switchTab('checklist')" id="nav-checklist" class="nav-btn flex flex-col items-center justify-center py-1 rounded-xl text-slate-400 font-medium hover:text-slate-700 transition relative">
+        <i class="ph ph-check-square-offset text-xl mb-0.5"></i>
+        <span class="text-[11px]">準備與提醒</span>
+        <span id="navPrepDot" class="w-2 h-2 rounded-full bg-vermilion absolute top-1.5 right-6"></span>
+      </button>
+      <button onclick="switchTab('search')" id="nav-search" class="nav-btn flex flex-col items-center justify-center py-1 rounded-xl text-slate-400 font-medium hover:text-slate-700 transition">
+        <i class="ph ph-magnifying-glass text-xl mb-0.5"></i>
+        <span class="text-[11px]">搜尋/篩選</span>
+      </button>
+    </nav>
+
+    <!-- Custom Toast Notification (No alert() used) -->
+    <div id="toastBox" class="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 hidden bg-slate-900/95 text-white text-xs font-medium px-4 py-2.5 rounded-full shadow-xl flex items-center gap-2 transition-all">
+      <i class="ph-fill ph-check-circle text-emerald-400 text-base"></i>
+      <span id="toastMessage">已更新狀態</span>
+    </div>
+
+  </div>
+
+  <!-- ================= APPLICATION DATA & LOGIC ================= -->
+  <script>
+    // Complete 10-Day Itinerary Data strictly matching the user's CSV
+    const tripDays = [
+      {
+        day: 1,
+        date: "2/1",
+        weekday: "一",
+        lunar: "",
+        title: "抵達東京・上野漫遊",
+        region: "東京・上野",
+        hotel: "🏨【第1晚】MIMARU 東京 上野 NORTH",
+        hotelMap: "MIMARU TOKYO UENO NORTH",
+        prepNotes: [
+          "📝【出發前晚】檢查護照正本，完成 Visit Japan Web 填寫並截圖 QR Code",
+          "📝【出發前晚】台灣人日本自駕【必須使用台灣駕照正本 + 日文譯本正本】，不可使用國際駕照",
+          "📝【第1晚】確認 Suica/IC 卡餘額，或預先買好 JR 綠色車廂 (Green Car) 車票"
+        ],
+        items: [
+          { id: "d1-1", time: "05:30 - 06:30", cat: "交通", icon: "🚗", title: "05:30 出發 -> 06:30 抵達桃園機場", detail: "清晨專車或自駕前往桃園國際機場第二航廈", mapQuery: "桃園國際機場第二航廈" },
+          { id: "d1-2", time: "06:30", cat: "交通", icon: "📍", title: "桃園機場 T2 長榮櫃檯報到 (BR198 08:50起飛)", detail: "辦理行李託運與登機手續，準備出境", mapQuery: "桃園國際機場第二航廈 長榮航空" },
+          { id: "d1-3", time: "08:50 - 12:55", cat: "交通", icon: "✈️", title: "長榮 BR198 班機起飛 (桃園 T2 -> 成田 T1)", detail: "飛行時間約 3 小時 5 分（日本時差 +1 小時）", mapQuery: "成田國際機場 第一航廈" },
+          { id: "d1-4", time: "12:55", cat: "交通", icon: "🛬", title: "抵達成田機場 NRT T1，🧳 提領行李與辦理入境通關", detail: "出示預先截圖的 Visit Japan Web QR Code 加速通關", mapQuery: "成田國際機場 第一航廈" },
+          { id: "d1-5", time: "14:22 - 15:09", cat: "交通", icon: "🚆", title: "搭乘【京成 Skyliner】抵達京成上野站", detail: "全車對號座，約 47 分鐘直達京成上野站", mapQuery: "京成上野站" },
+          { id: "d1-6", time: "15:30", cat: "住宿", icon: "📍", title: "【MIMARU 東京 上野 NORTH】辦理入住", detail: "公寓式飯店，放置大行李稍作休息", mapQuery: "MIMARU TOKYO UENO NORTH" },
+          { id: "d1-7", time: "16:00 - 18:30", cat: "景點", icon: "📍", title: "上野公園散步漫遊、【Yodobashi Camera 上野店】與阿美橫丁", detail: "採買藥妝、零食或電器，感受東京下町熱鬧氣氛", mapQuery: "Yodobashi Camera 上野店 阿美橫丁" },
+          { id: "d1-8", time: "18:30 - 20:00", cat: "美食", icon: "🍽️", title: "【晚餐】上野周邊", detail: "享用上野周邊美食餐廳，早點休息儲備明日體力", mapQuery: "上野站 餐廳" }
+        ]
+      },
+      {
+        day: 2,
+        date: "2/2",
+        weekday: "二",
+        lunar: "",
+        title: "鎌倉・江之島古都海景一日遊",
+        region: "鎌倉・江之島",
+        hotel: "🏨【第2晚】MIMARU 東京 上野 NORTH - 連住第2晚",
+        hotelMap: "MIMARU TOKYO UENO NORTH",
+        prepNotes: [
+          "📝【第2晚】整理明日前往輕井澤的大行李"
+        ],
+        items: [
+          { id: "d2-1", time: "07:30", cat: "交通", icon: "🚶", title: "步行至 JR 上野站 (約10分)", detail: "從飯店出發步行前往 JR 上野站", mapQuery: "JR 上野站" },
+          { id: "d2-2", time: "07:46 - 08:51", cat: "交通", icon: "🚆", title: "搭JR至鎌倉 (轉車1次)", detail: "東海道&橫須賀線可加價搭綠色車廂 (Green Car)，戶塚站轉車較方便（同月台轉乘）", mapQuery: "鎌倉站" },
+          { id: "d2-3", time: "08:51", cat: "交通", icon: "🚃", title: "鎌倉站購買江之電1日車票", detail: "購買「江之電一日乘車券 Noriorikun」方便今日無限次搭乘", mapQuery: "江之電 鎌倉站" },
+          { id: "d2-4", time: "09:00 - 10:00", cat: "景點", icon: "📍", title: "【鶴岡八幡宮】", detail: "鎌倉最具代表性的歷史神社參拜", mapQuery: "鶴岡八幡宮" },
+          { id: "d2-5", time: "10:00 - 10:30", cat: "景點", icon: "📍", title: "【小町通老街】", detail: "漫步鎌倉熱鬧商店街、品嚐特色小吃與伴手禮", mapQuery: "鎌倉 小町通" },
+          { id: "d2-6", time: "10:30 - 12:00", cat: "美食", icon: "🍽️", title: "【午餐】小町通周邊餐廳", detail: "提早用午餐避開正午尖峰排隊人潮（推薦吻仔魚丼或日式定食）", mapQuery: "鎌倉 小町通 餐廳" },
+          { id: "d2-7", time: "12:08 - 12:12", cat: "交通", icon: "🚃", title: "搭江之電至長谷站", detail: "車程約 4 分鐘", mapQuery: "長谷站 神奈川" },
+          { id: "d2-8", time: "12:30 - 14:30", cat: "景點", icon: "📍", title: "參觀【高德院大佛】與【長谷寺】", detail: "瞻仰青銅鎌倉大佛，並至長谷寺觀音堂眺望由比濱海景", mapQuery: "鎌倉大佛 高德院 長谷寺" },
+          { id: "d2-9", time: "14:33 - 14:53", cat: "交通", icon: "🚃", title: "搭江之電從長谷站前往江之島站", detail: "沿途欣賞湘南海岸鐵道海景", mapQuery: "江之電 江之島站" },
+          { id: "d2-10", time: "15:00 - 15:40", cat: "景點", icon: "📍", title: "步行到【稚兒之淵】", detail: "跨過江之島弁天橋，沿參道散步上島（可搭手扶梯節省體力）", mapQuery: "江之島 稚兒之淵" },
+          { id: "d2-11", time: "15:40 - 16:30", cat: "景點", icon: "📍", title: "參觀【稚兒之淵】(若岩屋有開放則先參觀岩屋)", detail: "欣賞海蝕平台夕陽與海浪絕景，視潮汐開放狀況參觀江之島岩屋", mapQuery: "江之島岩屋" },
+          { id: "d2-12", time: "17:30 - 18:30", cat: "景點", icon: "📍", title: "參觀【Sea Candle 展望燈塔】點燈", detail: "江之島冬季寶石點燈「湘南之寶石」，登塔欣賞冬夜浪漫光海", mapQuery: "江之島展望燈塔 Sea Candle" },
+          { id: "d2-13", time: "19:01 - 19:07", cat: "交通", icon: "🚃", title: "搭江之電從江之島站至藤澤站", detail: "搭乘江之電前往終點站藤澤", mapQuery: "藤澤站" },
+          { id: "d2-14", time: "19:15 - 20:30", cat: "美食", icon: "🍽️", title: "【晚餐】藤澤站周邊餐廳", detail: "於藤澤站享用晚餐（或買鐵路便當提前搭車）", mapQuery: "藤澤站 餐廳" },
+          { id: "d2-15", time: "20:42 - 21:35", cat: "交通", icon: "🚆", title: "搭JR東海道線到上野", detail: "彈性方案：不在藤澤吃晚餐，買便當搭 19:17 - 20:10 班次直返上野", mapQuery: "JR 上野站" }
+        ]
+      },
+      {
+        day: 3,
+        date: "2/3",
+        weekday: "三",
+        lunar: "",
+        title: "前往輕井澤・中輕井澤教堂與 Outlet",
+        region: "長野・輕井澤",
+        hotel: "🏨【第3晚】輕井澤王子大飯店 西館",
+        hotelMap: "Karuizawa Prince Hotel West",
+        prepNotes: [],
+        items: [
+          { id: "d3-1", time: "08:15", cat: "交通", icon: "🚶", title: "步行至 JR 上野站 (約10分)", detail: "辦理 MIMARU 退房，推行李前往 JR 上野新幹線月台", mapQuery: "JR 上野站" },
+          { id: "d3-2", time: "08:34 - 09:43", cat: "交通", icon: "🚆", title: "搭乘北陸新幹線直達輕井澤", detail: "車程約 69 分鐘，舒適抵達度假勝地輕井澤", mapQuery: "輕井澤站" },
+          { id: "d3-3", time: "10:00", cat: "交通", icon: "🚗", title: "車站南口搭接駁車至旅館", detail: "於輕井澤站南口搭乘王子大飯店園區免費接駁巴士", mapQuery: "輕井澤站南口" },
+          { id: "d3-4", time: "10:10", cat: "住宿", icon: "📍", title: "【輕井澤王子大飯店 西館】🏨 Check-in 與寄放行李", detail: "先辦理入住登記並寄放行李，輕裝出發遊覽", mapQuery: "Karuizawa Prince Hotel West" },
+          { id: "d3-5", time: "10:40", cat: "交通", icon: "🚶", title: "步行至車站北口 (約15分)", detail: "散步前往輕井澤車站北口巴士乘車處", mapQuery: "輕井澤站北口" },
+          { id: "d3-6", time: "11:00 - 11:19", cat: "交通", icon: "🚌", title: "車站北口搭公車到榆樹街小鎮", detail: "搭乘西武觀光巴士前往星野區域", mapQuery: "輕井澤 榆樹街小鎮" },
+          { id: "d3-7", time: "11:30 - 13:30", cat: "美食", icon: "📍", title: "榆樹街小鎮逛街及午餐", detail: "在森林溪流環繞的木造露台聚落享用午餐（如川上庵蕎麥麵、村民食堂等）與逛特色小店", mapQuery: "Harunire Terrace 榆樹街小鎮" },
+          { id: "d3-8", time: "13:30 - 14:45", cat: "景點", icon: "📍", title: "參觀高原教會 & 石之教堂", detail: "漫步森林步道，參觀浪漫木造輕井澤高原教會與內村鑑三紀念堂（石之教堂）", mapQuery: "輕井澤高原教會 石之教堂" },
+          { id: "d3-9", time: "15:00 - 15:20", cat: "交通", icon: "🚌", title: "湯川站(Yukawa)搭公車到車站北口", detail: "搭乘巴士返回輕井澤站北口", mapQuery: "輕井澤站" },
+          { id: "d3-10", time: "15:40", cat: "住宿", icon: "📍", title: "【輕井澤王子大飯店 西館】🏨 Check-in 休息", detail: "領取房卡進房稍作休息", mapQuery: "Karuizawa Prince Hotel West" },
+          { id: "d3-11", time: "16:30 - 19:00", cat: "景點", icon: "📍", title: "【輕井澤王子 Outlet】🛍️ Outlet 採購", detail: "輕井澤王子購物廣場各大品牌巡禮", mapQuery: "Karuizawa Prince Shopping Plaza" },
+          { id: "d3-12", time: "19:00", cat: "美食", icon: "📍", title: "【輕井澤王子 Outlet】🛍️ 味之街晚餐", detail: "於 Outlet「味之街」餐廳區享用豐盛晚餐", mapQuery: "輕井澤王子購物廣場 味之街" },
+          { id: "d3-13", time: "20:00 or 20:30", cat: "交通", icon: "🚗", title: "搭接駁車至旅館", detail: "搭乘園區接駁車返回輕井澤王子西館休息", mapQuery: "Karuizawa Prince Hotel West" }
+        ]
+      },
+      {
+        day: 4,
+        date: "2/4",
+        weekday: "四",
+        lunar: "",
+        title: "輕井澤玩雪・舊輕井澤銀座通・Outlet",
+        region: "長野・輕井澤",
+        hotel: "🏨【第4晚】輕井澤王子大飯店 西館 - 連住第2晚",
+        hotelMap: "Karuizawa Prince Hotel West",
+        prepNotes: [
+          "📝【第4晚】行李打包，檢查【駕駛台灣駕照正本 + 日文譯本正本】備妥",
+          "📝 大行李可用黑貓宅急便先寄往 Fuji View Hotel",
+          "⚠️ 玩雪特別提醒：玩雪時注意小孩鞋是否濕透，隨身攜帶並更換備用乾襪！"
+        ],
+        items: [
+          { id: "d4-1", time: "07:30 - 08:30", cat: "美食", icon: "📍", title: "輕井澤王子大飯店 西館 🍽️ 自助早餐", detail: "於西館餐廳享用豐盛自助早餐，補充今日玩雪活力", mapQuery: "Karuizawa Prince Hotel West" },
+          { id: "d4-2", time: "09:05 - 09:15", cat: "交通", icon: "🚗", title: "搭接駁車至東館", detail: "搭乘園區接駁車前往東館滑雪場區域", mapQuery: "Karuizawa Prince Hotel East" },
+          { id: "d4-3", time: "09:30 - 11:00", cat: "景點", icon: "📍", title: "【輕井澤王子Snow Park】🛷 玩雪盆 & 雪胎", detail: "⚠️玩雪時注意小孩鞋是否濕透，更換備用乾襪！闔家體驗雪盆滑道與雪胎樂趣", mapQuery: "Karuizawa Prince Hotel Ski Resort" },
+          { id: "d4-4", time: "11:15 - 11:25", cat: "交通", icon: "🚗", title: "搭接駁車至西館", detail: "返回西館更換衣物或放置雪具用品", mapQuery: "Karuizawa Prince Hotel West" },
+          { id: "d4-5", time: "11:50 - 11:55", cat: "交通", icon: "🚗", title: "搭接駁車至 Outlet", detail: "搭乘接駁車前往王子購物廣場", mapQuery: "Karuizawa Prince Shopping Plaza" },
+          { id: "d4-6", time: "12:00 - 14:00", cat: "美食", icon: "📍", title: "【輕井澤王子 Outlet】🛍️ Food Court 午餐", detail: "於美食街自由選擇喜愛的餐點並逛街", mapQuery: "輕井澤王子購物廣場 Food Court" },
+          { id: "d4-7", time: "14:00 - 14:02", cat: "交通", icon: "🚌", title: "搭公車至舊輕井澤", detail: "搭乘巴士前往舊輕井澤入口", mapQuery: "舊輕井澤銀座通" },
+          { id: "d4-8", time: "14:10 - 16:00", cat: "景點", icon: "📍", title: "逛舊輕井澤銀座通", detail: "品嚐果醬、摩卡霜淇淋、麵包名店與歐風商店街散策", mapQuery: "舊輕井澤銀座通" },
+          { id: "d4-9", time: "16:10 - 16:15", cat: "交通", icon: "🚌", title: "舊輕井澤站搭公車到車站北口", detail: "搭公車返回輕井澤站北口", mapQuery: "輕井澤站" },
+          { id: "d4-10", time: "16:30 - 19:00", cat: "景點", icon: "📍", title: "【輕井澤王子 Outlet】🛍️ Outlet 採購", detail: "把握最後在輕井澤 Outlet 的採購時間", mapQuery: "Karuizawa Prince Shopping Plaza" },
+          { id: "d4-11", time: "19:00", cat: "美食", icon: "📍", title: "【輕井澤王子 Outlet】🛍️ 味之街晚餐", detail: "於味之街享用晚餐", mapQuery: "輕井澤王子購物廣場 味之街" },
+          { id: "d4-12", time: "20:00 or 20:30", cat: "交通", icon: "🚗", title: "搭接駁車至旅館", detail: "返回西館整理行李，準備明日移動至富士山河口湖", mapQuery: "Karuizawa Prince Hotel West" }
+        ]
+      },
+      {
+        day: 5,
+        date: "2/5",
+        weekday: "五",
+        lunar: "除夕",
+        title: "輕井澤移動至河口湖・租車自駕與溫泉除夕夜",
+        region: "富士山・河口湖",
+        hotel: "🏨【第5晚】Fuji View Hotel",
+        hotelMap: "Fuji View Hotel Kawaguchiko",
+        prepNotes: [
+          "🧧 今日為農曆除夕夜！晚間於富士景觀飯店泡溫泉、享用除夕團圓晚餐",
+          "🚗 14:00 Toyota 租車取車：請出示【台灣駕照正本 + 日文譯本正本 + 護照】"
+        ],
+        items: [
+          { id: "d5-1", time: "07:30 - 08:15", cat: "美食", icon: "📍", title: "輕井澤王子大飯店 西館 🍽️ 自助早餐", detail: "享用早餐並辦理退房手續", mapQuery: "Karuizawa Prince Hotel West" },
+          { id: "d5-2", time: "08:35 - 08:37", cat: "交通", icon: "📍", title: "搭接駁車至輕井澤車站", detail: "搭乘飯店接駁車前往輕井澤站", mapQuery: "輕井澤站" },
+          { id: "d5-3", time: "09:06 - 10:22", cat: "交通", icon: "🚆", title: "搭北陸新幹線到東京站", detail: "搭乘北陸新幹線返回東京車站（車程約 76 分鐘）", mapQuery: "東京站" },
+          { id: "d5-4", time: "11:10 - 13:17", cat: "交通", icon: "🚆", title: "東京站八重洲南口轉乘高速巴士直達河口湖站", detail: "💡 轉乘提醒：先在東京站買好午餐/點心於車上吃，巴士直達河口湖站", mapQuery: "東京站八重洲南口 高速巴士乘車處" },
+          { id: "d5-5", time: "14:00", cat: "交通", icon: "📍", title: "【Toyota Rent-a-Car 富士河口湖店】(步行 7 分鐘) 🚗 租車店取車", detail: "檢查車況、確認雪胎配備、設定導航，開啟河口湖自駕之旅", mapQuery: "Toyota Rent a Car Fujikawaguchiko" },
+          { id: "d5-6", time: "14:30", cat: "住宿", icon: "📍", title: "【Fuji View Hotel 富士景觀飯店】(自駕15分鐘) 🚗 抵達旅館辦理 Check-in", detail: "辦理入住，連住 3 晚的富士山溫泉度假飯店", mapQuery: "Fuji View Hotel Kawaguchiko" },
+          { id: "d5-7", time: "15:00", cat: "景點", icon: "📍", title: "旅館花園及河邊散步、泡溫泉", detail: "在飯店廣闊日式庭園散步賞景，享受溫泉洗去旅途疲勞", mapQuery: "Fuji View Hotel Kawaguchiko" },
+          { id: "d5-8", time: "18:00", cat: "美食", icon: "🍽️", title: "【晚餐】Fuji View Hotel (除夕團圓晚宴)", detail: "在飯店內享用溫馨豐盛的除夕晚餐", mapQuery: "Fuji View Hotel Kawaguchiko" }
+        ]
+      },
+      {
+        day: 6,
+        date: "2/6",
+        weekday: "六",
+        lunar: "初一",
+        title: "河口湖逆富士・天上山纜車・音樂盒之森・冬花火",
+        region: "富士山・河口湖",
+        hotel: "🏨【第6晚】Fuji View Hotel - 連住第2晚",
+        hotelMap: "Fuji View Hotel Kawaguchiko",
+        prepNotes: [
+          "📝【第6晚】準備防滑雪靴；晚間自駕看冬花火（20:00 施放）"
+        ],
+        items: [
+          { id: "d6-1", time: "06:15 - 06:30", cat: "交通", icon: "🚗", title: "開車出發前往河口湖北岸【大石公園】(車程15分鐘)", detail: "清晨湖面最平靜、最容易拍到清晰逆富士（視當日天氣與意願可彈性參加）", mapQuery: "河口湖 大石公園" },
+          { id: "d6-2", time: "06:30 - 07:00", cat: "景點", icon: "📍", title: "【大石公園】📸 賞富士山與逆富士絕景", detail: "晨光映照富士山頭，飽覽壯麗湖光山色", mapQuery: "河口湖 大石公園" },
+          { id: "d6-3", time: "07:00 - 07:15", cat: "交通", icon: "🚗", title: "開車回旅館", detail: "返回 Fuji View Hotel 準備用早餐", mapQuery: "Fuji View Hotel Kawaguchiko" },
+          { id: "d6-4", time: "07:30 - 08:30", cat: "美食", icon: "📍", title: "Fuji View Hotel 🍽️ 自助早餐", detail: "邊看富士山景邊享用飯店早餐", mapQuery: "Fuji View Hotel Kawaguchiko" },
+          { id: "d6-5", time: "09:00 - 09:10", cat: "交通", icon: "🚗", title: "自駕出發前往【富士山景觀纜車】(車程10分)", detail: "提早出發避開纜車排隊人潮", mapQuery: "富士山景觀纜車 天上山公園" },
+          { id: "d6-6", time: "09:10 - 11:30", cat: "景點", icon: "📍", title: "【富士山景觀纜車 (天上山公園)】🚡", detail: "登頂敲天上之鐘、俯瞰河口湖全景、吃烤狸貓糰子", mapQuery: "富士山景觀纜車 天上山公園" },
+          { id: "d6-7", time: "11:30 - 11:40", cat: "交通", icon: "🚗", title: "自駕出發前往【旅の駅】(車程10分)", detail: "開車前往人氣複合式市集", mapQuery: "旅の駅 kawaguchiko base" },
+          { id: "d6-8", time: "11:40 - 13:10", cat: "美食", icon: "📍", title: "【旅の駅 kawaguchiko base】地產地消市集 🥬 午餐 & 採購特產", detail: "品嚐山梨在地料理，採買富士山周邊伴手禮、水果與農特產", mapQuery: "旅の駅 kawaguchiko base" },
+          { id: "d6-9", time: "13:10 - 13:20", cat: "交通", icon: "🚗", title: "自駕出發前往【河口湖音樂盒之森美術館】(車程10分)", detail: "前往湖畔歐風美術館", mapQuery: "河口湖音樂盒之森美術館" },
+          { id: "d6-10", time: "13:20 - 15:30", cat: "景點", icon: "📍", title: "【河口湖音樂盒之森美術館】🎻", detail: "欣賞世界最大自動管風琴演奏、歐風庭園拍富士山與玫瑰園散策", mapQuery: "河口湖音樂盒之森美術館" },
+          { id: "d6-11", time: "15:30 - 15:45", cat: "交通", icon: "🚗", title: "開車返回 Fuji View Hotel", detail: "回飯店泡湯休息", mapQuery: "Fuji View Hotel Kawaguchiko" },
+          { id: "d6-12", time: "17:00 - 18:30", cat: "美食", icon: "🍽️", title: "【晚餐】Fuji View Hotel 或外面餐廳", detail: "享用大年初一晚餐", mapQuery: "Fuji View Hotel Kawaguchiko" },
+          { id: "d6-13", time: "19:00 - 19:10", cat: "交通", icon: "🚗", title: "自駕10分至八木崎公園 or 走路25分鐘", detail: "前往冬花火觀賞會場（注意夜間保暖穿戴毛帽手套）", mapQuery: "八木崎公園 河口湖" },
+          { id: "d6-14", time: "20:00 - 20:20", cat: "景點", icon: "✨", title: "【河口湖冬花火】🎇 八木崎公園觀賞湖上煙火", detail: "澄澈冬夜空綻放的璀璨富士山冬日花火大會！", mapQuery: "八木崎公園 河口湖" },
+          { id: "d6-15", time: "20:30 - 20:40", cat: "交通", icon: "🚗", title: "開車回旅館 or 走路25分鐘", detail: "返回 Fuji View Hotel 休息", mapQuery: "Fuji View Hotel Kawaguchiko" }
+        ]
+      },
+      {
+        day: 7,
+        date: "2/7",
+        weekday: "日",
+        lunar: "初二",
+        title: "新倉山淺間公園・忍野八海・西湖根場・冬花火",
+        region: "富士五湖周邊",
+        hotel: "🏨【第7晚】Fuji View Hotel 連住第3晚",
+        hotelMap: "Fuji View Hotel Kawaguchiko",
+        prepNotes: [
+          "💡 防滑對策：冬晨新倉山淺間公園階梯有殘雪結冰，請長輩小孩穿著【保暖防滑雪靴或簡易鞋底冰爪】",
+          "📝【第7晚】行李打包，預備明日還車返回東京"
+        ],
+        items: [
+          { id: "d7-1", time: "07:30 - 08:30", cat: "美食", icon: "📍", title: "Fuji View Hotel 🍽️ 自助早餐", detail: "於飯店享用活力早餐", mapQuery: "Fuji View Hotel Kawaguchiko" },
+          { id: "d7-2", time: "08:30 - 08:50", cat: "交通", icon: "🚗", title: "自駕出發前往【新倉山淺間公園】(車程20分)", detail: "開車前往富士吉田市經典明信片拍攝地", mapQuery: "新倉山淺間公園" },
+          { id: "d7-3", time: "08:50 - 10:30", cat: "景點", icon: "📍", title: "【新倉山淺間公園】📸 晨間順光拍攝忠靈塔與富士山絕景", detail: "登上 398 階咲久耶姬階梯至觀景台（或走緩坡車道）。💡注意階梯殘雪結冰，務必穿著防滑雪靴或冰爪！", mapQuery: "新倉山淺間公園 忠靈塔" },
+          { id: "d7-4", time: "10:30 - 11:00", cat: "交通", icon: "🚗", title: "開車至【忍野八海】(車程25分)", detail: "自駕前往天然紀念物湧泉群", mapQuery: "忍野八海" },
+          { id: "d7-5", time: "11:00 - 13:00", cat: "美食", icon: "📍", title: "【忍野八海】午餐及湧泉雪景散步", detail: "欣賞清澈見底的富士山雪水湧泉池，品嚐草餅、烤魚與在地麵食午餐", mapQuery: "忍野八海" },
+          { id: "d7-6", time: "13:00 - 14:00", cat: "交通", icon: "🚗", title: "開車至【西湖療癒之里根場】(車程50分)", detail: "自駕前往西湖合掌村聚落", mapQuery: "西湖療癒之里根場" },
+          { id: "d7-7", time: "14:00 - 16:30", cat: "景點", icon: "📍", title: "【西湖療癒之里根場】🏮 漫步日本原風景茅葺屋頂聚落", detail: "眺望無遮蔽富士山絕景、體驗手作工藝與茶屋甜點", mapQuery: "西湖療癒之里根場" },
+          { id: "d7-8", time: "16:30 - 17:00", cat: "交通", icon: "🚗", title: "開車返回 Fuji View Hotel", detail: "返回飯店休息泡湯", mapQuery: "Fuji View Hotel Kawaguchiko" },
+          { id: "d7-9", time: "17:30 - 19:00", cat: "美食", icon: "🍽️", title: "【晚餐】Fuji View Hotel 或外面餐廳", detail: "享用晚餐", mapQuery: "Fuji View Hotel Kawaguchiko" },
+          { id: "d7-10", time: "20:00 - 20:20", cat: "景點", icon: "✨", title: "【河口湖冬花火】DAY2", detail: "再次欣賞河口湖冬季花火浪漫夜空", mapQuery: "大池公園 河口湖" }
+        ]
+      },
+      {
+        day: 8,
+        date: "2/8",
+        weekday: "一",
+        lunar: "初三",
+        title: "河口湖還車返回東京・淺草寺・晴空塔",
+        region: "東京・淺草・押上",
+        hotel: "🏨【第8晚】&Here TOKYO UENO",
+        hotelMap: "&Here TOKYO UENO",
+        prepNotes: [
+          "⛽ 08:15 還車前務必先至河口湖 ENEOS 加滿油（Regular 油種），並保留加油收據供車行查驗"
+        ],
+        items: [
+          { id: "d8-1", time: "07:30 - 08:15", cat: "美食", icon: "📍", title: "Fuji View Hotel 🍽️ 自助早餐", detail: "享用早餐並辦理退房", mapQuery: "Fuji View Hotel Kawaguchiko" },
+          { id: "d8-2", time: "08:15 - 08:30", cat: "交通", icon: "🚗", title: "由 Fuji View Hotel 開車至河口湖 ENEOS 加滿油", detail: "還車前加滿油（Regular），保留收據", mapQuery: "ENEOS 河口湖" },
+          { id: "d8-3", time: "08:45", cat: "交通", icon: "📍", title: "於【Toyota 富士河口湖店】辦理還車", detail: "完成還車點交手續，步行約 7 分鐘至河口湖車站", mapQuery: "Toyota Rent a Car Fujikawaguchiko" },
+          { id: "d8-4", time: "09:30 - 11:35", cat: "交通", icon: "🚌", title: "搭乘高速巴士直達東京站", detail: "從河口湖站搭乘高速巴士返回東京車站", mapQuery: "河口湖站" },
+          { id: "d8-5", time: "11:59 - 12:05", cat: "交通", icon: "🚃", title: "東京站轉山手線至御徒町站", detail: "車程約 6 分鐘", mapQuery: "JR 御徒町站" },
+          { id: "d8-6", time: "12:05 - 12:15", cat: "住宿", icon: "📍", title: "【&Here TOKYO UENO】🚶 步行至 &Here 寄放行李 (約10分)", detail: "前往上野不忍池畔新穎飯店寄放行李", mapQuery: "&Here TOKYO UENO" },
+          { id: "d8-7", time: "12:45 - 14:00", cat: "美食", icon: "🍽️", title: "【午餐】上野廣小路站周邊餐廳", detail: "於上野廣小路／御徒町周邊享用午餐", mapQuery: "上野廣小路站 餐廳" },
+          { id: "d8-8", time: "14:07 - 14:14", cat: "交通", icon: "🚃", title: "上野廣小路站搭銀座線到淺草", detail: "搭乘東京メトロ銀座線直達淺草站（約 7 分鐘）", mapQuery: "淺草站" },
+          { id: "d8-9", time: "14:16 - 15:30", cat: "景點", icon: "📍", title: "參觀淺草寺", detail: "雷門大燈籠拍照、仲見世通商店街散策與淺草寺本堂參拜", mapQuery: "淺草寺 雷門" },
+          { id: "d8-10", time: "15:30 - 15:50", cat: "交通", icon: "🚶", title: "淺草寺散步到牛嶋神社", detail: "可走隅田川步道橋（Sumida River Walk）跨河漫步", mapQuery: "隅田公園 牛嶋神社" },
+          { id: "d8-11", time: "15:50 - 16:05", cat: "景點", icon: "📍", title: "參拜牛嶋神社", detail: "摸撫牛祈求健康平安，拍下晴空塔與古神社同框美景", mapQuery: "牛嶋神社" },
+          { id: "d8-12", time: "16:05 - 16:20", cat: "交通", icon: "🚶", title: "牛嶋神社散步到晴空塔", detail: "沿東京 Mizumachi 河岸步道散步至東京晴空塔", mapQuery: "東京晴空塔" },
+          { id: "d8-13", time: "16:20 - 17:30", cat: "景點", icon: "📍", title: "晴空塔逛街", detail: "東京晴空街道 Solamachi 伴手禮、寶可夢中心與卡通專賣店巡禮", mapQuery: "東京晴空街道 Solamachi" },
+          { id: "d8-14", time: "17:30 - 18:45", cat: "景點", icon: "📍", title: "晴空塔觀景台", detail: "登上天望甲板欣賞黃昏夕陽轉為璀璨東京百萬夜景", mapQuery: "東京晴空塔展望台" },
+          { id: "d8-15", time: "19:00 - 20:30", cat: "美食", icon: "🍽️", title: "【晚餐】晴空塔內餐廳", detail: "於晴空街道 6F/7F 或高樓景觀餐廳享用晚餐", mapQuery: "東京晴空塔 餐廳" },
+          { id: "d8-16", time: "20:34 - 20:50", cat: "交通", icon: "🚃", title: "押上站搭淺草線轉銀座線至上野廣小路站", detail: "返回 &Here TOKYO UENO 飯店休息（可享受頂樓大浴場）", mapQuery: "&Here TOKYO UENO" }
+        ]
+      },
+      {
+        day: 9,
+        date: "2/9",
+        weekday: "二",
+        lunar: "初四",
+        title: "小江戶川越一日遊",
+        region: "埼玉・川越",
+        hotel: "🏨【第9晚】&Here TOKYO UENO - 連住第2晚",
+        hotelMap: "&Here TOKYO UENO",
+        prepNotes: [
+          "📝【第9晚】行李打包，把握最後藥妝與伴手禮採購機會！"
+        ],
+        items: [
+          { id: "d9-1", time: "08:15", cat: "交通", icon: "🚶", title: "出發步行至上野站 (約15分)", detail: "從飯店出發散步至 JR 上野站", mapQuery: "JR 上野站" },
+          { id: "d9-2", time: "08:42 - 09:41", cat: "交通", icon: "🚆", title: "上野站搭JR抵達川越站 (轉車1次) 🚌 購買小江戶名勝巡迴巴士票", detail: "抵達川越站後，購買「小江戶名勝巡迴巴士一日券」", mapQuery: "川越站" },
+          { id: "d9-3", time: "10:00 - 10:08", cat: "交通", icon: "🚌", title: "搭巡迴巴士到【喜多院前】", detail: "搭乘復古巡迴巴士前往第一站喜多院", mapQuery: "川越 喜多院" },
+          { id: "d9-4", time: "10:08 - 10:58", cat: "景點", icon: "📍", title: "參觀喜多院 & 五百羅漢", detail: "參拜千年古剎喜多院，欣賞表情生動各異的五百羅漢石像", mapQuery: "川越 喜多院 五百羅漢" },
+          { id: "d9-5", time: "10:58 - 11:08", cat: "交通", icon: "🚌", title: "搭巡迴巴士到【博物館前】", detail: "搭乘巡迴巴士前往川越城", mapQuery: "川越城本丸御殿" },
+          { id: "d9-6", time: "11:08 - 12:03", cat: "景點", icon: "📍", title: "參觀川越城本丸御殿", detail: "日本僅存兩座本丸御殿之一，感受江戶時代武家建築氣派", mapQuery: "川越城本丸御殿" },
+          { id: "d9-7", time: "12:03 - 12:08", cat: "交通", icon: "🚌", title: "搭巡迴巴士到【札の辻】", detail: "前往藏造老街北端入口", mapQuery: "川越 札の辻" },
+          { id: "d9-8", time: "12:08 - 14:45", cat: "美食", icon: "📍", title: "參觀菓子屋橫丁→藏造一番街→時之鐘、🍽️【午餐】藏造一番街餐廳", detail: "漫步江戶黑瓦藏造老街、聽時之鐘報時、品嚐川越名物鰻魚飯或地瓜點心", mapQuery: "川越 時之鐘 藏造一番街" },
+          { id: "d9-9", time: "14:45 - 15:00", cat: "交通", icon: "🚶", title: "走路到【冰川神社】", detail: "散步約 15 分鐘前往川越冰川神社", mapQuery: "川越冰川神社" },
+          { id: "d9-10", time: "15:00 - 16:00", cat: "景點", icon: "📍", title: "參觀冰川神社", detail: "體驗釣一年安鯛魚籤、穿過繪馬隧道與參拜大鳥居", mapQuery: "川越冰川神社" },
+          { id: "d9-11", time: "16:00 - 16:05", cat: "交通", icon: "🚌", title: "搭巡迴巴士到【仲町】", detail: "搭乘巡迴巴士前往仲町站", mapQuery: "川越 熊野神社" },
+          { id: "d9-12", time: "16:05 - 17:40", cat: "景點", icon: "📍", title: "參觀熊野神社→大正浪漫夢通", detail: "參拜開運川越熊野神社（洗錢弁財天、健康步道），漫步復古洋風大正浪漫夢通", mapQuery: "川越 大正浪漫夢通" },
+          { id: "d9-13", time: "17:43 - 17:53", cat: "交通", icon: "🚌", title: "【蓮馨寺站】搭一般巴士到【川越站】", detail: "搭乘巴士返回川越車站", mapQuery: "蓮馨寺 川越" },
+          { id: "d9-14", time: "18:19 - 19:12", cat: "交通", icon: "🚆", title: "搭<東武東上線>到池袋轉<山手線>抵達御徒町站 (轉車1次)", detail: "返回東京上野御徒町區域", mapQuery: "JR 御徒町站" },
+          { id: "d9-15", time: "19:30 - 20:30", cat: "美食", icon: "🍽️", title: "【晚餐】御徒町站周邊餐廳", detail: "享用在東京最後一晚的慶功晚餐與最後補貨", mapQuery: "御徒町站 餐廳" }
+        ]
+      },
+      {
+        day: 10,
+        date: "2/10",
+        weekday: "三",
+        lunar: "初五",
+        title: "賦歸・平安返台",
+        region: "上野・成田機場・桃園",
+        hotel: "🏠 溫暖的家",
+        hotelMap: "桃園國際機場第二航廈",
+        prepNotes: [
+          "✈️ 退房前再次巡視房間插座、保險箱與冰箱是否有遺留物品"
+        ],
+        items: [
+          { id: "d10-1", time: "09:30", cat: "交通", icon: "🚶", title: "辦理退房，步行至京成上野站 (約10分)", detail: "從 &Here TOKYO UENO 退房，沿不忍池畔步行至京成上野站", mapQuery: "京成上野站" },
+          { id: "d10-2", time: "10:00 - 10:53", cat: "交通", icon: "🚆", title: "搭乘【京成 Skyliner】特急直奔成田 T1", detail: "約 53 分鐘舒適直達成田機場第一航廈", mapQuery: "成田國際機場 第一航廈" },
+          { id: "d10-3", time: "12:00", cat: "美食", icon: "🍽️", title: "【午餐】成田T1餐廳", detail: "完成長榮櫃檯報到與行李託運後，於機場餐廳享用午餐與免稅店採買", mapQuery: "成田國際機場 第一航廈 餐廳" },
+          { id: "d10-4", time: "14:00 - 17:05", cat: "交通", icon: "✈️", title: "【搭乘長榮 BR197】返台", detail: "成田 T1 (14:00) -> 桃園 T2 (17:05)", mapQuery: "桃園國際機場第二航廈" },
+          { id: "d10-5", time: "17:05", cat: "交通", icon: "🛬", title: "降落桃園 T2・平安返家", detail: "帶著滿滿的家族美好回憶平安抵達台灣！", mapQuery: "桃園國際機場第二航廈" }
+        ]
+      }
+    ];
+
+    // Hotels Summary Data
+    const hotelsData = [
+      {
+        nights: "第 1 - 2 晚 (2/1 - 2/3)",
+        name: "MIMARU 東京 上野 NORTH",
+        area: "東京・上野",
+        badge: "連住 2 晚",
+        desc: "寬敞家庭式公寓飯店，鄰近 JR 上野站與京成上野站，方便第一天抵達與第二天前往鎌倉。",
+        reminder: "Day 2 晚間整理前往輕井澤的大行李。",
+        mapQuery: "MIMARU TOKYO UENO NORTH"
+      },
+      {
+        nights: "第 3 - 4 晚 (2/3 - 2/5)",
+        name: "輕井澤王子大飯店 西館",
+        area: "長野・輕井澤",
+        badge: "連住 2 晚",
+        desc: "鄰近輕井澤王子購物廣場 Outlet 與 Snow Park 滑雪場，園區內有免費接駁車串聯車站南口、東館與西館。",
+        reminder: "Day 4 晚間大行李可用黑貓宅急便先寄往 Fuji View Hotel，並確認台灣駕照正本+日文譯本正本。",
+        mapQuery: "Karuizawa Prince Hotel West"
+      },
+      {
+        nights: "第 5 - 7 晚 (2/5 - 2/8)",
+        name: "Fuji View Hotel 富士景觀飯店",
+        area: "山梨・河口湖",
+        badge: "連住 3 晚 (除夕~初二)",
+        desc: "坐擁壯麗富士山景與日式庭園的溫泉飯店。自駕前往大石公園、天上山纜車、八木崎公園冬花火皆十分便利。",
+        reminder: "Day 6、Day 7 晚間 20:00 有河口湖冬花火；Day 8 早上退房後先去 ENEOS 加滿油再還車。",
+        mapQuery: "Fuji View Hotel Kawaguchiko"
+      },
+      {
+        nights: "第 8 - 9 晚 (2/8 - 2/10)",
+        name: "&Here TOKYO UENO",
+        area: "東京・上野不忍池畔",
+        badge: "連住 2 晚 (初三~初四)",
+        desc: "位於上野公園不忍池正對面，步行至御徒町站、上野廣小路站與京成上野站皆約 5~10 分鐘，頂樓設有景觀大浴場。",
+        reminder: "Day 10 早上 09:30 退房，步行約 10 分鐘即可達京成上野站搭 Skyliner 去機場。",
+        mapQuery: "&Here TOKYO UENO"
+      }
+    ];
+
+    // Transport Summary Data
+    const transportData = [
+      {
+        type: "✈️ 國際航班 (長榮航空)",
+        title: "去程 BR198 / 回程 BR197",
+        time: "去程 2/1 08:50-12:55 ｜ 回程 2/10 14:00-17:05",
+        detail: "桃園機場第二航廈 (T2) ⇄ 東京成田機場第一航廈 (NRT T1)。去程 06:30 於長榮櫃檯報到。",
+        mapQuery: "成田國際機場 第一航廈"
+      },
+      {
+        type: "🚆 機場特急 (京成電鐵)",
+        title: "京成 Skyliner (成田 T1 ⇄ 京成上野)",
+        time: "Day 1 (14:22-15:09) ｜ Day 10 (10:00-10:53)",
+        detail: "全車對號座，來回皆直達京成上野站，無須換車，最適合家族推大行李搭乘。",
+        mapQuery: "京成上野站"
+      },
+      {
+        type: "🚄 JR 新幹線 & 近郊鐵道",
+        title: "北陸新幹線 / 東海道橫須賀線 / 東武東上線",
+        time: "Day 2 鎌倉 ｜ Day 3 & 5 輕井澤 ｜ Day 9 川越",
+        detail: "• Day 2 鎌倉：上野搭 JR (戶塚轉車較方便，可加價搭 Green Car) + 江之電一日券\n• Day 3 輕井澤：上野 08:34 搭北陸新幹線直達輕井澤 (09:43)\n• Day 5 回東京：輕井澤 09:06 搭北陸新幹線至東京站 (10:22)\n• Day 9 川越：去程 JR 至川越 + 小江戶巡迴巴士一日券；回程東武東上線至池袋轉山手線",
+        mapQuery: "JR 上野站"
+      },
+      {
+        type: "🚌 富士急行高速巴士",
+        title: "東京站八重洲南口 ⇄ 河口湖站",
+        time: "去程 Day 5 (11:10-13:17) ｜ 回程 Day 8 (09:30-11:35)",
+        detail: "東京站八重洲南口高速巴士總站上下車。Day 5 轉乘時建議先在東京站買好食物於車上享用。",
+        mapQuery: "東京站八重洲南口"
+      },
+      {
+        type: "🚗 河口湖租車自駕 (Toyota Rent-a-Car)",
+        title: "Toyota Rent-a-Car 富士河口湖店",
+        time: "取車 Day 5 14:00 ｜ 還車 Day 8 08:45",
+        detail: "從河口湖站步行約 7 分鐘。⚠️ 必備【台灣駕照正本 + 日文譯本正本】。Day 8 08:15 先去河口湖 ENEOS 加滿油再還車。",
+        mapQuery: "Toyota Rent a Car Fujikawaguchiko"
+      }
+    ];
+
+    // Default Checklist Items from CSV
+    const defaultChecklist = [
+      { id: "chk-1", tag: "出發前晚", text: "檢查全員【護照正本】效期與隨身攜帶", critical: true },
+      { id: "chk-2", tag: "出發前晚", text: "完成 Visit Japan Web 填寫並【截圖 QR Code】備用", critical: true },
+      { id: "chk-3", tag: "自駕必備", text: "攜帶【台灣駕照正本 + 日文譯本正本】（不可用國際駕照！）", critical: true },
+      { id: "chk-4", tag: "Day 1 晚", text: "確認 Suica / IC 卡餘額，或預先買好 JR 綠色車廂車票", critical: false },
+      { id: "chk-5", tag: "Day 2 晚", text: "整理明日前往輕井澤的大行李", critical: false },
+      { id: "chk-6", tag: "Day 4 玩雪", text: "小孩玩雪盆隨身攜帶【備用乾襪】，隨時注意鞋子是否濕透", critical: true },
+      { id: "chk-7", tag: "Day 4 晚", text: "大行李可用【黑貓宅急便】先寄往 Fuji View Hotel，並再次檢查駕照與譯本", critical: false },
+      { id: "chk-8", tag: "Day 6 & 7", text: "準備【保暖防滑雪靴或簡易鞋底冰爪】（新倉山淺間公園 398 階梯防結冰滑倒 & 晚間看冬花火保暖）", critical: true },
+      { id: "chk-9", tag: "Day 8 早", text: "還車前於河口湖 ENEOS 加滿油並保留收據", critical: false },
+      { id: "chk-10", tag: "Day 9 晚", text: "回國前最後行李打包與免稅品確認", critical: false }
+    ];
+
+    // ================= STATE MANAGEMENT (localStorage) =================
+    const STORAGE_KEYS = {
+      DONE_ITEMS: 'kantotrip2027_done_items',
+      CHECKLIST_DONE: 'kantotrip2027_checklist_done',
+      CUSTOM_CHECKS: 'kantotrip2027_custom_checks',
+      LARGE_FONT: 'kantotrip2027_large_font',
+      ACTIVE_DAY: 'kantotrip2027_active_day'
+    };
+
+    let state = {
+      activeTab: 'itinerary',
+      activeDay: 1,
+      hideCompleted: false,
+      largeFont: false,
+      searchCategory: 'ALL',
+      doneItems: {},       // { "d1-1": true }
+      checklistDone: {},   // { "chk-1": true }
+      customChecks: []     // [ { id, tag, text, critical } ]
+    };
+
+    function loadState() {
+      try {
+        const savedDone = localStorage.getItem(STORAGE_KEYS.DONE_ITEMS);
+        if (savedDone) state.doneItems = JSON.parse(savedDone);
+
+        const savedChk = localStorage.getItem(STORAGE_KEYS.CHECKLIST_DONE);
+        if (savedChk) state.checklistDone = JSON.parse(savedChk);
+
+        const savedCustom = localStorage.getItem(STORAGE_KEYS.CUSTOM_CHECKS);
+        if (savedCustom) state.customChecks = JSON.parse(savedCustom);
+
+        const savedFont = localStorage.getItem(STORAGE_KEYS.LARGE_FONT);
+        if (savedFont === 'true') state.largeFont = true;
+
+        const savedDay = localStorage.getItem(STORAGE_KEYS.ACTIVE_DAY);
+        if (savedDay) state.activeDay = parseInt(savedDay, 10) || 1;
+      } catch (e) {
+        console.warn('LocalStorage read error:', e);
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEYS.DONE_ITEMS, JSON.stringify(state.doneItems));
+        localStorage.setItem(STORAGE_KEYS.CHECKLIST_DONE, JSON.stringify(state.checklistDone));
+        localStorage.setItem(STORAGE_KEYS.CUSTOM_CHECKS, JSON.stringify(state.customChecks));
+        localStorage.setItem(STORAGE_KEYS.LARGE_FONT, String(state.largeFont));
+        localStorage.setItem(STORAGE_KEYS.ACTIVE_DAY, String(state.activeDay));
+      } catch (e) {
+        console.warn('LocalStorage write error:', e);
+      }
+    }
+
+    // ================= HELPER UI FUNCTIONS =================
+    let toastTimer = null;
+    function showToast(msg) {
+      const box = document.getElementById('toastBox');
+      const text = document.getElementById('toastMessage');
+      text.textContent = msg;
+      box.classList.remove('hidden');
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        box.classList.add('hidden');
+      }, 2000);
+    }
+
+    function getCategoryStyle(cat) {
+      switch (cat) {
+        case '景點':
+          return { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200', dot: 'bg-rose-500' };
+        case '美食':
+          return { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200', dot: 'bg-orange-500' };
+        case '交通':
+          return { bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-200', dot: 'bg-sky-500' };
+        case '住宿':
+          return { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200', dot: 'bg-purple-500' };
+        default:
+          return { bg: 'bg-slate-100', text: 'text-slate-700', border: 'border-slate-200', dot: 'bg-slate-500' };
+      }
+    }
+
+    function getGoogleMapsUrl(query) {
+      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query + ' 日本')}`;
+    }
+
+    // ================= RENDER FUNCTIONS =================
+
+    // 1. Render Day Selector Pills
+    function renderDayPills() {
+      const container = document.getElementById('dayPillsContainer');
+      container.innerHTML = tripDays.map(d => {
+        const isActive = d.day === state.activeDay;
+        const lunarBadge = d.lunar
+          ? `<span class="text-[10px] px-1.5 py-0.2 rounded-full ${isActive ? 'bg-vermilion text-white' : 'bg-red-100 text-vermilion'} font-bold ml-1">${d.lunar}</span>`
+          : '';
+
+        // Calculate if all items in day are completed
+        const total = d.items.length;
+        const doneCount = d.items.filter(i => state.doneItems[i.id]).length;
+        const allDone = total > 0 && doneCount === total;
+
+        return `
+          <button onclick="selectDay(${d.day})" id="day-pill-${d.day}"
+            class="shrink-0 px-3.5 py-2 rounded-2xl border text-left transition-all flex flex-col justify-center min-w-[82px] ${
+              isActive
+                ? 'bg-indigoJp text-white border-indigoJp shadow-md scale-[1.02]'
+                : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+            }">
+            <div class="flex items-center justify-between w-full">
+              <span class="text-[11px] font-black tracking-tight ${isActive ? 'text-sky-300' : 'text-slate-400'}">DAY ${d.day}</span>
+              ${allDone ? '<i class="ph-fill ph-check-circle text-emerald-400 text-xs"></i>' : ''}
+            </div>
+            <div class="flex items-center mt-0.5">
+              <span class="text-sm font-bold">${d.date}</span>
+              <span class="text-xs ml-0.5 opacity-80">(${d.weekday})</span>
+              ${lunarBadge}
+            </div>
+          </button>
+        `;
+      }).join('');
+    }
+
+    // 2. Render Active Day View
+    function renderActiveDay() {
+      const dayObj = tripDays.find(d => d.day === state.activeDay) || tripDays[0];
+      const titleFontClass = state.largeFont ? 'text-lg' : 'text-[15px]';
+      const detailFontClass = state.largeFont ? 'text-sm' : 'text-xs';
+
+      // Day Banner
+      const doneCount = dayObj.items.filter(i => state.doneItems[i.id]).length;
+      const totalCount = dayObj.items.length;
+      const dayPercent = Math.round((doneCount / totalCount) * 100);
+
+      document.getElementById('dayBanner').innerHTML = `
+        <div class="flex items-start justify-between gap-2">
+          <div>
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="bg-indigoJp text-white text-xs font-bold px-2.5 py-0.5 rounded-lg">Day ${dayObj.day}</span>
+              <span class="text-xs font-bold text-slate-600">${dayObj.date} (${dayObj.weekday})</span>
+              ${dayObj.lunar ? `<span class="bg-red-100 text-vermilion text-xs font-bold px-2 py-0.5 rounded-lg">🧧 ${dayObj.lunar}</span>` : ''}
+              <span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-lg">${dayObj.region}</span>
+            </div>
+            <h2 class="font-serif font-bold text-lg text-slate-900 mt-1.5 leading-snug">${dayObj.title}</h2>
+          </div>
+          <div class="text-right shrink-0">
+            <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-lg inline-block">
+              進度 ${doneCount}/${totalCount}
+            </span>
+          </div>
+        </div>
+
+        <!-- Hotel Info Strip inside Banner -->
+        <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
+          <div class="text-xs text-slate-700 font-medium truncate">
+            ${dayObj.hotel}
+          </div>
+          <a href="${getGoogleMapsUrl(dayObj.hotelMap)}" target="_blank" rel="noopener noreferrer"
+            class="shrink-0 text-[11px] font-bold text-indigoJp bg-slate-100 hover:bg-slate-200 px-2.5 py-1 rounded-lg flex items-center gap-1">
+            <i class="ph-fill ph-map-pin text-vermilion"></i> 飯店導航
+          </a>
+        </div>
+      `;
+
+      // Prep / Warning Alert Box
+      const prepBox = document.getElementById('dayPrepAlert');
+      if (dayObj.prepNotes && dayObj.prepNotes.length > 0) {
+        prepBox.classList.remove('hidden');
+        prepBox.innerHTML = `
+          <div class="flex items-center gap-1.5 font-bold text-amber-950 text-xs mb-1.5">
+            <i class="ph-fill ph-warning-circle text-amber-600 text-base"></i>
+            <span>當日重要提醒 & 提前準備事項</span>
+          </div>
+          <ul class="space-y-1.5">
+            ${dayObj.prepNotes.map(note => `
+              <li class="${detailFontClass} text-amber-900 leading-relaxed flex items-start gap-1.5">
+                <span class="text-amber-600 font-bold">•</span>
+                <span>${note}</span>
+              </li>
+            `).join('')}
+          </ul>
+        `;
+      } else {
+        prepBox.classList.add('hidden');
+      }
+
+      // Timeline Cards
+      const timelineContainer = document.getElementById('timelineContainer');
+      const filteredItems = state.hideCompleted
+        ? dayObj.items.filter(item => !state.doneItems[item.id])
+        : dayObj.items;
+
+      if (filteredItems.length === 0) {
+        timelineContainer.innerHTML = `
+          <div class="bg-white rounded-2xl p-6 text-center border border-slate-200 ml-5">
+            <i class="ph-fill ph-confetti text-4xl text-emerald-500 mb-2"></i>
+            <p class="font-bold text-slate-800 text-sm">太棒了！今日所有行程皆已完成</p>
+            <button onclick="hideCompletedToggle()" class="mt-2 text-xs text-indigoJp underline">顯示已完成項目</button>
+          </div>
+        `;
+      } else {
+        timelineContainer.innerHTML = filteredItems.map(item => {
+          const isDone = !!state.doneItems[item.id];
+          const catStyle = getCategoryStyle(item.cat);
+
+          return `
+            <div class="relative pl-7 card-transition ${isDone ? 'opacity-60' : ''}">
+              <!-- Timeline Dot -->
+              <button onclick="toggleTimelineItem('${item.id}')" aria-label="標記完成"
+                class="absolute left-0 top-3.5 w-6 h-6 rounded-full flex items-center justify-center z-10 shadow-sm border-2 transition ${
+                  isDone
+                    ? 'bg-emerald-500 border-emerald-500 text-white'
+                    : 'bg-white border-slate-300 text-transparent hover:border-indigoJp'
+                }">
+                <i class="ph-bold ph-check text-xs"></i>
+              </button>
+
+              <!-- Card Body -->
+              <div class="bg-white rounded-2xl p-3.5 shadow-sm border ${isDone ? 'border-emerald-200 bg-slate-50/70' : 'border-slate-200/90'}">
+                <!-- Top Row: Time + Category + Done Toggle -->
+                <div class="flex items-center justify-between gap-2 mb-1.5">
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="bg-slate-800 text-white text-xs font-mono font-bold px-2 py-0.5 rounded-md tracking-tight">
+                      ${item.time}
+                    </span>
+                    <span class="${catStyle.bg} ${catStyle.text} ${catStyle.border} border text-[11px] font-bold px-2 py-0.5 rounded-md">
+                      ${item.icon} ${item.cat}
+                    </span>
+                  </div>
+
+                  <button onclick="toggleTimelineItem('${item.id}')"
+                    class="text-[11px] font-bold px-2 py-0.5 rounded-full border transition flex items-center gap-1 shrink-0 ${
+                      isDone
+                        ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                        : 'bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200'
+                    }">
+                    <i class="ph-bold ${isDone ? 'ph-check-circle' : 'ph-circle'}"></i>
+                    <span>${isDone ? '已完成' : '打卡'}</span>
+                  </button>
+                </div>
+
+                <!-- Main Title -->
+                <h4 onclick="toggleTimelineItem('${item.id}')" class="font-bold text-slate-900 ${titleFontClass} leading-snug cursor-pointer ${isDone ? 'line-through text-slate-500' : ''}">
+                  ${item.title}
+                </h4>
+
+                <!-- Detailed Notes -->
+                <p class="text-slate-600 ${detailFontClass} mt-1 leading-relaxed">
+                  ${item.detail}
+                </p>
+
+                <!-- Action Footer: Google Maps Link -->
+                <div class="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between">
+                  <span class="text-[11px] text-slate-400 truncate max-w-[60%]">
+                    <i class="ph ph-navigation-arrow"></i> ${item.mapQuery}
+                  </span>
+                  <a href="${getGoogleMapsUrl(item.mapQuery)}" target="_blank" rel="noopener noreferrer"
+                    class="bg-slate-100 hover:bg-indigoJp hover:text-white active:scale-95 text-indigoJp font-bold text-xs px-3 py-1.5 rounded-xl transition flex items-center gap-1 shadow-2xs">
+                    <i class="ph-fill ph-map-pin text-vermilion"></i>
+                    <span>Google 導航</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // Prev / Next buttons state
+      document.getElementById('prevDayBtn').disabled = state.activeDay <= 1;
+      document.getElementById('nextDayBtn').disabled = state.activeDay >= 10;
+
+      updateHeaderOverallProgress();
+    }
+
+    // 3. Render Hotels & Transport Tab
+    function renderLogistics() {
+      const hotelsContainer = document.getElementById('hotelsContainer');
+      hotelsContainer.innerHTML = hotelsData.map((h, idx) => `
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+          <div class="flex items-center justify-between gap-2 mb-1">
+            <span class="text-xs font-bold text-vermilion bg-red-50 px-2.5 py-0.5 rounded-md border border-red-100">${h.nights}</span>
+            <span class="text-xs font-bold text-indigoJp bg-slate-100 px-2 py-0.5 rounded-md">${h.badge}</span>
+          </div>
+          <h3 class="font-serif font-bold text-base text-slate-900 mt-1">🏨 ${h.name}</h3>
+          <p class="text-xs text-slate-500 mt-0.5">📍 區域：${h.area}</p>
+          <p class="text-xs text-slate-700 mt-2 leading-relaxed">${h.desc}</p>
+          <div class="mt-2.5 bg-amber-50/80 border border-amber-200/80 rounded-xl p-2.5 text-xs text-amber-900">
+            <strong>💡 住宿提醒：</strong>${h.reminder}
+          </div>
+          <div class="mt-3 flex justify-end">
+            <a href="${getGoogleMapsUrl(h.mapQuery)}" target="_blank" rel="noopener noreferrer"
+              class="w-full sm:w-auto justify-center bg-indigoJp text-white font-bold text-xs px-4 py-2.5 rounded-xl flex items-center gap-1.5 shadow-sm active:scale-95 transition">
+              <i class="ph-fill ph-map-pin text-amber-300 text-sm"></i> 開啟 Google Maps 導航
+            </a>
+          </div>
+        </div>
+      `).join('');
+
+      const transportContainer = document.getElementById('transportContainer');
+      transportContainer.innerHTML = transportData.map(t => `
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+          <span class="text-[11px] font-bold text-sky-800 bg-sky-50 border border-sky-200 px-2.5 py-0.5 rounded-md">${t.type}</span>
+          <h3 class="font-bold text-base text-slate-900 mt-1.5">${t.title}</h3>
+          <div class="text-xs font-mono font-bold text-vermilion mt-1">${t.time}</div>
+          <p class="text-xs text-slate-700 mt-2 leading-relaxed whitespace-pre-line">${t.detail}</p>
+          <div class="mt-3 pt-2 border-t border-slate-100 flex justify-end">
+            <a href="${getGoogleMapsUrl(t.mapQuery)}" target="_blank" rel="noopener noreferrer"
+              class="bg-slate-100 text-indigoJp font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1 active:scale-95 transition">
+              <i class="ph-fill ph-map-pin text-vermilion"></i> 查看車站/取車點位置
+            </a>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // 4. Render Checklist Tab
+    function renderChecklist() {
+      const allChecks = [...defaultChecklist, ...state.customChecks];
+      const doneCount = allChecks.filter(c => state.checklistDone[c.id]).length;
+      const totalCount = allChecks.length;
+      const pct = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
+
+      document.getElementById('prepProgressBadge').textContent = `${doneCount} / ${totalCount} (${pct}%)`;
+      document.getElementById('prepProgressBar').style.width = `${pct}%`;
+
+      // Hide red dot on bottom nav if all critical items done
+      const criticalUnfinished = allChecks.filter(c => c.critical && !state.checklistDone[c.id]);
+      const navDot = document.getElementById('navPrepDot');
+      if (criticalUnfinished.length === 0) {
+        navDot.classList.add('hidden');
+      } else {
+        navDot.classList.remove('hidden');
+      }
+
+      const container = document.getElementById('checklistContainer');
+      container.innerHTML = allChecks.map(item => {
+        const isChecked = !!state.checklistDone[item.id];
+        const isCustom = item.id.startsWith('custom-');
+
+        return `
+          <div onclick="toggleChecklistItem('${item.id}')"
+            class="bg-white rounded-2xl p-3.5 shadow-sm border transition cursor-pointer flex items-start gap-3 ${
+              isChecked ? 'border-emerald-200 bg-emerald-50/30 opacity-65' : item.critical ? 'border-amber-300' : 'border-slate-200'
+            }">
+            <button aria-label="勾選" class="mt-0.5 w-6 h-6 rounded-lg flex items-center justify-center shrink-0 border-2 transition ${
+              isChecked ? 'bg-emerald-600 border-emerald-600 text-white' : 'bg-white border-slate-300 text-transparent'
+            }">
+              <i class="ph-bold ph-check text-sm"></i>
+            </button>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-1.5 mb-1">
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-md ${
+                  item.critical ? 'bg-red-100 text-vermilion' : 'bg-slate-100 text-slate-600'
+                }">${item.tag}</span>
+                ${item.critical ? '<span class="text-[10px] font-bold text-amber-700">★ 重要必備</span>' : ''}
+              </div>
+              <p class="text-sm font-medium text-slate-800 leading-snug ${isChecked ? 'line-through text-slate-400' : ''}">
+                ${item.text}
+              </p>
+            </div>
+            ${isCustom ? `
+              <button onclick="deleteCustomCheck(event, '${item.id}')" class="text-slate-400 hover:text-red-500 p-1">
+                <i class="ph ph-trash text-base"></i>
+              </button>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    // 5. Render Search & Category Filter Tab
+    function renderSearchResults() {
+      const inputEl = document.getElementById('searchInput');
+      const query = (inputEl.value || '').trim().toLowerCase();
+      const clearBtn = document.getElementById('clearSearchBtn');
+
+      if (query.length > 0) {
+        clearBtn.classList.remove('hidden');
+      } else {
+        clearBtn.classList.add('hidden');
+      }
+
+      // Flatten all items across 10 days
+      let results = [];
+      tripDays.forEach(d => {
+        d.items.forEach(item => {
+          const matchCat = state.searchCategory === 'ALL' || item.cat === state.searchCategory;
+          const matchQuery = !query ||
+            item.title.toLowerCase().includes(query) ||
+            item.detail.toLowerCase().includes(query) ||
+            item.time.toLowerCase().includes(query) ||
+            d.title.toLowerCase().includes(query) ||
+            d.region.toLowerCase().includes(query);
+
+          if (matchCat && matchQuery) {
+            results.push({ dayObj: d, item });
+          }
+        });
+      });
+
+      document.getElementById('searchCountText').textContent =
+        `共找到 ${results.length} 筆符合的行程項目`;
+
+      const container = document.getElementById('searchResultsContainer');
+      if (results.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white rounded-2xl p-8 text-center border border-slate-200">
+            <i class="ph ph-magnifying-glass text-3xl text-slate-400 mb-2"></i>
+            <p class="text-sm font-bold text-slate-700">找不到符合「${inputEl.value}」的行程</p>
+            <p class="text-xs text-slate-400 mt-1">請嘗試其他關鍵字或切換上方分類標籤</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = results.map(({ dayObj, item }) => {
+        const catStyle = getCategoryStyle(item.cat);
+        return `
+          <div class="bg-white rounded-2xl p-3.5 shadow-sm border border-slate-200">
+            <div class="flex items-center justify-between gap-2 mb-1.5">
+              <div class="flex items-center gap-1.5">
+                <button onclick="jumpToDayFromSearch(${dayObj.day})"
+                  class="bg-indigoJp text-white text-[11px] font-bold px-2 py-0.5 rounded-md hover:opacity-90">
+                  Day ${dayObj.day} (${dayObj.date})
+                </button>
+                <span class="text-xs font-mono font-bold text-slate-700">${item.time}</span>
+              </div>
+              <span class="${catStyle.bg} ${catStyle.text} text-[11px] font-bold px-2 py-0.5 rounded-md">
+                ${item.icon} ${item.cat}
+              </span>
+            </div>
+            <h4 class="font-bold text-sm text-slate-900">${item.title}</h4>
+            <p class="text-xs text-slate-600 mt-1 leading-relaxed">${item.detail}</p>
+            <div class="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between">
+              <button onclick="jumpToDayFromSearch(${dayObj.day})" class="text-xs font-bold text-indigoJp hover:underline flex items-center gap-1">
+                <i class="ph-bold ph-arrow-bend-up-left"></i> 跳轉至該日時間軸
+              </button>
+              <a href="${getGoogleMapsUrl(item.mapQuery)}" target="_blank" rel="noopener noreferrer"
+                class="bg-slate-100 text-indigoJp font-bold text-xs px-3 py-1 rounded-lg flex items-center gap-1">
+                <i class="ph-fill ph-map-pin text-vermilion"></i> 導航
+              </a>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function updateHeaderOverallProgress() {
+      let total = 0;
+      let done = 0;
+      tripDays.forEach(d => {
+        total += d.items.length;
+        done += d.items.filter(i => state.doneItems[i.id]).length;
+      });
+      const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+      document.getElementById('headerProgressText').textContent = `${pct}% (${done}/${total})`;
+    }
+
+    // ================= INTERACTION HANDLERS =================
+
+    function selectDay(dayNum) {
+      state.activeDay = dayNum;
+      saveState();
+      renderDayPills();
+      renderActiveDay();
+
+      // Smoothly scroll the selected pill into center view
+      const pill = document.getElementById(`day-pill-${dayNum}`);
+      if (pill) {
+        pill.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function changeDayStep(delta) {
+      const next = state.activeDay + delta;
+      if (next >= 1 && next <= 10) {
+        selectDay(next);
+      }
+    }
+
+    function toggleTimelineItem(itemId) {
+      state.doneItems[itemId] = !state.doneItems[itemId];
+      if (!state.doneItems[itemId]) delete state.doneItems[itemId];
+      saveState();
+      renderDayPills();
+      renderActiveDay();
+      showToast(state.doneItems[itemId] ? '✅ 已標記為完成！' : '已取消完成標記');
+    }
+
+    function hideCompletedToggle() {
+      state.hideCompleted = !state.hideCompleted;
+      const btnText = document.getElementById('hideCompletedText');
+      btnText.textContent = state.hideCompleted ? '顯示全部' : '隱藏已完成';
+      renderActiveDay();
+    }
+
+    function toggleLargeFont() {
+      state.largeFont = !state.largeFont;
+      saveState();
+      document.getElementById('fontBtnLabel').textContent = state.largeFont ? '標準字體' : '長輩大字版';
+      renderActiveDay();
+      showToast(state.largeFont ? '🔍 已切換為長輩大字模式' : '已切換為標準字體模式');
+    }
+
+    function switchTab(tabName) {
+      state.activeTab = tabName;
+      const views = ['itinerary', 'logistics', 'checklist', 'search'];
+      views.forEach(v => {
+        const el = document.getElementById(`view-${v}`);
+        const navBtn = document.getElementById(`nav-${v}`);
+        if (v === tabName) {
+          el.classList.remove('hidden');
+          navBtn.classList.remove('text-slate-400', 'font-medium');
+          navBtn.classList.add('text-vermilion', 'font-bold');
+          const icon = navBtn.querySelector('i');
+          if (icon) {
+            icon.className = icon.className.replace('ph ', 'ph-fill ');
+          }
+        } else {
+          el.classList.add('hidden');
+          navBtn.classList.add('text-slate-400', 'font-medium');
+          navBtn.classList.remove('text-vermilion', 'font-bold');
+          const icon = navBtn.querySelector('i');
+          if (icon) {
+            icon.className = icon.className.replace('ph-fill ', 'ph ');
+          }
+        }
+      });
+
+      // Toggle day selector visibility
+      const dayBar = document.getElementById('daySelectorBar');
+      const subtitle = document.getElementById('currentViewSubtitle');
+      if (tabName === 'itinerary') {
+        dayBar.classList.remove('hidden');
+        subtitle.textContent = '點選下方日期切換每日行程';
+      } else {
+        dayBar.classList.add('hidden');
+        if (tabName === 'logistics') subtitle.textContent = '4間飯店與航班、新幹線、租車總覽';
+        if (tabName === 'checklist') subtitle.textContent = '行前準備與每日重要注意事項';
+        if (tabName === 'search') {
+          subtitle.textContent = '快速搜尋 10 天內所有景點、美食與交通';
+          renderSearchResults();
+        }
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function switchLogisticsSub(sub) {
+      const hotelsDiv = document.getElementById('logistics-hotels');
+      const transDiv = document.getElementById('logistics-transport');
+      const btnH = document.getElementById('subBtn-hotels');
+      const btnT = document.getElementById('subBtn-transport');
+
+      if (sub === 'hotels') {
+        hotelsDiv.classList.remove('hidden');
+        transDiv.classList.add('hidden');
+        btnH.className = 'flex-1 py-2 rounded-lg text-xs font-bold bg-white text-indigoJp shadow-sm transition';
+        btnT.className = 'flex-1 py-2 rounded-lg text-xs font-bold text-slate-600 transition';
+      } else {
+        hotelsDiv.classList.add('hidden');
+        transDiv.classList.remove('hidden');
+        btnT.className = 'flex-1 py-2 rounded-lg text-xs font-bold bg-white text-indigoJp shadow-sm transition';
+        btnH.className = 'flex-1 py-2 rounded-lg text-xs font-bold text-slate-600 transition';
+      }
+    }
+
+    function toggleChecklistItem(id) {
+      state.checklistDone[id] = !state.checklistDone[id];
+      if (!state.checklistDone[id]) delete state.checklistDone[id];
+      saveState();
+      renderChecklist();
+    }
+
+    function addCustomCheckItem(e) {
+      e.preventDefault();
+      const input = document.getElementById('customCheckInput');
+      const text = (input.value || '').trim();
+      if (!text) return;
+
+      const newItem = {
+        id: 'custom-' + Date.now(),
+        tag: '家族自訂',
+        text: text,
+        critical: false
+      };
+      state.customChecks.push(newItem);
+      input.value = '';
+      saveState();
+      renderChecklist();
+      showToast('✨ 已新增自訂提醒事項');
+    }
+
+    function deleteCustomCheck(e, id) {
+      e.stopPropagation();
+      state.customChecks = state.customChecks.filter(c => c.id !== id);
+      delete state.checklistDone[id];
+      saveState();
+      renderChecklist();
+      showToast('已刪除自訂項目');
+    }
+
+    function resetAllProgress() {
+      state.doneItems = {};
+      state.checklistDone = {};
+      state.customChecks = [];
+      saveState();
+      renderDayPills();
+      renderActiveDay();
+      renderChecklist();
+      showToast('🔄 已重置所有打卡與勾選紀錄');
+    }
+
+    function setQuickSearch(keyword) {
+      document.getElementById('searchInput').value = keyword;
+      renderSearchResults();
+    }
+
+    function clearSearchInput() {
+      document.getElementById('searchInput').value = '';
+      renderSearchResults();
+    }
+
+    function setCategoryFilter(cat) {
+      state.searchCategory = cat;
+      document.querySelectorAll('.cat-btn').forEach(btn => {
+        if (btn.getAttribute('data-cat') === cat) {
+          btn.className = 'cat-btn bg-indigoJp text-white py-1.5 rounded-lg text-xs font-bold transition shadow-xs';
+        } else {
+          btn.className = 'cat-btn bg-slate-100 text-slate-600 py-1.5 rounded-lg text-xs font-bold transition';
+        }
+      });
+      renderSearchResults();
+    }
+
+    function jumpToDayFromSearch(dayNum) {
+      switchTab('itinerary');
+      selectDay(dayNum);
+    }
+
+    // ================= INITIALIZATION =================
+    window.onload = function () {
+      loadState();
+      document.getElementById('fontBtnLabel').textContent = state.largeFont ? '標準字體' : '長輩大字版';
+      renderDayPills();
+      renderActiveDay();
+      renderLogistics();
+      renderChecklist();
+      renderSearchResults();
+
+      // Scroll active day pill into view on startup
+      setTimeout(() => {
+        const activePill = document.getElementById(`day-pill-${state.activeDay}`);
+        if (activePill) {
+          activePill.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+      }, 150);
+    };
+  </script>
+</body>
+</html>
