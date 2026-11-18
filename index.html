@@ -1468,6 +1468,11 @@ function renderDay(){
     side += `<div class="box"><h3>🏠 溫暖的家</h3><div>返抵國門，旅程圓滿結束！</div></div>`;
   }
 
+  if (d.prep.length){
+    side += `<div class="box"><h3>📝 提前準備事項</h3><ul>${d.prep.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
+      <button class="btn" onclick="go('check')">前往清單勾選 →</button></div>`;
+  }
+
   // 當日相關訂票提醒
   const dayBookings = BOOKINGS.filter(b => b.days.includes(dayNum));
   if (dayBookings.length){
@@ -1493,11 +1498,6 @@ function renderDay(){
           <div style="font-size:.8rem;color:var(--muted)">${esc(t.note)}</div>
         </li>`).join('')}</ul>
       <button class="btn" onclick="jumpToTimetableDay(${dayNum})">查看 Day ${dayNum} 完整時刻表 →</button></div>`;
-  }
-
-  if (d.prep.length){
-    side += `<div class="box"><h3>📝 提前準備事項</h3><ul>${d.prep.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
-      <button class="btn" onclick="go('check')">前往清單勾選 →</button></div>`;
   }
   $('#side').innerHTML = side;
 }
