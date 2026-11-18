@@ -1524,10 +1524,6 @@ function renderBanner(){
     const days = Math.round((start - today) / 864e5);
     html += `<div class="banner">
       <div class="banner-main"><span class="big">🧳</span><div><b>距離出發還有 ${days} 天！</b><br>2027/2/1（一）05:30 出發前往桃園機場 T2（BR198 08:50 起飛）</div></div>
-      <div style="display:flex;gap:.4rem;flex-wrap:wrap">
-        <button class="btn" style="margin:0;background:rgba(255,255,255,.2);color:#fff;border-color:rgba(255,255,255,.4)" onclick="go('booking')">🎟️ 訂票提醒</button>
-        <button class="btn" style="margin:0;background:rgba(255,255,255,.2);color:#fff;border-color:rgba(255,255,255,.4)" onclick="go('transit')">🚆 時刻表查詢</button>
-      </div>
     </div>`;
   } else if (ti >= 0){
     const d = DAYS[ti];
