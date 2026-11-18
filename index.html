@@ -1499,20 +1499,6 @@ function renderDay(){
     side += `<div class="box"><h3>📝 提前準備事項</h3><ul>${d.prep.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
       <button class="btn" onclick="go('check')">前往清單勾選 →</button></div>`;
   }
-  if (d.meals && d.meals.length){
-    side += `<div class="box"><h3>🍽️ 今日推薦餐廳（A/B/C三級）</h3>
-      ${d.meals.map(m => `<div style="margin-bottom:.75rem">
-        <div style="font-weight:800;color:var(--c-food);margin-bottom:.3rem">${esc(m.slot)}</div>
-        ${renderMealTiersHTML(m, d.map)}
-      </div>`).join('')}
-      <button class="btn" onclick="state.foodDay='${state.day}';renderFood();go('food')">查看完整美食指南 →</button>
-    </div>`;
-  }
-  const spots = [...new Set(d.parsed.filter(p => p.type==='sight'||p.type==='event'||p.type==='hotel').flatMap(p => p.places))].filter(s => !/^(午餐|晚餐|除夕晚宴|第\s*\d+\s*晚)/.test(s));
-  if (spots.length){
-    side += `<div class="box"><h3>🗺️ 今日地點快速導航</h3><ul>${spots.map(s =>
-      `<li><a href="${mapUrl(s + ' ' + d.map)}" target="_blank" rel="noopener">${esc(s)}</a></li>`).join('')}</ul></div>`;
-  }
   $('#side').innerHTML = side;
 }
 
