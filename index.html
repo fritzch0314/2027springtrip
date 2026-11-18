@@ -38,7 +38,7 @@
 *{box-sizing:border-box}
 html{font-size:var(--fs);-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--text);
-  font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei","Heiti TC",system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei","Heiti TC",system-ui,-apple-system,"Segoe UI","Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji",sans-serif;
   line-height:1.65;padding-bottom:calc(min(4.8rem,92px) + env(safe-area-inset-bottom))}
 a{color:var(--primary)}
 button{font:inherit;color:inherit;cursor:pointer}
@@ -348,7 +348,7 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
           <b>⚡ 10 天核心交通班次 ＆ 轉乘備案速查表（100% 離線可查）</b>
           <div style="color:var(--muted);font-size:.88rem">彙整每日主班次、備案班次、乘車月台與 Suica／購票注意事項</div>
         </div>
-        <button class="btn" id="toggleQuickTtBtn" style="margin:0">展開／收合班次速查表 ▾</button>
+        <button class="btn" id="toggleQuickTtBtn" style="margin:0">展開／收合班次速查表 ▼</button>
       </div>
       <div id="quickTtWrap" style="display:none;margin-top:.75rem;overflow-x:auto"></div>
     </div>
@@ -371,7 +371,7 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
           <b>🗣️ 日本餐廳指差し點餐溝通卡</b>
           <div style="color:var(--muted);font-size:.88rem">點擊任一卡片可放大全螢幕顯示給日本店員看</div>
         </div>
-        <button class="btn" id="togglePhraseBtn" style="margin:0">展開／收合溝通卡 ▾</button>
+        <button class="btn" id="togglePhraseBtn" style="margin:0">展開／收合溝通卡 ▼</button>
       </div>
       <div id="phraseWrap" class="phrase-grid" style="display:none"></div>
     </div>
@@ -410,7 +410,7 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
         <b id="progtxt">完成 0 / 0</b>
         <div style="display:flex;gap:.4rem;flex-wrap:wrap">
           <button class="btn" id="filterUncheckedBtn" style="margin:0">僅看未完成</button>
-          <button class="btn" id="resetChk" style="margin:0">↺ 全部重設</button>
+          <button class="btn" id="resetChk" style="margin:0">🔄 全部重設</button>
         </div>
       </div>
       <div class="progress" style="margin-top:.5rem" aria-hidden="true"><div id="progbar"></div></div>
@@ -461,7 +461,7 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
     <div class="pwa-steps">
       <h4>🤖 Android 手機（Chrome 瀏覽器）</h4>
       <ol>
-        <li>點擊上方「立即一鍵安裝」按鈕，或點 Chrome 右上角選單 <b>⋮</b></li>
+        <li>點擊上方「立即一鍵安裝」按鈕，或點 Chrome 右上角<b>「選單（三個點）」</b></li>
         <li>點選<b>「安裝應用程式」</b>或<b>「加到主畫面」</b>即可完成！</li>
       </ol>
     </div>
@@ -496,16 +496,16 @@ const DAYS = [
   ],
   meals:[
    {slot:'🌙 晚餐｜上野・阿美橫丁', match:'晚餐', tiers:[
-    {tier:'A', label:'🅰️ 特色名店（可訂位）', list:[
+    {tier:'A', label:'【A 級】特色名店（可訂位）', list:[
      {name:'燒肉 陽山道 上野本店／廣小路店', note:'官網／Tabelog 訂位，中英文菜單、有包廂'},
      {name:'鰻割烹 伊豆榮 不忍亭', note:'Gurunavi／HotPepper 訂位，繁中菜單'}
     ]},
-    {tier:'B', label:'🅱️ 平價家庭／壽司連鎖', list:[
+    {tier:'B', label:'【B 級】平價家庭／壽司連鎖', list:[
      {name:'壽司郎 上野店／藏壽司 御徒町店', note:'App／EPARK 預約，中文平板'},
      {name:'しゃぶ菜 上野', note:'Gurunavi 訂位，壽喜燒涮涮鍋吃到飽'},
      {name:'ガスト Gusto 上野広小路店／ジョナサン 上野公園前店', note:'中文平板＋機器人送餐'}
     ]},
-    {tier:'C', label:'🅲 快速牛丼／定食', list:[
+    {tier:'C', label:'【C 級】快速牛丼／定食', list:[
      {name:'松屋 上野浅草口店／上野店', note:'24H 營業'},
      {name:'すき家 Sukiya 御徒町駅南口店／上野六丁目店', note:'快速外帶／內用'},
      {name:'吉野家 上野駅前店／やよい軒 東上野店', note:'JR 上野站旁／日式定食'}
@@ -536,25 +536,25 @@ const DAYS = [
   ],
   meals:[
    {slot:'🌞 午餐｜鎌倉小町通（11:30–12:30）', match:'午餐', tiers:[
-    {tier:'A', label:'🅰️ 特色名店（可訂位）', list:[
+    {tier:'A', label:'【A 級】特色名店（可訂位）', list:[
      {name:'GARDEN HOUSE Kamakura', note:'09:00 開，TableCheck／Tabelog 訂位，英文菜單'},
      {name:'和彩 八倉 小町通店', note:'11:00 開，Gurunavi／HotPepper 訂位，吻仔魚海鮮丼'}
     ]},
-    {tier:'B', label:'🅱️ 平價家庭連鎖', list:[
+    {tier:'B', label:'【B 級】平價家庭連鎖', list:[
      {name:'不二家レストラン 鎌倉店', note:'10:00 開，小町通入口 2F，洋食漢堡排／兒童餐'},
      {name:'大戶屋 鎌倉若宮大路店／薩莉亞 鎌倉駅前店', note:'家庭連鎖定食／義式餐廳'}
     ]}
    ]},
    {slot:'🌙 晚餐｜藤澤站外帶便當／周邊備案', match:'便當', tiers:[
-    {tier:'A', label:'🅰️ 特色名店（可訂位）', list:[
+    {tier:'A', label:'【A 級】特色名店（可訂位）', list:[
      {name:'個室和食 肉と魚 殻YABURI 藤澤店／燒肉 新羅', note:'HotPepper 訂位，英文菜單'}
     ]},
-    {tier:'B', label:'🅱️ 平價家庭／壽司連鎖', list:[
+    {tier:'B', label:'【B 級】平價家庭／壽司連鎖', list:[
      {name:'壽司郎 藤沢オーパ店', note:'南口 OPA 4F，App 預約'},
      {name:'牛角／温野菜 藤澤店', note:'HotPepper 訂位'},
      {name:'ガスト Gusto 藤沢北口店／大戶屋 藤沢南口店', note:'平價家庭餐廳／定食'}
     ]},
-    {tier:'C', label:'🅲 快速牛丼／便當', list:[
+    {tier:'C', label:'【C 級】快速牛丼／便當', list:[
      {name:'松屋／吉野家／なか卯 藤澤站周邊分店', note:'快速丼飯烏龍麵'},
      {name:'小田急百貨 B1 便當街／崎陽軒燒賣便當', note:'可買上 JR 綠車享用'}
     ]}
@@ -584,22 +584,22 @@ const DAYS = [
   ],
   meals:[
    {slot:'🌞 午餐｜輕井澤榆樹街小鎮', match:'午餐', tiers:[
-    {tier:'A', label:'🅰️ 特色名店', list:[
+    {tier:'A', label:'【A 級】特色名店', list:[
      {name:'Bakery & Restaurant SAWAMURA 澤村', note:'TableCheck 訂位，歐風料理／烤雞漢堡排，英文菜單'},
      {name:'Il Sogno イル・ソーニョ', note:'Gurunavi 訂位，石窯披薩義大利麵，英文菜單'},
      {name:'せきれい橋 川上庵', note:'現場抽號，大蝦天婦羅蕎麥麵，中英文菜單'}
     ]}
    ]},
    {slot:'🌙 晚餐｜輕井澤 Outlet 味之街（冬季平日 21:00 關、L.O. 20:30）', match:'晚餐', tiers:[
-    {tier:'A', label:'🅰️ 特色名店', list:[
+    {tier:'A', label:'【A 級】特色名店', list:[
      {name:'熟成和牛燒肉 Aging Beef', note:'Tabelog／一休訂位，L.O. 20:00，中英文菜單'},
      {name:'信州ソースかつ丼 明治亭', note:'現場候位，醬汁豬排丼，中英文圖示菜單'},
      {name:'門前洋食 藤屋平五郎／中國料理 月季花', note:'Tabelog 訂位'}
     ]},
-    {tier:'B', label:'🅱️ 平價家庭／漢堡', list:[
+    {tier:'B', label:'【B 級】平價家庭／漢堡', list:[
      {name:'KUA`AINA 夏威夷厚牛肉漢堡', note:'Outlet 東館側'}
     ]},
-    {tier:'C', label:'🅲 快速簡餐', list:[
+    {tier:'C', label:'【C 級】快速簡餐', list:[
      {name:'Outlet 美食街「太陽と緑のキッチン」', note:'神座拉麵／讚岐烏龍麵'},
      {name:'7-Eleven（Outlet 內至 22:00）／FamilyMart（北口站前）', note:'便利商店簡餐'}
     ]}
@@ -626,7 +626,7 @@ const DAYS = [
   ],
   meals:[
    {slot:'🌞 午餐｜輕井澤 Outlet 美食街', match:'Food Court', tiers:[
-    {tier:'B', label:'🅱️／🅲 太陽と緑のキッチン（中英文圖示自助點餐）', list:[
+    {tier:'B', label:'【B / C 級】太陽と緑のキッチン（中英文圖示自助點餐）', list:[
      {name:'どうとんぼり神座（拉麵）', note:'道頓堀神座白菜拉麵'},
      {name:'備中手延べうどん びぜん（烏龍麵）', note:'手延烏龍麵'},
      {name:'ビストロ かつき（牛排飯）', note:'鐵板牛排飯／洋食'},
@@ -634,11 +634,11 @@ const DAYS = [
     ]}
    ]},
    {slot:'🌙 晚餐｜輕井澤 Outlet 味之街／王子西館', match:'味之街', tiers:[
-    {tier:'A', label:'🅰️ 特色名店', list:[
+    {tier:'A', label:'【A 級】特色名店', list:[
      {name:'王子西館 Primrose 自助百匯', note:'官網訂位'},
      {name:'味之街：明治亭豬排丼／Aging Beef 燒肉／築地ハレの日壽司', note:'Outlet 味之街餐廳群'}
     ]},
-    {tier:'B', label:'🅱️／🅲 平價連鎖備案', list:[
+    {tier:'B', label:'【B / C 級】平價連鎖備案', list:[
      {name:'COCO\'S ココス 輕井澤店', note:'中輕井澤國道 18 號旁，中文平板'},
      {name:'其餘美食街與超商備案同 Day 3', note:'太陽と緑のキッチン／7-Eleven（至22:00）'}
     ]}
@@ -668,11 +668,11 @@ const DAYS = [
     ]}
    ]},
    {slot:'🌙 除夕晚餐｜Fuji View Hotel 飯店內', match:'除夕晚宴', tiers:[
-    {tier:'A', label:'🅰️ 飯店餐廳（須事前預約 17:45 時段）', list:[
+    {tier:'A', label:'【A 級】飯店餐廳（須事前預約 17:45 時段）', list:[
      {name:'法式餐廳 Bellevue（ベルビュー）', note:'飯店內西式コース（兩部制 17:45／19:45）'},
      {name:'日本料理 敷島（Shikishima）', note:'飯店內會席料理（兩部制 17:45／19:45）'}
     ]},
-    {tier:'B', label:'🅱️／🅲 外食備案（自駕約 3–5 分鐘）', list:[
+    {tier:'B', label:'【B / C 級】外食備案（自駕約 3–5 分鐘）', list:[
      {name:'壽司郎 河口湖BELL店／ガスト Gusto／バーミヤン Bamiyan／すき家 Sukiya', note:'中文平板點餐、附免費停車場'}
     ]}
    ]}
@@ -699,16 +699,16 @@ const DAYS = [
   ],
   meals:[
    {slot:'🌞 午餐｜旅の駅 kawaguchiko base', match:'午餐', tiers:[
-    {tier:'B', label:'🅱️ テラスキッチン（Terrace Kitchen）', list:[
+    {tier:'B', label:'【B 級】テラスキッチン（Terrace Kitchen）', list:[
      {name:'旅の駅 kawaguchiko base テラスキッチン', note:'甲州富士櫻豬排、富士山漢堡排、甲州牛排、烏龍麵（中英文觸控點餐機，180 席免預約）'}
     ]}
    ]},
    {slot:'🌙 初一晚餐｜河口湖自駕特選（皆附免費停車場）', match:'晚餐', tiers:[
-    {tier:'A', label:'🅰️ 特色名店', list:[
+    {tier:'A', label:'【A 級】特色名店', list:[
      {name:'網燒 HANA', note:'HotPepper 訂位，湖畔景觀燒肉，中英文菜單'},
      {name:'ほうとう蔵 步成 河口湖店', note:'現場／線上抽號，冠軍餺飥麵，中文平板點餐'}
     ]},
-    {tier:'B', label:'🅱️／🅲 平價連鎖備案', list:[
+    {tier:'B', label:'【B / C 級】平價連鎖備案', list:[
      {name:'壽司郎 河口湖BELL店／ガスト Gusto／バーミヤン Bamiyan／すき家 Sukiya／丸龜製麵', note:'同 Day 5 河口湖BELL周邊連鎖餐廳（開車 3–5 分鐘）'}
     ]}
    ]}
@@ -735,20 +735,20 @@ const DAYS = [
   ],
   meals:[
    {slot:'🌞 午餐｜忍野八海在地名店', match:'午餐', tiers:[
-    {tier:'A', label:'🅰️ 特色名店', list:[
+    {tier:'A', label:'【A 級】特色名店', list:[
      {name:'池本茶屋', note:'中池水車正對面，湧泉蕎麥麵、炭烤岩魚，中英文圖片菜單'},
      {name:'名泉そば／彥兵衛うどん', note:'吉田烏龍麵／蕎麥麵'}
     ]},
-    {tier:'C', label:'🅲 快速簡餐（139 號國道順路）', list:[
+    {tier:'C', label:'【C 級】快速簡餐（139 號國道順路）', list:[
      {name:'松屋＋松のや 富士吉田店（24H）／麥當勞 139 富士吉田店', note:'附停車場與中文點餐機'}
     ]}
    ]},
    {slot:'🌙 初二晚餐｜河口湖自駕特選（皆附免費停車場）', match:'晚餐', tiers:[
-    {tier:'A', label:'🅰️ 特色名店', list:[
+    {tier:'A', label:'【A 級】特色名店', list:[
      {name:'燒肉 ひまわり亭 向日葵亭', note:'官網 Toreta 訂位，A5 和牛燒肉，英文菜單'},
      {name:'ほうとう不動 東戀路店', note:'雲朵造型餐廳，300 席翻桌快，中英文菜單'}
     ]},
-    {tier:'B', label:'🅱️／🅲 平價連鎖備案', list:[
+    {tier:'B', label:'【B / C 級】平價連鎖備案', list:[
      {name:'かっぱ寿司 河口湖店（新幹線送餐）或同 Day 5 壽司郎／Gusto／Sukiya', note:'中文平板連鎖餐廳'}
     ]}
    ]}
@@ -777,24 +777,24 @@ const DAYS = [
   ],
   meals:[
    {slot:'🌞 午餐｜上野廣小路站（&Here 步行約 3 分鐘）', match:'午餐', tiers:[
-    {tier:'A', label:'🅰️ 特色名店（可訂位）', list:[
+    {tier:'A', label:'【A 級】特色名店（可訂位）', list:[
      {name:'敘敘苑 上野廣小路店／マルイ店', note:'官網／一休訂位，商業午餐，繁中平板'},
      {name:'とんかつ井泉 本店', note:'炸豬排創始老店，英文菜單'}
     ]},
-    {tier:'B', label:'🅱️／🅲 平價連鎖備案', list:[
+    {tier:'B', label:'【B / C 級】平價連鎖備案', list:[
      {name:'同 Day 1 上野連鎖餐廳（壽司郎／藏壽司／Gusto／薩莉亞／松屋／Sukiya）', note:'中文平板／快速點餐'}
     ]}
    ]},
    {slot:'🌙 晚餐｜晴空塔 Solamachi & 押上站', match:'晚餐', tiers:[
-    {tier:'A', label:'🅰️ 特色名店（可訂位）', list:[
+    {tier:'A', label:'【A 級】特色名店（可訂位）', list:[
      {name:'ひつまぶし名古屋 備長', note:'Solamachi 6F，鰻魚飯三吃，繁中菜單'},
      {name:'敘敘苑 晴空塔 30F 高空景觀店／利久牛舌 (6F)', note:'30F 高空燒肉官網訂位／6F 仙台牛舌'}
     ]},
-    {tier:'B', label:'🅱️ 平價家庭／壽司連鎖', list:[
+    {tier:'B', label:'【B 級】平價家庭／壽司連鎖', list:[
      {name:'くら寿司 押上駅前店', note:'全球旗艦店，EPARK 預約'},
      {name:'とんかつ和幸 (6F，繁中菜單)／一風堂拉麵／宮武讚岐烏龍麵 (3F)', note:'Solamachi 餐廳與美食街'}
     ]},
-    {tier:'C', label:'🅲 快速牛丼', list:[
+    {tier:'C', label:'【C 級】快速牛丼', list:[
      {name:'すき家／松屋／吉野家 押上周邊分店', note:'晴空塔周邊快速丼飯'}
     ]}
    ]}
@@ -821,21 +821,21 @@ const DAYS = [
   ],
   meals:[
    {slot:'🌞 午餐｜川越藏造一番街周邊', match:'午餐', tiers:[
-    {tier:'A', label:'🅰️ 特色名店', list:[
+    {tier:'A', label:'【A 級】特色名店', list:[
      {name:'川越 いちのや 本店', note:'HotPepper 線上訂位，300 席百年鰻魚名店，中英文菜單'},
      {name:'小川菊／うなぎ傳米（DENBE）川越店', note:'小川菊當日掃 QR 抽號（中文抽號機與中英菜單）／傳米位於時之鐘旁，林屋同集團姊妹店，週二正常營業'},
      {name:'陶路子 とろっこ', note:'地瓜迷你懷石膳，英文菜單'}
     ]},
-    {tier:'B', label:'🅱️／🅲 平價連鎖備案', list:[
+    {tier:'B', label:'【B / C 級】平價連鎖備案', list:[
      {name:'ぎょうざの満洲 本川越駅前店（平價煎餃／定食）／Gusto／大戶屋／Sukiya', note:'中文平板與快速定食'}
     ]}
    ]},
    {slot:'🌙 晚餐｜御徒町慶功宴（&Here 步行約 3 分鐘）', match:'晚餐', tiers:[
-    {tier:'A', label:'🅰️ 慶功名店（可訂位）', list:[
+    {tier:'A', label:'【A 級】慶功名店（可訂位）', list:[
      {name:'人形町今半 上野廣小路店', note:'TableCheck／一休訂位，和牛壽喜燒女將代煮，繁中菜單'},
      {name:'かに道樂 上野店', note:'官網／Gurunavi 訂位，螃蟹包廂，繁中平板'}
     ]},
-    {tier:'B', label:'🅱️／🅲 平價連鎖備案', list:[
+    {tier:'B', label:'【B / C 級】平價連鎖備案', list:[
      {name:'同 Day 1 上野周邊備案（しゃぶ菜／牛角／壽司郎／藏壽司／Gusto）', note:'壽喜燒吃到飽／燒肉／迴轉壽司'}
     ]}
    ]}
@@ -854,14 +854,14 @@ const DAYS = [
   prep:[],
   meals:[
    {slot:'🌞 午餐｜成田機場 第 1 航廈（出境前中央大樓 4F／B1F）', match:'午餐', tiers:[
-    {tier:'A', label:'🅰️ 特色名店（4F NARITA Dining Terrace）', list:[
+    {tier:'A', label:'【A 級】特色名店（4F NARITA Dining Terrace）', list:[
      {name:'成田山 川豐', note:'4F，現烤鰻魚飯／親子丼，中文平板點餐'},
      {name:'築地 壽司岩', note:'4F，江戶前握壽司，中英文菜單'}
     ]},
-    {tier:'B', label:'🅱️ 平價家庭餐廳（4F）', list:[
+    {tier:'B', label:'【B 級】平價家庭餐廳（4F）', list:[
      {name:'Royal Host ロイヤルホスト', note:'4F，空間寬敞可放行李，和牛漢堡排／兒童餐，中英文菜單'}
     ]},
-    {tier:'C', label:'🅲 快速簡餐（3–5 分鐘上菜）', list:[
+    {tier:'C', label:'【C 級】快速簡餐（3–5 分鐘上菜）', list:[
      {name:'天丼てんや Tenya（4F）／だし茶漬け えん（4F）', note:'現炸天丼／高湯茶泡飯'},
      {name:'吉野家（B1F，24H）／長崎強棒麵（B1F）／麥當勞（B1F）', note:'B1F 快速簡餐'}
     ]}
@@ -1056,7 +1056,7 @@ const TIMETABLES = [
    note:'Day 1 主班 136 號 (14:18–15:09)、備案 38 號 (14:38–15:23)；Day 10 回程 127 號 (10:00–10:57)', bkId:8},
   {id:8, cat:'鐵道電車', title:'京成電鐵 Skyliner 線上購票／預訂官網（e-ticket）', dayLabel:'Day 1、10 (2/1、2/10)', days:[1,10],
    url:'https://www.keisei.co.jp/keisei/tetudou/skyliner/e-ticket/zht/',
-   note:'成田 T1⇄京成上野約 40–53 分鐘，全車對號特急，支援繁中線上購票與兌換券預訂', bkId:8},
+   note:'成田 T1↔京成上野約 40–53 分鐘，全車對號特急，支援繁中線上購票與兌換券預訂', bkId:8},
   {id:9, cat:'鐵道電車', title:'JR 東日本 上野站時刻表', dayLabel:'Day 2、3 (2/2、2/3)', days:[2,3],
    url:'https://timetables.jreast.co.jp/timetable/list0204.html',
    note:'查詢東海道線（Day 2 07:46 往戶塚轉鎌倉）及北陸新幹線時刻'},
@@ -1104,8 +1104,8 @@ const TIMETABLES = [
    note:'回程池袋轉乘山手線（17:54／17:57）往御徒町'},
   {id:24, cat:'高速／接駁巴士', title:'輕井澤王子大飯店 免費接駁車時刻表（棕線／綠線）', dayLabel:'Day 3–5 (2/3–2/5)', days:[3,4,5],
    url:'https://www.princehotels.co.jp/karuizawa/pickup_bus/time_table.pdf',
-   note:'西館⇄車站南口⇄Outlet⇄東館全區接駁；適用 2026/11/1–2027/3/31 冬季時刻'},
-  {id:25, cat:'高速／接駁巴士', title:'富士急高速巴士官網（東京站⇄河口湖）', dayLabel:'Day 5、8 (2/5、2/8)', days:[5,8],
+   note:'西館↔車站南口↔Outlet↔東館全區接駁；適用 2026/11/1–2027/3/31 冬季時刻'},
+  {id:25, cat:'高速／接駁巴士', title:'富士急高速巴士官網（東京站↔河口湖）', dayLabel:'Day 5、8 (2/5、2/8)', days:[5,8],
    url:'https://bus.fujikyu.co.jp/highway/fujisan/tokyo/',
    note:'全車指定席（D5 119 號 11:10 發；D8 8 號 09:30 發），乘車日 1 個月前開賣', bkId:9},
   {id:26, cat:'觀光／路線公車', title:'西武觀光巴士（輕井澤站→星野溫泉）冬季去程時刻表', dayLabel:'Day 3 (2/3 週三)', days:[3],
@@ -1117,7 +1117,7 @@ const TIMETABLES = [
   {id:28, cat:'觀光／路線公車', title:'西武觀光巴士 12/1 冬季改點公告', dayLabel:'Day 3、4 (2/3–2/4)', days:[3,4],
    url:'https://www.seibubus.co.jp/sp/news/20261201karuizawa-dia.html',
    note:'2026/12/1 輕井澤線冬季減班與時刻調整說明'},
-  {id:29, cat:'觀光／路線公車', title:'草輕交通巴士路線時刻表（輕井澤站⇄舊輕井澤）', dayLabel:'Day 4 (2/4 週四)', days:[4],
+  {id:29, cat:'觀光／路線公車', title:'草輕交通巴士路線時刻表（輕井澤站↔舊輕井澤）', dayLabel:'Day 4 (2/4 週四)', days:[4],
    url:'https://www.kkkg.co.jp/bus/rosen-bus.html',
    note:'北口 2 號站牌 14:10→14:17；不支援 IC 卡，可用現金／感應信用卡／PayPay'},
   {id:30, cat:'觀光／路線公車', title:'西武巴士官網時刻查詢（川越 本52 路線）', dayLabel:'Day 9 (2/9 週二)', days:[9],
@@ -1178,7 +1178,7 @@ const PACKING = [
   '輕井澤 2 晚隨身行李袋（Day 2 晚將大行李分為「輕井澤使用」與「寄往河口湖」2 類）',
   '車宿賞花火＆晨間除霜保暖小物：隨身毛毯、暖暖包（Day 6 平浜駐車場車內候花火用）',
   '手機、充電器、轉接頭、行動電源（⚠️行動電源全數隨身攜帶上機，不可託運）',
-  '網卡 / eSIM / Wi‑Fi 分享器',
+  '網卡 / eSIM / Wi-Fi 分享器',
   '保濕乳液、護唇膏、常備藥品與個人藥物'
 ];
 
@@ -1465,7 +1465,7 @@ function renderDay(){
         ${p.tips.map(t => `<div class="tip ${t.warn?'warn':''}">${t.warn?'⚠️ 注意：':'💡 小提醒：'}${esc(t.text)}</div>`).join('')}
         ${chipsHtml}
         ${matchedMeal ? `<details class="meal-drawer">
-          <summary><span>🍴 查看 ${esc(matchedMeal.slot)} 推薦清單（A/B/C三級）</span><span>▾</span></summary>
+          <summary><span>🍴 查看 ${esc(matchedMeal.slot)} 推薦清單（A/B/C三級）</span><span>▼</span></summary>
           <div class="meal-drawer-body">${renderMealTiersHTML(matchedMeal, d.map)}</div>
         </details>` : ''}
       </div></li>`;
@@ -1717,11 +1717,11 @@ function renderBookings(){
 
       <div class="bk-meta">
         <div class="bk-meta-item">
-          <b>🇹🇼 最早可訂時間（台灣時間）</b>
+          <b>⏰ 最早可訂時間（台灣時間）</b>
           <span style="font-weight:800;color:var(--primary)">${esc(b.openTwt)}</span>
         </div>
         <div class="bk-meta-item">
-          <b>🇯🇵 最早可訂時間（日本 JST）</b>
+          <b>🕘 最早可訂時間（日本 JST）</b>
           <span>${esc(b.openJst)}</span>
         </div>
       </div>
@@ -1735,7 +1735,7 @@ function renderBookings(){
 
       <div class="bk-actions">
         <button type="button" class="btn btn-sm ${st.isDone?'done-btn':'accent'}" data-toggle-bk="${b.chkKey}">
-          ${st.isDone ? '✅ 已預訂（點擊改為待預訂）' : '⬜ 待預訂（完成後點此打勾）'}
+          ${st.isDone ? '✅ 已預訂（點擊改為待預訂）' : '📌 待預訂（完成後點此打勾）'}
         </button>
         <a class="btn primary btn-sm" href="${esc(b.url)}" target="_blank" rel="noopener">🔗 官方訂票／預約網站 ↗</a>
         ${b.tel ? `<a class="btn btn-sm" href="tel:${esc(b.tel)}">📞 ${esc(b.telLabel)}</a>` : ''}
@@ -1888,7 +1888,7 @@ function renderFood(){
   $('#foodDayFilters').innerHTML = dayOpts.map(([k,l]) => `<button data-fd="${k}" aria-pressed="${state.foodDay===k}">${esc(l)}</button>`).join('');
   $('#foodDayFilters').querySelectorAll('button').forEach(b => b.onclick = () => { state.foodDay = b.dataset.fd; renderFood(); });
 
-  const tierOpts = [['all','全部等級'], ['A','🅰️ 特色名店/可訂位'], ['B','🅱️ 平價家庭/壽司連鎖'], ['C','🅲 快速牛丼/簡餐'], ['tablet','📱 中文平板/多語點餐']];
+  const tierOpts = [['all','全部等級'], ['A','【A 級】特色名店/可訂位'], ['B','【B 級】平價家庭/壽司連鎖'], ['C','【C 級】快速牛丼/簡餐'], ['tablet','📱 中文平板/多語點餐']];
   $('#foodTierFilters').innerHTML = tierOpts.map(([k,l]) => `<button data-ft="${k}" aria-pressed="${state.foodTier===k}">${esc(l)}</button>`).join('');
   $('#foodTierFilters').querySelectorAll('button').forEach(b => b.onclick = () => { state.foodTier = b.dataset.ft; renderFood(); });
 
@@ -2115,13 +2115,13 @@ function renderInfo(){
       <tr><th>回程</th><td><b>BR197</b>　2/10（三）<br>14:00 成田 T1 → 17:05 桃園 T2<br><small>⚠️ 搭 Skyliner 127號於 10:53 停靠第 2 航廈請勿下車，終點站 10:57 成田第 1 航廈下車</small></td></tr>
     </table></div>
 
-  <div class="box"><h3>💴 日幣 ⇄ 台幣即時換算小工具</h3>
+  <div class="box"><h3>💴 日幣 ↔ 台幣即時換算小工具</h3>
     <div style="font-size:.86rem;color:var(--muted);margin-bottom:.35rem">
       匯率設定：1 JPY = <input id="rateInp" type="number" step="0.001" value="${rate}" style="width:5.2rem;font:inherit;padding:.1rem .3rem;border:1px solid var(--line);border-radius:6px;background:var(--surface2);color:var(--text)"> TWD
     </div>
     <div class="calc-row">
       <div><label style="font-size:.8rem;color:var(--muted)">日幣 (JPY ¥)</label><input id="jpyInp" type="number" value="1000" inputmode="decimal"></div>
-      <div style="font-weight:800;padding-top:1.1rem">⇄</div>
+      <div style="font-weight:800;padding-top:1.1rem">↔</div>
       <div><label style="font-size:.8rem;color:var(--muted)">台幣 (TWD $)</label><input id="twdInp" type="number" value="${Math.round(1000*rate)}" inputmode="decimal"></div>
     </div>
     <div class="preset-chips">
@@ -2166,14 +2166,14 @@ function renderInfo(){
       <li><b>Day 7 期間限定「2027 西湖樹冰祭」：</b>2027/2/6–2/14 於西湖野鳥之森公園舉辦，距西湖根場車程僅 5 分鐘（15:05–16:00 順遊），可欣賞 5–10 公尺高巨型冰雕群與富士山同框</li>
       <li><b>新倉山淺間公園無障礙緩坡：</b>登上忠靈塔觀景台有 398 階（冬季有殘雪結冰請穿防滑雪靴或冰爪）；若長輩膝蓋不適，<b>右側有緩坡車道可走</b></li>
       <li><b>江之島夜間套票與岩屋提醒：</b>17:00 後離苑須持「江の島シーキャンドルセット券 ＋ナイト」（大人 ¥1,550／小人 ¥750）；岩屋 17:00 閉館且坡道無手扶梯，建議由山頂往下走 10 分鐘看海蝕平台即可折返</li>
-      <li><b>晴空塔五級浮動票價與黃金時段：</b>2026/4/1 起採五級浮動票價（線上成人 ¥3,000–¥4,800），現場 4F 櫃檯購票每張加收 ¥500 手續費；Day 8 预约 16:30 入場可一次飽覽白日街景、17:10 夕陽富士山與夜景</li>
+      <li><b>晴空塔五級浮動票價與黃金時段：</b>2026/4/1 起採五級浮動票價（線上成人 ¥3,000–¥4,800），現場 4F 櫃檯購票每張加收 ¥500 手續費；Day 8 預約 16:30 入場可一次飽覽白日街景、17:10 夕陽富士山與夜景</li>
     </ul></div>
 
   <div class="box"><h3>🚨 日本緊急聯絡 ＆ 實用連結</h3>
     <div style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-bottom:.6rem">
       <div>👮 警察局<br><a class="tel" href="tel:110">110</a></div>
       <div>🚑 救護車／消防<br><a class="tel" href="tel:119">119</a></div>
-      <div>🇹🇼 駐日代表處緊急電話<br><a class="tel" href="tel:+81-3-3280-7811" style="font-size:1.15rem">03-3280-7811</a></div>
+      <div>🆘 駐日代表處緊急電話<br><a class="tel" href="tel:+81-3-3280-7811" style="font-size:1.15rem">03-3280-7811</a></div>
     </div>
     <ul>
       <li><a href="https://www.vjw.digital.go.jp/" target="_blank" rel="noopener">Visit Japan Web（入境手續官方網站）</a></li>
@@ -2186,7 +2186,7 @@ function renderInfo(){
 
   <div class="box"><h3>📲 PWA 離線模式 ＆ App 安裝狀態</h3>
     <table class="info">
-      <tr><th>網路狀態</th><td id="infoNetStatus">${navigator.onLine ? '🟢 目前在線（自動同步最新快取）' : '📴 目前為離線模式（使用本機快取）'}</td></tr>
+      <tr><th>網路狀態</th><td id="infoNetStatus">${navigator.onLine ? '✅ 目前在線（自動同步最新快取）' : '📴 目前為離線模式（使用本機快取）'}</td></tr>
       <tr><th>執行模式</th><td>${(window.matchMedia('(display-mode: standalone)').matches || navigator.standalone) ? '✅ 已以獨立 App 模式開啟' : '🌐 瀏覽器分頁模式（可安裝至主畫面）'}</td></tr>
       <tr><th>離線快取</th><td id="infoSwStatus">${esc(pwaState.swText)}</td></tr>
     </table>
@@ -2252,7 +2252,7 @@ function updateNetUI(){
   const online = navigator.onLine;
   $('#netPill').classList.toggle('offline', !online);
   if ($('#infoNetStatus')) {
-    $('#infoNetStatus').textContent = online ? '🟢 目前在線（自動同步最新快取）' : '📴 目前為離線模式（使用本機快取）';
+    $('#infoNetStatus').textContent = online ? '✅ 目前在線（自動同步最新快取）' : '📴 目前為離線模式（使用本機快取）';
   }
 }
 window.addEventListener('online', updateNetUI);
