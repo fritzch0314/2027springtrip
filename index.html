@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="關東家族旅行">
-<meta name="description" content="2027/2/1–2/10 日本關東10天9夜家族旅行互動行程表、A/B/C三級推薦餐廳、準備清單與離線導覽助理">
+<meta name="description" content="2027/2/1–2/10 日本關東10天9夜家族旅行互動行程表、訂票提醒、交通時刻表查詢、A/B/C三級推薦餐廳、準備清單與離線導覽助理">
 <title>2027 日本關東 10天9夜 家族旅行助理</title>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -22,7 +22,8 @@
   --c-flight:#6b4fbb; --c-transit:#2f6f9f; --c-food:#c26a12; --c-hotel:#3d7d4a; --c-sight:#b23a48; --c-event:#a1307f;
   --tip-bg:#fff6dd; --tip-line:#e2b33c; --warn-bg:#fde8e4; --warn-line:#d9534f;
   --tier-a:#b23a48; --tier-b:#2f6f9f; --tier-c:#3d7d4a;
-  --now:#0f8a5f; --shadow:0 2px 10px rgba(30,40,60,.08);
+  --now:#0f8a5f; --urgent:#c83e2b; --upcoming:#c26a12;
+  --shadow:0 2px 10px rgba(30,40,60,.08);
   --radius:14px;
 }
 [data-theme="dark"]{
@@ -31,7 +32,8 @@
   --c-flight:#b9a3ff; --c-transit:#7cc0ff; --c-food:#ffb366; --c-hotel:#86d897; --c-sight:#ff8f9d; --c-event:#f39be0;
   --tip-bg:#3a3218; --tip-line:#c9a23a; --warn-bg:#40221f; --warn-line:#ff7b72;
   --tier-a:#ff8f9d; --tier-b:#7cc0ff; --tier-c:#86d897;
-  --now:#3ddc97; --shadow:0 2px 10px rgba(0,0,0,.4);
+  --now:#3ddc97; --urgent:#ff7b72; --upcoming:#ffb366;
+  --shadow:0 2px 10px rgba(0,0,0,.4);
 }
 *{box-sizing:border-box}
 html{font-size:var(--fs);-webkit-text-size-adjust:100%}
@@ -69,11 +71,14 @@ nav.tabs{display:none}
 
 /* ---------- Bottom nav (mobile) ---------- */
 nav.bottom{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surface);border-top:1px solid var(--line);
-  display:flex;justify-content:space-around;padding:.25rem .15rem calc(.25rem + env(safe-area-inset-bottom));box-shadow:0 -2px 10px rgba(0,0,0,.06)}
-nav.bottom button{flex:1;border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:.05rem;
-  padding:.28rem 0;font-size:min(.74rem,15px);color:var(--muted);border-radius:10px;white-space:nowrap}
-nav.bottom button .ic{font-size:min(1.28rem,24px);line-height:1.2}
+  display:flex;justify-content:space-around;overflow-x:auto;padding:.22rem .1rem calc(.22rem + env(safe-area-inset-bottom));box-shadow:0 -2px 10px rgba(0,0,0,.06)}
+nav.bottom button{flex:1 0 auto;min-width:2.65rem;border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:.04rem;
+  padding:.24rem .15rem;font-size:min(.7rem,13.5px);color:var(--muted);border-radius:10px;white-space:nowrap;position:relative}
+nav.bottom button .ic{font-size:min(1.2rem,22px);line-height:1.15}
 nav.bottom button[aria-current="page"]{color:var(--primary);font-weight:700;background:var(--surface2)}
+.nav-badge{position:absolute;top:.1rem;right:calc(50% - 1.15rem);background:#d9534f;color:#fff;font-size:10px;font-weight:800;line-height:1.2;padding:0 .28rem;border-radius:999px;min-width:1rem;text-align:center}
+nav.tabs button{position:relative}
+nav.tabs .nav-badge{position:static;margin-left:.25rem;vertical-align:middle;display:inline-block}
 
 main{max-width:1200px;margin:0 auto;padding:1rem}
 .view{display:none}
@@ -82,10 +87,15 @@ main{max-width:1200px;margin:0 auto;padding:1rem}
 
 /* ---------- Banner ---------- */
 .banner{background:linear-gradient(135deg,var(--accent),#e09f3e);color:#fff;border-radius:var(--radius);
-  padding:.9rem 1.1rem;margin-bottom:1rem;display:flex;align-items:center;gap:.8rem;box-shadow:var(--shadow)}
+  padding:.85rem 1.1rem;margin-bottom:.65rem;display:flex;align-items:center;justify-content:space-between;gap:.8rem;box-shadow:var(--shadow);flex-wrap:wrap}
 [data-theme="dark"] .banner{background:linear-gradient(135deg,#7a2f22,#7a5a1f)}
+.banner-main{display:flex;align-items:center;gap:.8rem;flex:1 1 18rem}
 .banner .big{font-size:2rem}
-.banner b{font-size:1.15rem}
+.banner b{font-size:1.12rem}
+.booking-strip{background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--accent);border-radius:var(--radius);
+  padding:.65rem .95rem;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap;box-shadow:var(--shadow);font-size:.92rem}
+.booking-strip-info{display:flex;flex-direction:column;gap:.2rem;flex:1 1 20rem}
+.booking-strip-row{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap}
 
 /* ---------- Day picker ---------- */
 .daywrap{display:grid;gap:1rem;grid-template-columns:minmax(0,1fr)}
@@ -102,9 +112,12 @@ main{max-width:1200px;margin:0 auto;padding:1rem}
 
 .dayhead{background:var(--surface);border-radius:var(--radius);padding:1rem 1.1rem;box-shadow:var(--shadow);border:1px solid var(--line)}
 .dayhead .row1{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
-.pill{display:inline-flex;align-items:center;gap:.25rem;border-radius:999px;padding:.05rem .65rem;font-size:.82rem;font-weight:700;background:var(--surface2);color:var(--text);border:1px solid var(--line)}
+.pill{display:inline-flex;align-items:center;gap:.25rem;border-radius:999px;padding:.08rem .65rem;font-size:.82rem;font-weight:700;background:var(--surface2);color:var(--text);border:1px solid var(--line)}
 .pill.holiday{background:#c8102e;color:#fff;border-color:#c8102e}
 .pill.area{background:var(--primary);color:var(--primary-ink);border-color:var(--primary)}
+.pill.urgent{background:rgba(217,83,79,.15);color:var(--urgent);border-color:var(--urgent)}
+.pill.upcoming{background:rgba(194,106,18,.15);color:var(--upcoming);border-color:var(--upcoming)}
+.pill.done{background:rgba(15,138,95,.15);color:var(--now);border-color:var(--now)}
 .dayhead h2{margin:.35rem 0 .2rem;font-size:1.45rem;line-height:1.35}
 .dayhead .date{color:var(--muted);font-size:.95rem}
 .daynav{display:flex;gap:.5rem;margin-top:.7rem}
@@ -139,6 +152,13 @@ a.place{display:inline-flex;align-items:center;gap:.1rem;font-weight:700;color:v
 a.place:hover{background:var(--surface2)}
 .tip{margin-top:.45rem;background:var(--tip-bg);border-left:4px solid var(--tip-line);border-radius:8px;padding:.4rem .6rem;font-size:.95rem}
 .tip.warn{background:var(--warn-bg);border-color:var(--warn-line)}
+.ev-links{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.5rem}
+.ev-chip{display:inline-flex;align-items:center;gap:.25rem;font-size:.8rem;font-weight:700;padding:.2rem .55rem;border-radius:8px;
+  background:var(--surface);border:1px solid var(--line);color:var(--primary);text-decoration:none;line-height:1.35}
+.ev-chip:hover{border-color:var(--primary);background:var(--primary);color:var(--primary-ink)}
+.ev-chip.bk-chip{color:var(--c-event)}
+.ev-chip.bk-chip.done{color:var(--now);border-color:var(--now)}
+.ev-chip.bk-chip:hover{background:var(--c-event);color:#fff;border-color:var(--c-event)}
 
 /* ---------- Inline Meal Recommendations ---------- */
 .meal-drawer{margin-top:.55rem;border:1px solid var(--line);border-radius:10px;background:var(--surface2);overflow:hidden}
@@ -158,13 +178,33 @@ a.place:hover{background:var(--surface2)}
 
 .side-cards{display:grid;gap:1rem}
 .box{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:.9rem 1.1rem;box-shadow:var(--shadow)}
-.box h3{margin:0 0 .45rem;font-size:1.1rem;display:flex;align-items:center;gap:.4rem}
+.box h3{margin:0 0 .45rem;font-size:1.1rem;display:flex;align-items:center;gap:.4rem;flex-wrap:wrap}
 .box ul{margin:0;padding-left:1.2rem}
 .box li{margin:.25rem 0}
 .hotelname{font-weight:800;font-size:1.08rem}
 .btn{display:inline-flex;align-items:center;gap:.35rem;border:1px solid var(--line);background:var(--surface2);border-radius:10px;padding:.4rem .8rem;
   font-weight:700;text-decoration:none;color:var(--text);margin-top:.4rem}
 .btn.primary{background:var(--primary);color:var(--primary-ink);border-color:var(--primary)}
+.btn.accent{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn.done-btn{background:var(--now);color:#fff;border-color:var(--now)}
+.btn-sm{padding:.22rem .55rem;font-size:.82rem;border-radius:8px;margin-top:0}
+
+/* ---------- Booking Reminder & Timetable Cards ---------- */
+.bk-card{display:flex;flex-direction:column;gap:.55rem;position:relative;transition:.15s}
+.bk-card.is-done{opacity:.82;border-top-color:var(--now)!important}
+.bk-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(12rem,1fr));gap:.45rem;background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:.55rem .75rem;font-size:.88rem}
+.bk-meta-item b{display:block;font-size:.78rem;color:var(--muted)}
+.bk-note-inp{width:100%;font:inherit;font-size:.86rem;padding:.38rem .65rem;border-radius:8px;border:1px solid var(--line);background:var(--surface2);color:var(--text)}
+.bk-actions{display:flex;gap:.45rem;flex-wrap:wrap;align-items:center;margin-top:auto;padding-top:.35rem;border-top:1px dashed var(--line)}
+.sub-chk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(12.5rem,1fr));gap:.35rem;background:var(--surface2);padding:.5rem .65rem;border-radius:10px;border:1px solid var(--line);font-size:.86rem}
+.sub-chk-grid label{display:flex;align-items:center;gap:.4rem;cursor:pointer}
+.sub-chk-grid input{width:1.1rem;height:1.1rem;accent-color:var(--now)}
+
+.tt-card{display:flex;flex-direction:column;gap:.45rem}
+.tt-domain{font-size:.76rem;color:var(--muted);word-break:break-all}
+.quick-tt-table{width:100%;border-collapse:collapse;font-size:.88rem}
+.quick-tt-table th,.quick-tt-table td{border-bottom:1px solid var(--line);padding:.45rem .4rem;text-align:left;vertical-align:top}
+.quick-tt-table th{background:var(--surface2);color:var(--text);font-weight:800;white-space:nowrap}
 
 /* ---------- Overview & Dining ---------- */
 .searchbox{display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap}
@@ -228,11 +268,11 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
 @media (min-width:900px){
   body{padding-bottom:0}
   nav.bottom{display:none}
-  nav.tabs{display:flex;gap:.25rem;max-width:1200px;margin:.45rem auto 0}
-  nav.tabs button{border:0;background:transparent;color:inherit;padding:.4rem .9rem;border-radius:10px 10px 0 0;font-weight:700;opacity:.85}
+  nav.tabs{display:flex;gap:.2rem;max-width:1200px;margin:.45rem auto 0;flex-wrap:wrap}
+  nav.tabs button{border:0;background:transparent;color:inherit;padding:.4rem .8rem;border-radius:10px 10px 0 0;font-weight:700;opacity:.85;font-size:.92rem}
   nav.tabs button[aria-current="page"]{background:var(--bg);color:var(--text);opacity:1}
   header.top{padding-bottom:0}
-  .daywrap{grid-template-columns:minmax(0,1fr) 23rem;align-items:start}
+  .daywrap{grid-template-columns:minmax(0,1fr) 23.5rem;align-items:start}
   .daywrap .full{grid-column:1 / -1}
   .side-cards{position:sticky;top:8.5rem}
 }
@@ -242,7 +282,7 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
   .tools{width:100%;justify-content:space-between}
 }
 @media print{
-  header.top,nav,.daynav,.filters,.daypicker,.banner,.searchbox{display:none!important}
+  header.top,nav,.daynav,.filters,.daypicker,.banner,.booking-strip,.searchbox{display:none!important}
   body{background:#fff;padding:0}
   .view{display:block!important}
   .ev .card,.box,.dayhead{box-shadow:none}
@@ -290,7 +330,43 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
     </div>
   </section>
 
-  <!-- 美食指南 (新增 A/B/C 三級推薦餐廳 + 點餐溝通卡) -->
+  <!-- 訂票與預訂提醒 -->
+  <section class="view" id="v-booking" aria-label="訂票提醒">
+    <h2 class="sectitle">🎟️ 訂票與預訂清單 ＆ 搶票時程提醒</h2>
+    <div class="box" style="margin-bottom:1rem" id="bookingDash"></div>
+    <div class="searchbox">
+      <label class="sr-only" for="bq">搜尋訂票與預訂項目</label>
+      <input id="bq" type="search" placeholder="🔍 搜尋預訂項目、日期、注意事項…（例：晴空塔、新幹線、富士急、12/01、今半、Toyota）" autocomplete="off">
+    </div>
+    <div class="filters" id="bookingStatusFilters" role="group" aria-label="依預訂狀態篩選" style="margin-bottom:.5rem"></div>
+    <div class="filters" id="bookingCatFilters" role="group" aria-label="依類別篩選" style="margin-bottom:1rem"></div>
+    <div class="grid-wide" id="bookingGrid"></div>
+  </section>
+
+  <!-- 交通時刻表與常用連結查詢 -->
+  <section class="view" id="v-transit" aria-label="交通時刻表查詢">
+    <h2 class="sectitle">🚆 交通時刻表 ＆ 常用連結查詢（共 36 項）</h2>
+    <div class="box" style="margin-bottom:1rem">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;flex-wrap:wrap">
+        <div>
+          <b>⚡ 10 天核心交通班次 ＆ 轉乘備案速查表（100% 離線可查）</b>
+          <div style="color:var(--muted);font-size:.88rem">彙整每日主班次、備案班次、乘車月台與 Suica／購票注意事項</div>
+        </div>
+        <button class="btn" id="toggleQuickTtBtn" style="margin:0">展開／收合班次速查表 ▾</button>
+      </div>
+      <div id="quickTtWrap" style="display:none;margin-top:.75rem;overflow-x:auto"></div>
+    </div>
+
+    <div class="searchbox">
+      <label class="sr-only" for="tq">搜尋交通時刻表與連結</label>
+      <input id="tq" type="search" placeholder="🔍 搜尋路線、車站、車次、編號或說明…（例：Skyliner、はくたか、江之電、接駁車、富士急、川越、#24）" autocomplete="off">
+    </div>
+    <div class="filters" id="transitCatFilters" role="group" aria-label="依交通分類篩選" style="margin-bottom:.5rem"></div>
+    <div class="filters" id="transitDayFilters" role="group" aria-label="依行程日篩選" style="margin-bottom:1rem"></div>
+    <div class="grid-wide" id="transitGrid"></div>
+  </section>
+
+  <!-- 美食指南 (A/B/C 三級推薦餐廳 + 點餐溝通卡) -->
   <section class="view" id="v-food" aria-label="推薦餐廳">
     <h2 class="sectitle">🍽️ 每日推薦餐廳清單（A / B / C 三級分級）</h2>
     <div class="box" style="margin-bottom:1rem">
@@ -306,7 +382,7 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
 
     <div class="searchbox">
       <label class="sr-only" for="fq">搜尋餐廳</label>
-      <input id="fq" type="search" placeholder="🔍 搜尋餐廳、料理或點餐方式…（例：敘敘苑、鰻魚飯、壽司郎、中文平板、便當）" autocomplete="off">
+      <input id="fq" type="search" placeholder="🔍 搜尋餐廳、料理或點餐方式…（例：敘敘苑、鰻魚飯、壽司郎、中文平板、便當、傳米）" autocomplete="off">
     </div>
     <div class="filters" id="foodDayFilters" role="group" aria-label="依天數篩選餐廳" style="margin-bottom:.5rem"></div>
     <div class="filters" id="foodTierFilters" role="group" aria-label="依等級篩選餐廳" style="margin-bottom:1rem"></div>
@@ -315,10 +391,10 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
 
   <!-- 總覽 -->
   <section class="view" id="v-overview" aria-label="行程總覽">
-    <h2 class="sectitle">🗺️ 10 天行程總覽</h2>
+    <h2 class="sectitle">🗺️ 10 天行程總覽 ＆ 全站綜合搜尋</h2>
     <div class="searchbox">
-      <label class="sr-only" for="q">搜尋行程與餐廳</label>
-      <input id="q" type="search" placeholder="🔍 搜尋景點、餐廳、班次、注意事項…（例：晴空塔、はくたか、黑貓、敘敘苑）" autocomplete="off">
+      <label class="sr-only" for="q">搜尋行程、訂票、時刻表與餐廳</label>
+      <input id="q" type="search" placeholder="🔍 搜尋景點、餐廳、班次、訂票提醒、時刻表…（例：晴空塔、はくたか、黑貓、樹冰祭、敘敘苑）" autocomplete="off">
     </div>
     <div class="results" id="results"></div>
     <div class="grid" id="grid"></div>
@@ -346,7 +422,7 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
         <input id="customChkInput" type="text" placeholder="➕ 新增個人或家族待辦事項（例：預約成田機場接送、買兒童雪鏡）">
         <button class="btn primary" id="addCustomChkBtn" style="margin:0">新增項目</button>
       </div>
-      <small style="color:var(--muted);display:block;margin-top:.35rem">勾選狀態與自訂項目會自動儲存在這台裝置上。</small>
+      <small style="color:var(--muted);display:block;margin-top:.35rem">勾選狀態與「🎟️ 訂票提醒」雙向自動同步，並儲存在這台裝置上。</small>
     </div>
     <div class="grid-wide" id="checks"></div>
   </section>
@@ -357,7 +433,7 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
     <div class="grid-wide" id="info"></div>
   </section>
 
-  <p class="foot">資料來源：2027日本關東10天9夜家族旅行行程表（Google 試算表同步更新版）・ 行程時間皆為日本當地時間（桃園出發／返台降落為台灣時間）</p>
+  <p class="foot">資料來源：2027日本關東10天9夜家族旅行行程表（Google 試算表：每日行程總表、訂票與預訂清單、交通時刻表與常用連結 100% 同步版）・ 行程時間皆為日本當地時間（桃園出發／返台降落為台灣時間）</p>
 </main>
 
 <!-- 指差し溝通卡放大 Modal -->
@@ -374,7 +450,7 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
 <div class="modal-backdrop" id="pwaModal" role="dialog" aria-modal="true" aria-labelledby="pwaTitle">
   <div class="modal-card" style="max-width:34rem">
     <h3 id="pwaTitle" style="margin:0 0 .35rem;font-size:1.25rem;justify-content:center">📲 安裝「關東家族旅行 App」</h3>
-    <div style="font-size:.9rem;color:var(--muted);margin-bottom:.6rem">安裝至手機主畫面後，可像原生 App 全螢幕開啟，在飛機上、地下鐵或山區無網路時也能<b>100% 離線查閱行程、餐廳與勾選清單</b>！</div>
+    <div style="font-size:.9rem;color:var(--muted);margin-bottom:.6rem">安裝至手機主畫面後，可像原生 App 全螢幕開啟，在飛機上、地下鐵或山區無網路時也能<b>100% 離線查閱行程、訂票提醒、班次速查、餐廳與勾選清單</b>！</div>
     <div id="nativeInstallWrap" style="display:none;margin-bottom:.75rem">
       <button class="btn primary" id="triggerNativeInstallBtn" style="width:100%;justify-content:center;padding:.65rem;font-size:1.05rem">✨ 立即一鍵安裝到手機／電腦</button>
     </div>
@@ -402,481 +478,725 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
 
 <script>
 /* =========================================================
-   行程資料（100% 同步自 Google 試算表最新版本）
+   1. 每日行程總表（100% 同步自 Google 試算表「每日行程總表」）
    ========================================================= */
 const DAYS = [
  {date:'2027-02-01', wd:'一', tag:'', title:'出發！抵達東京・上野漫遊', area:'東京', map:'東京', color:'#2f6f9f',
   items:[
-   ['05:30-06:30','🚗 出發前往桃園機場（05:30 出發 → 06:30 抵達）'],
-   ['06:30','📍 【桃園機場第二航廈】長榮櫃檯報到（「BR198」08:50 起飛）'],
-   ['08:50-12:55','✈️ 長榮「BR198」班機起飛　桃園 T2 → 成田 T1'],
-   ['12:55','🛬 抵達【成田機場第一航廈】NRT T1 🧳 提領行李與辦理入境通關'],
-   ['14:18-15:09','🚆 搭乘「京成 Skyliner 136號」由成田 T1（14:18發）直達【京成上野站】 💡 備案下一班：14:38 - 15:21（Skyliner 36號）'],
-   ['15:30','📍 【MIMARU 東京 上野 NORTH】辦理入住 💡 京成上野站步行約15分，推大行李可考慮分搭2台計程車（車程5分，約¥800/台）'],
-   ['16:00-18:30','📍 【上野公園】散步漫遊、【Yodobashi Camera 上野店】與【阿美橫丁】 💡 2月初約17:05日落，趁天亮先逛上野公園'],
-   ['18:30-20:00','🍽️ 晚餐：上野・阿美橫丁周邊餐廳']
+   ['05:30-06:30','🚗 出發前往【桃園機場 T2】'],
+   ['06:30','📍 【桃園機場 T2】長榮櫃檯報到（BR198 08:50 起飛）'],
+   ['08:50-12:55','✈️ 搭乘【長榮 BR198】桃園 T2 → 成田 T1',{tt:[1]}],
+   ['12:55','🛬 抵達【成田機場 T1】 🧳 提領行李 & 入境通關'],
+   ['14:18-15:09','🚆 搭乘【京成 Skyliner 136號】成田 T1 →【京成上野站】 💡 備案：14:38 – 15:23（Skyliner 38號） ⚠️ 建議出關後現場購票／機器劃位或持兌換券換位',{tt:[6,7,8],bk:8}],
+   ['15:30','📍 【MIMARU 東京 上野 NORTH】辦理入住 💡 【京成上野站】步行約 15 分鐘；推大行李可分搭 2 台計程車（車程約 5 分鐘，約 ¥800／台）'],
+   ['16:00-18:30','📍 【上野公園】散步（2 月初約 17:05 日落，趁天亮先逛）、【Yodobashi Camera 上野店】&【阿美橫丁】'],
+   ['18:30-20:00','🍽️ 【晚餐】上野・阿美橫丁周邊',{bk:6}]
   ],
-  hotel:'MIMARU 東京 上野 NORTH', night:'第1晚',
+  hotel:'MIMARU 東京 上野 NORTH', night:'第 1 晚',
   prep:[
-   '📝【出發前】檢查護照正本，完成 Visit Japan Web 填寫並截圖 QR Code',
-   '📝【出發前】台灣人日本自駕【必須使用台灣駕照正本 + 日文譯本正本 + 護照】，不可使用國際駕照',
-   '⚠️【出發前】日本室內與電車暖氣極強(24°C)，請採「發熱衣+薄長袖+防風羽絨外套」洋蔥式穿法，避免給小孩帶難穿脫的高領厚毛衣',
-   '📝【第1晚】確認每人 Suica/IC 卡餘額(建議儲值¥5,000)，6-11歲國小生辦記名小児Suica；先買好明早 JR Green Car 車票'
+   '📝【出發前】護照正本、Visit Japan Web QR Code 截圖；日本自駕必備「台灣駕照正本＋日文譯本正本＋護照」（不可用國際駕照）',
+   '📝【出發前】日本室內與電車暖氣強，衣服攜帶「發熱衣＋薄長袖＋防風羽絨」洋蔥式穿法，勿給孩童穿厚高領毛衣',
+   '📝【第 1 晚】確認每人 Suica 餘額（建議 ¥5,000），先買好明早 JR Green 券'
   ],
   meals:[
    {slot:'🌙 晚餐｜上野・阿美橫丁', match:'晚餐', tiers:[
     {tier:'A', label:'🅰️ 特色名店（可訂位）', list:[
-     {name:'燒肉 陽山道 上野本店/廣小路店', note:'官網/Tabelog訂位，中英菜單、有包廂'},
-     {name:'鰻割烹 伊豆榮 不忍亭', note:'Gurunavi/HotPepper訂位，繁中菜單'}
+     {name:'燒肉 陽山道 上野本店／廣小路店', note:'官網／Tabelog 訂位，中英文菜單、有包廂'},
+     {name:'鰻割烹 伊豆榮 不忍亭', note:'Gurunavi／HotPepper 訂位，繁中菜單'}
     ]},
     {tier:'B', label:'🅱️ 平價家庭／壽司連鎖', list:[
-     {name:'スシロー壽司郎 上野店 / くら寿司藏壽司 御徒町店', note:'App/EPARK預約，中文平板'},
-     {name:'しゃぶ菜 上野', note:'Gurunavi訂位，壽喜燒涮涮鍋吃到飽'},
-     {name:'ガストGusto 上野広小路店 / ジョナサン 上野公園前店', note:'中文平板+機器人送餐'}
+     {name:'壽司郎 上野店／藏壽司 御徒町店', note:'App／EPARK 預約，中文平板'},
+     {name:'しゃぶ菜 上野', note:'Gurunavi 訂位，壽喜燒涮涮鍋吃到飽'},
+     {name:'ガスト Gusto 上野広小路店／ジョナサン 上野公園前店', note:'中文平板＋機器人送餐'}
     ]},
-    {tier:'C', label:'🅲 快速牛丼／定食快餐', list:[
-     {name:'松屋 上野浅草口店/上野店', note:'24H營業'},
-     {name:'すき家Sukiya 御徒町駅南口店/上野六丁目店', note:'快速外帶/內用'},
-     {name:'吉野家 上野駅前店', note:'JR上野站旁'},
-     {name:'やよい軒(彌生軒) 東上野店', note:'日式定食白飯免費續'}
+    {tier:'C', label:'🅲 快速牛丼／定食', list:[
+     {name:'松屋 上野浅草口店／上野店', note:'24H 營業'},
+     {name:'すき家 Sukiya 御徒町駅南口店／上野六丁目店', note:'快速外帶／內用'},
+     {name:'吉野家 上野駅前店／やよい軒 東上野店', note:'JR 上野站旁／日式定食'}
     ]}
    ]}
   ]},
 
  {date:'2027-02-02', wd:'二', tag:'', title:'鎌倉古都・江之島夕照點燈', area:'鎌倉・江之島', map:'神奈川', color:'#2a9d8f',
   items:[
-   ['07:30','🚶 步行至【JR 上野站】（約10分） 💡 平日通勤尖峰建議提早10分至月台排自由席綠車'],
-   ['07:46-08:51','🚆 搭 JR 至【鎌倉站】（07:46上野發東海道線→08:31抵【戶塚站】4號月台，對面3號月台轉08:39橫須賀線→08:51抵鎌倉） 💡 上車前先用Suica買Green券'],
-   ['08:51','🚃 抵達【鎌倉站】 💡 若僅搭「鎌倉→長谷→江之島→藤澤」3段共¥600，直接刷Suica比買¥800江之電一日券更省錢且免排隊'],
-   ['09:00-10:00','📍 【鶴岡八幡宮】'],
-   ['10:00-10:30','📍 【小町通老街】'],
-   ['10:30-12:00','🍽️ 午餐：小町通周邊餐廳'],
-   ['12:08-12:13','🚃 搭江之電至【長谷站】'],
-   ['12:30-14:30','📍 參觀【高德院大佛】與【長谷寺】'],
-   ['14:33-14:53','🚃 搭江之電從長谷站前往【江之島站】'],
-   ['15:00-16:00','📍 漫步【江之島弁天橋】、參道商店街，🛗 購買「江之島手扶梯 (江の島エスカー) + Sea Candle 套票」分三段輕鬆上山，參拜【邊津宮】、【中津宮】'],
-   ['16:00-17:15','📍 【江之島 サムエル・コッキング苑 (山頂花園)】🌅 觀賞湘南夕陽與富士山海景、於山頂咖啡廳避寒休息 ⚠️ 若想走去稚兒之淵/岩屋，請注意岩屋17:00閉館且回程無手扶梯，來回有數百階陡坡，若體力不佳可停留在山頂賞景'],
-   ['17:15-18:30','📍 參觀【Sea Candle 展望燈塔】關東三大點燈「湘南の宝石」（2月約17:30點燈）'],
-   ['19:01-19:07','🚃 由【片瀬江ノ島駅】搭小田急江之島線至【藤澤站】 💡 若改搭江之電：江ノ島駅 18:54-19:05 或 19:08-19:19 至藤澤站'],
-   ['19:15-20:30','🍽️ 晚餐：藤澤站周邊餐廳'],
-   ['20:42-21:35','🚆 搭 JR 東海道線到上野 💡 或不在藤澤吃晚餐，買便當搭 19:17 - 20:10']
+   ['07:00','🚶 步行至【JR 上野站】（約 10 分鐘） 💡 平日通勤尖峰，建議早出門至月台排自由席綠車，選「車廂兩端」或「下層」較易有座位'],
+   ['07:46-08:51','🚆 【上野站】搭 JR 東海道線 →【戶塚站】4 號月台 (08:30)，對面 3 號月台轉 08:40 橫須賀線 →【鎌倉站】(08:51) 💡 上車前先用 Suica 購買 Green 券',{tt:[9]}],
+   ['08:51','🚃 抵達【鎌倉站】 💡 鎌倉→長谷→江之島→藤澤全程刷 Suica 即可，無須購買一日券'],
+   ['09:00-10:00','📍 【鶴岡八幡宮】參拜'],
+   ['10:00-11:30','📍 【小町通老街】逛街散步（店家約 10:00 – 11:00 陸續開門）'],
+   ['11:30-12:30','🍽️ 【午餐】小町通周邊餐廳',{bk:6}],
+   ['12:36-12:40','🚃 【鎌倉站】搭江之電 →【長谷站】',{tt:[10]}],
+   ['12:50-14:20','📍 【高德院大佛】&【長谷寺】參拜'],
+   ['14:33-14:53','🚃 搭江之電：【長谷站】→【江之島站】',{tt:[11]}],
+   ['15:00-16:00','📍 漫步【江之島弁天橋】、參道商店街，參拜【邊津宮】、【中津宮】 💡 現場出示或購買「江の島シーキャンドルセット券 ＋ナイト」入場',{tt:[35],bk:4}],
+   ['16:00-17:15','📍 【江之島 サムエル・コッキング苑（山頂花園）】🌅 賞湘南夕陽與富士山海景、咖啡廳避寒 ⚠️ 岩屋 17:00 閉館且坡道無手扶梯，建議山頂往下走 10 分鐘看海蝕平台即可折返'],
+   ['17:15-18:30','📍 【Sea Candle 展望燈塔】關東三大點燈「湘南の宝石」（2 月約 17:30 點燈）',{tt:[35],bk:4}],
+   ['19:01-19:07','🚃 【片瀨江之島站】搭小田急江之島線 →【藤澤站】（備案：江之島站 18:54 搭江之電）',{tt:[13,12]}],
+   ['19:40-20:34','🚆 【藤澤站】搭 JR 東海道線 →【上野站】 💡 買便當車上享用',{tt:[14]}]
   ],
-  hotel:'MIMARU 東京 上野 NORTH', night:'第2晚（連住第2晚）',
+  hotel:'MIMARU 東京 上野 NORTH', night:'第 2 晚（連住第 2 晚）',
   prep:[
-   '📝【第2晚】整理明日前往輕井澤的大行李；準備百元零錢與千元日鈔(明日輕井澤西武巴士不收Suica)'
+   '📝【第 2 晚】整理大行李，分為輕井澤使用及明日寄送至河口湖旅館 2 類'
   ],
   meals:[
-   {slot:'🌞 午餐｜鎌倉小町通 (10:30–12:00)', match:'午餐', tiers:[
+   {slot:'🌞 午餐｜鎌倉小町通（11:30–12:30）', match:'午餐', tiers:[
     {tier:'A', label:'🅰️ 特色名店（可訂位）', list:[
-     {name:'GARDEN HOUSE Kamakura', note:'09:00營業，TableCheck/Tabelog訂位，英文菜單'},
-     {name:'和彩 八倉 小町通店', note:'11:00營業，Gurunavi/HotPepper訂位，吻仔魚海鮮丼'}
+     {name:'GARDEN HOUSE Kamakura', note:'09:00 開，TableCheck／Tabelog 訂位，英文菜單'},
+     {name:'和彩 八倉 小町通店', note:'11:00 開，Gurunavi／HotPepper 訂位，吻仔魚海鮮丼'}
     ]},
     {tier:'B', label:'🅱️ 平價家庭連鎖', list:[
-     {name:'不二家レストラン 鎌倉店', note:'10:00營業，小町通入口2F，洋食漢堡排/兒童餐'},
-     {name:'大戶屋 鎌倉若宮大路店 / サイゼリヤ薩莉亞 鎌倉駅前店', note:'家庭連鎖定食/義式餐廳'}
+     {name:'不二家レストラン 鎌倉店', note:'10:00 開，小町通入口 2F，洋食漢堡排／兒童餐'},
+     {name:'大戶屋 鎌倉若宮大路店／薩莉亞 鎌倉駅前店', note:'家庭連鎖定食／義式餐廳'}
     ]}
    ]},
-   {slot:'🌙 晚餐｜藤澤站周邊 (19:15–20:30)', match:'晚餐', tiers:[
+   {slot:'🌙 晚餐｜藤澤站外帶便當／周邊備案', match:'便當', tiers:[
     {tier:'A', label:'🅰️ 特色名店（可訂位）', list:[
-     {name:'個室和食 肉と魚 殻YABURI 藤澤店 / 燒肉 新羅', note:'HotPepper訂位，英文菜單'}
+     {name:'個室和食 肉と魚 殻YABURI 藤澤店／燒肉 新羅', note:'HotPepper 訂位，英文菜單'}
     ]},
     {tier:'B', label:'🅱️ 平價家庭／壽司連鎖', list:[
-     {name:'スシロー壽司郎 藤沢オーパ店', note:'南口OPA 4F，App預約'},
-     {name:'牛角 藤澤店 / 温野菜 藤澤店', note:'HotPepper訂位'},
-     {name:'ガストGusto 藤沢北口店 / 大戶屋 藤沢南口店', note:'平價家庭餐廳/定食'}
+     {name:'壽司郎 藤沢オーパ店', note:'南口 OPA 4F，App 預約'},
+     {name:'牛角／温野菜 藤澤店', note:'HotPepper 訂位'},
+     {name:'ガスト Gusto 藤沢北口店／大戶屋 藤沢南口店', note:'平價家庭餐廳／定食'}
     ]},
     {tier:'C', label:'🅲 快速牛丼／便當', list:[
-     {name:'松屋 藤沢南口/北口店、吉野家 藤沢南口/北口店、なか卯 藤沢北口店', note:'快速丼飯烏龍麵'},
-     {name:'小田急百貨B1便當街 / 崎陽軒燒賣便當', note:'可買上JR綠車吃'}
+     {name:'松屋／吉野家／なか卯 藤澤站周邊分店', note:'快速丼飯烏龍麵'},
+     {name:'小田急百貨 B1 便當街／崎陽軒燒賣便當', note:'可買上 JR 綠車享用'}
     ]}
    ]}
   ]},
 
  {date:'2027-02-03', wd:'三', tag:'', title:'前進輕井澤・森林教會巡禮', area:'輕井澤', map:'輕井澤', color:'#3d7d4a',
   items:[
-   ['08:20','🚶 步行至【JR 上野站】（約10分）'],
-   ['08:47-09:43','🚆 搭乘北陸新幹線「はくたか 555號」直達【輕井澤站】'],
-   ['09:45-10:15','🧳 至輕井澤站南口右側【王子飯店 Smile Concierge (スマイルコンシェルジュ) 旅客服務中心】辦理行李免費直送西館'],
-   ['10:15-10:50','🚶 前往【輕井澤站北口 1號巴士站牌】候車 💡 也可考慮由北口搭計程車至榆樹街小鎮（約15分，約¥3,000/台，公車為¥520/人）'],
-   ['11:00-11:19','🚌 車站北口1號站牌搭「西武觀光巴士」至【星野温泉 トンボの湯】下車（步行1分即達榆樹街） ⚠️ 不支援Suica，請備現金'],
-   ['11:30-13:30','🍽️ 【榆樹街小鎮 (ハルニレテラス)】逛街及午餐'],
-   ['13:30-14:45','📍 參觀【輕井澤高原教會】＆【石之教堂 內村鑑三紀念堂】 ⚠️ 森林坡道冬季易結冰請小心慢行；若遇婚禮舉行會暫停入內參觀，石之教堂內部禁止拍照'],
-   ['15:00-15:15','🚌 於【星野温泉 トンボの湯】（14:58發）或【湯川站】（15:00發）搭西武觀光巴士回輕井澤站北口'],
-   ['15:30-15:40','🚗 車站南口搭王子飯店接駁車（ブラウンルート）至【輕井澤王子大飯店 西館】🏨 Check-in 休息'],
-   ['16:30-18:00','📍 【輕井澤王子購物廣場 Outlet】🛍️ Outlet 採購'],
-   ['18:00','🧳 將要寄往河口湖 Fuji View Hotel 的大行李交給西館櫃檯辦理黑貓宅急便（指定 2/5 送達）'],
-   ['19:00','🍽️ 晚餐：【輕井澤王子購物廣場 Outlet】「味之街」'],
-   ['20:00 或 20:30','🚗 搭接駁車至旅館']
+   ['08:20','🚶 步行至【JR 上野站】（約 10 分鐘）'],
+   ['08:47-09:43','🚆 搭乘北陸新幹線【はくたか 555號】直達【輕井澤站】',{tt:[2,4,5,9],bk:7}],
+   ['09:43-10:00','🚆 抵達【輕井澤站】，步行至南口 (B-1) 接駁車站牌候車',{tt:[24]}],
+   ['10:00-10:10','🚗 【輕井澤站】南口 (B-1) 搭王子接駁車（棕線）→【輕井澤王子大飯店 西館 (B-12M)】',{tt:[24]}],
+   ['10:10-10:35','🧳 於【西館】櫃檯寄放當日行李，並順便交寄黑貓宅急便大行李往【Fuji View Hotel】（指定 2/5 送達） 💡 若錯過 10:00 接駁車可步行約 10–12 分鐘至【西館】'],
+   ['10:35-10:50','🚕 直接由【西館】搭計程車前往【星野榆樹街小鎮】（車程約 15 分鐘，約 ¥3,000–¥3,500／台） 💡 備案：步行至【輕井澤站】北口 1 號站牌搭 11:30 – 11:49 西武觀光巴士至【星野温泉 トンボの湯】',{tt:[26,28]}],
+   ['10:50-12:00','📍 【榆樹街小鎮 (ハルニレテラス)】逛街及河畔散步'],
+   ['11:30-13:15','🍽️ 【榆樹街小鎮 (ハルニレテラス)】・【午餐】小鎮餐廳',{bk:6}],
+   ['13:15-14:45','📍 【輕井澤高原教會】&【石之教堂 內村鑑三紀念堂】 ⚠️ 森林坡道冬季易結冰請慢行；石之教堂視現場婚禮情況開放'],
+   ['15:00-15:20','🚌 【星野温泉 トンボの湯】或【湯川站】搭西武觀光巴士（備案下班：16:00 – 16:20）→【輕井澤站】北口',{tt:[27,28]}],
+   ['15:30-16:00','🚗 南口搭王子接駁車（棕線）→【輕井澤王子大飯店 西館】Check-in（若上午有未寄出之黑貓大行李可於此時補寄）',{tt:[24]}],
+   ['16:30-18:00','📍 【輕井澤王子 Outlet】採購'],
+   ['19:00','🍽️ 【晚餐】輕井澤王子 Outlet 味之街',{bk:6}],
+   ['20:00／20:30','🚗 搭王子接駁車（棕線）→【西館】（20:00→20:10／20:30→20:40）',{tt:[24]}]
   ],
-  hotel:'輕井澤王子大飯店 西館', night:'第3晚',
+  hotel:'輕井澤王子大飯店 西館', night:'第 3 晚',
   prep:[
-   '📝【第3晚 重要！】下午就將要寄往河口湖 Fuji View Hotel 的大行李交給西館櫃檯辦理黑貓宅急便(指定2/5送達)，免得明早超過當日集荷截單時間！隨身僅留1晚換洗衣物'
+   '📝【第 3 晚】備妥明日 Snow Park 玩雪保暖衣物與防水手套'
   ],
   meals:[
    {slot:'🌞 午餐｜輕井澤榆樹街小鎮', match:'午餐', tiers:[
     {tier:'A', label:'🅰️ 特色名店', list:[
-     {name:'Bakery & Restaurant SAWAMURA 澤村 榆樹街店', note:'官網TableCheck訂位，歐風料理/烤雞漢堡排，英菜單'},
-     {name:'Il Sogno イル・ソーニョ', note:'Gurunavi訂位，石窯披薩義大利麵，英菜單'},
-     {name:'せきれい橋 川上庵', note:'現場抽號，大蝦天婦羅蕎麥麵，中英菜單'}
+     {name:'Bakery & Restaurant SAWAMURA 澤村', note:'TableCheck 訂位，歐風料理／烤雞漢堡排，英文菜單'},
+     {name:'Il Sogno イル・ソーニョ', note:'Gurunavi 訂位，石窯披薩義大利麵，英文菜單'},
+     {name:'せきれい橋 川上庵', note:'現場抽號，大蝦天婦羅蕎麥麵，中英文菜單'}
     ]}
    ]},
-   {slot:'🌙 晚餐｜輕井澤Outlet 味之街', match:'晚餐', tiers:[
+   {slot:'🌙 晚餐｜輕井澤 Outlet 味之街（冬季平日 21:00 關、L.O. 20:30）', match:'晚餐', tiers:[
     {tier:'A', label:'🅰️ 特色名店', list:[
-     {name:'熟成和牛燒肉 Aging Beef 輕井澤店', note:'Tabelog/一休訂位，中英菜單'},
-     {name:'信州ソースかつ丼 明治亭 輕井澤店', note:'現場候位，醬汁豬排丼，中英圖示菜單'},
-     {name:'門前洋食 藤屋平五郎 / 中國料理 月季花', note:'Tabelog訂位'}
+     {name:'熟成和牛燒肉 Aging Beef', note:'Tabelog／一休訂位，L.O. 20:00，中英文菜單'},
+     {name:'信州ソースかつ丼 明治亭', note:'現場候位，醬汁豬排丼，中英文圖示菜單'},
+     {name:'門前洋食 藤屋平五郎／中國料理 月季花', note:'Tabelog 訂位'}
     ]},
     {tier:'B', label:'🅱️ 平價家庭／漢堡', list:[
-     {name:'KUA`AINA 輕井澤店', note:'夏威夷厚牛肉漢堡，Outlet東館側'}
+     {name:'KUA`AINA 夏威夷厚牛肉漢堡', note:'Outlet 東館側'}
     ]},
     {tier:'C', label:'🅲 快速簡餐', list:[
-     {name:'輕井澤Outlet美食街「太陽と緑のキッチン」', note:'道頓堀神座拉麵/讚岐烏龍麵'},
-     {name:'7-Eleven (Outlet內20:00止) / FamilyMart (北口站前)', note:'便利商店簡餐'}
+     {name:'Outlet 美食街「太陽と緑のキッチン」', note:'神座拉麵／讚岐烏龍麵'},
+     {name:'7-Eleven（Outlet 內至 22:00）／FamilyMart（北口站前）', note:'便利商店簡餐'}
     ]}
    ]}
   ]},
 
  {date:'2027-02-04', wd:'四', tag:'', title:'輕井澤玩雪・舊輕井澤銀座', area:'輕井澤', map:'輕井澤', color:'#3d7d4a',
   items:[
-   ['07:30-08:30','🍽️ 自助早餐：輕井澤王子大飯店 西館'],
-   ['08:30','📝 確認大行李已由黑貓宅急便寄往 Fuji View Hotel 💡 建議前一天即交寄，指定 2/5 送達'],
-   ['09:05-09:15','🚗 搭館內接駁車（ブラウンルート）至東館'],
-   ['09:30-11:15','📍 【輕井澤王子 Snow Park (東館側 イーストスノーマンパーク)】🛷 玩雪盆 & 雪胎 (Tubing) ⚠️ 玩雪時注意小孩鞋襪是否濕透，準備備用乾襪與防水手套'],
-   ['11:15-11:25','🚗 搭接駁車至西館'],
-   ['11:50-11:55','🚗 搭接駁車至 Outlet'],
-   ['12:00-14:00','🍽️ 午餐：【輕井澤王子購物廣場 Outlet】Food Court'],
-   ['14:10-14:17','🚌 輕井澤站北口2號站牌搭「草輕交通巴士」至【舊輕井澤】站 💡 或由Outlet直接搭計程車約5分/¥1,100'],
-   ['14:20-15:50','📍 逛【舊輕井澤銀座通】 💡 2月平日為輕井澤最淡季，銀座通逾半數店家冬季休業，有營業店家多於16:00打烊，逛1～1.5小時即可'],
-   ['16:02-16:10','🚌 於【舊輕井澤】站牌搭西武觀光巴士回輕井澤站北口 ⚠️ 16:02發車，請於15:55前到站牌候車'],
-   ['16:30-19:00','📍 【輕井澤王子購物廣場 Outlet】🛍️ Outlet 採購'],
-   ['19:00','🍽️ 晚餐：【輕井澤王子購物廣場 Outlet】「味之街」'],
-   ['20:00 或 20:30','🚗 搭接駁車至旅館']
+   ['07:30-08:30','🍽️ 【輕井澤王子大飯店 西館】自助早餐'],
+   ['09:05-09:15','🚗 搭王子接駁車（棕線）→【東館】',{tt:[24]}],
+   ['09:30-11:15','📍 【輕井澤王子 Snow Park（東館側）】🛷 玩雪盆 & 雪胎（Tubing） ⚠️ 現場購票；留意孩童鞋襪保暖，備妥乾襪與防水手套'],
+   ['11:15-11:55','🚗 【東館 (G-4T)】搭王子接駁車（綠線）經【西館 (G-12M)】轉往【輕井澤王子 Outlet (G-23／G-24)】',{tt:[24]}],
+   ['12:00-14:00','🍽️ 【輕井澤王子 Outlet】・【午餐】Food Court 美食街'],
+   ['14:10-14:17','🚌 【輕井澤站】北口 2 號站牌搭草輕交通巴士 →【舊輕井澤】（車程約 7 分鐘；亦可搭計程車約 5 分鐘） ⚠️ 不支援 Suica／PASMO（可付現、感應信用卡或 PayPay）',{tt:[29]}],
+   ['14:20-15:50','📍 【舊輕井澤銀座通】散步 💡 2 月平日為淡季，逾半店家約 16:00 打烊；提早逛完可順遊【雲場池】看雪景倒影'],
+   ['16:15-16:20','🚌 【舊輕井澤】搭西武觀光巴士 →【輕井澤站】北口（16:08 前候車）',{tt:[27,28]}],
+   ['16:30-19:00','📍 【輕井澤王子 Outlet】採購'],
+   ['19:00','🍽️ 【晚餐】輕井澤王子 Outlet 味之街',{bk:6}],
+   ['20:00／20:30','🚗 搭王子接駁車（棕線）→【西館】（20:00→20:10／20:30→20:40）',{tt:[24]}]
   ],
-  hotel:'輕井澤王子大飯店 西館', night:'第4晚（連住第2晚）',
+  hotel:'輕井澤王子大飯店 西館', night:'第 4 晚（連住第 2 晚）',
   prep:[
-   '📝【第4晚】隨身行李打包，再次檢查【駕駛台灣駕照正本 + 日文譯本正本】備妥'
+   '📝【第 4 晚】打包隨身行李，再確認「台灣駕照正本＋日文譯本正本＋護照」已帶在身上'
   ],
   meals:[
-   {slot:'🌞 午餐｜輕井澤Outlet 美食街', match:'Food Court', tiers:[
-    {tier:'B', label:'🅱️/🅲 平價連鎖美食街「太陽と緑のキッチン」（全區中英文圖示自助點餐、附兒童椅）', list:[
-     {name:'どうとんぼり神座 輕井澤店', note:'道頓堀神座白菜拉麵'},
-     {name:'備中手延べうどん びぜん', note:'手延烏龍麵'},
-     {name:'ビストロ かつき', note:'鐵板牛排飯/洋食'},
-     {name:'築地ハレの日', note:'新鮮海鮮丼'}
+   {slot:'🌞 午餐｜輕井澤 Outlet 美食街', match:'Food Court', tiers:[
+    {tier:'B', label:'🅱️／🅲 太陽と緑のキッチン（中英文圖示自助點餐）', list:[
+     {name:'どうとんぼり神座（拉麵）', note:'道頓堀神座白菜拉麵'},
+     {name:'備中手延べうどん びぜん（烏龍麵）', note:'手延烏龍麵'},
+     {name:'ビストロ かつき（牛排飯）', note:'鐵板牛排飯／洋食'},
+     {name:'築地ハレの日（海鮮丼）', note:'新鮮海鮮丼'}
     ]}
    ]},
-   {slot:'🌙 晚餐｜輕井澤Outlet 味之街 / 王子西館', match:'味之街', tiers:[
+   {slot:'🌙 晚餐｜輕井澤 Outlet 味之街／王子西館', match:'味之街', tiers:[
     {tier:'A', label:'🅰️ 特色名店', list:[
-     {name:'輕井澤王子大飯店西館 ALL DAY DINING LOUNGE/BAR Primrose', note:'自助百匯，官網訂位'},
-     {name:'味之街：明治亭豬排丼 / Aging Beef 燒肉 / 築地ハレの日壽司', note:'Outlet味之街餐廳群'}
+     {name:'王子西館 Primrose 自助百匯', note:'官網訂位'},
+     {name:'味之街：明治亭豬排丼／Aging Beef 燒肉／築地ハレの日壽司', note:'Outlet 味之街餐廳群'}
     ]},
-    {tier:'B', label:'🅱️ 平價家庭餐廳', list:[
-     {name:'COCO\'S ココス 輕井澤店', note:'中輕井澤國道18號旁，鐵板漢堡排/兒童餐，中文平板'}
-    ]},
-    {tier:'C', label:'🅲 快速簡餐', list:[
-     {name:'輕井澤Outlet美食街 / 車站周邊便利商店', note:'快速用餐選擇'}
+    {tier:'B', label:'🅱️／🅲 平價連鎖備案', list:[
+     {name:'COCO\'S ココス 輕井澤店', note:'中輕井澤國道 18 號旁，中文平板'},
+     {name:'其餘美食街與超商備案同 Day 3', note:'太陽と緑のキッチン／7-Eleven（至22:00）'}
     ]}
    ]}
   ]},
 
  {date:'2027-02-05', wd:'五', tag:'除夕', title:'轉往河口湖・自駕開始', area:'河口湖', map:'河口湖', color:'#c8553d',
   items:[
-   ['07:30-08:15','🍽️ 自助早餐：輕井澤王子大飯店 西館'],
-   ['08:20-08:30 (或 08:35-08:43)','🚗 搭接駁車至【輕井澤站】南口 💡 車程約6-8分，建議提早一班或請西館櫃檯Bell Desk派車，預留雪地上天橋至新幹線月台時間'],
-   ['09:06-10:22','🚆 搭北陸新幹線「はくたか 554號」至【東京站】'],
-   ['11:10-13:17','🚌 【東京站八重洲南口】轉乘「高速巴士 119便」直達【河口湖站】（買便當上車吃） ⚠️ 轉乘僅48分鐘！下新幹線請走「八重洲南口改札」出站，先帶家人確認地面層「JR高速巴士乘車處」站牌位置，再於旁邊買便當上車吃，勿在地下街逛太深迷路！'],
-   ['14:00','🚗 【Toyota Rent-a-Car 富士河口湖店】租車店取車（步行 7 分鐘） ⚠️ 務必確認配備「冬季雪胎 スタッドレスタイヤ」，並攜帶台灣駕照正本+日文譯本正本+護照'],
-   ['14:30','📍 【Fuji View Hotel 富士景觀飯店】🏨 抵達旅館辦理 Check-in（自駕15分鐘）'],
-   ['15:00','📍 旅館花園及河邊散步、泡溫泉 ♨️'],
-   ['18:00','🍽️ 晚餐：Fuji View Hotel（除夕團圓飯）']
+   ['07:30-08:15','🍽️ 【輕井澤王子大飯店 西館】自助早餐'],
+   ['08:20-08:25','🚗 【西館 (G-12M)】搭王子接駁車（08:20 綠線）→【輕井澤站】南口（車程約 5 分鐘，預留雪地上天橋時間） 💡 建議提早至站牌候車，以免客滿（備案：08:05 – 08:25 棕線始發）',{tt:[24]}],
+   ['09:19-10:22','🚆 搭乘北陸新幹線【はくたか 554號】→【東京站】',{tt:[3,4,5],bk:7}],
+   ['11:10-13:17','🚌 【東京站】八重洲南口搭富士急高速巴士 119號 →【河口湖站】 ⚠️ 全車指定席，確認於「八重洲南口」（1F 屋外 JR 高速巴士總站）上車；北陸新幹線在 20–23 號月台，走八重洲南口改札出站正前方即為巴士月台 ⚠️ 全程無中停休息；若塞車晚於 14:00 取車，致電【Toyota 富士河口湖店】(0555-72-1100) 留車',{tt:[25],bk:9}],
+   ['14:00','🚗 【Toyota 富士河口湖店】（河口湖站步行約 7 分鐘）取車（備妥駕照正本、日文譯本正本與護照並確認雪胎）',{tt:[33],bk:1}],
+   ['14:30-15:00','🚗 自駕前往【Fuji View Hotel】（車程約 15 分鐘），先寄放行李並於 15:00 入住'],
+   ['15:00','📍 飯店庭園與湖邊散步、享受富士溫泉'],
+   ['17:45','🍽️ 【除夕晚宴】Fuji View Hotel 飯店內餐廳 ⚠️ 敷島／Bellevue 皆採「17:45／19:45」兩部制，須事前預約 17:45 時段',{bk:2}]
   ],
-  hotel:'Fuji View Hotel 富士景觀飯店', night:'第5晚',
+  hotel:'Fuji View Hotel', night:'第 5 晚',
   prep:[
-   '📝【第5晚】確認 Fuji View Hotel 除夕晚餐預約時間；若明早要去大石公園看日出逆富士，先備妥防寒毛帽、手套與車用除霜準備'
+   '📝【第 5 晚】確認除夕晚餐 17:45 預約；向櫃檯詢問明後兩晚「冬花火」有無預約制免費接駁車；備妥明早日出防寒毛帽、手套與車用除霜準備'
   ],
   meals:[
-   {slot:'🌞 午餐｜東京站八重洲南口買便當上車吃', match:'便當', tiers:[
-    {tier:'A', label:'🍱 推薦外帶便當點', list:[
-     {name:'駅弁屋 祭 東京站', note:'東京站改札內，逾150款便當、加熱牛舌便當、新幹線造型便當'},
-     {name:'大丸東京店 B1 ほっぺタウン便當街', note:'10:00營業，就在八重洲南口巴士站旁！有敘敘苑燒肉便當、淺草今半壽喜燒便當、まい泉豬排三明治'}
+   {slot:'🌞 午餐｜東京站八重洲南口外帶便當', match:'八重洲南口', tiers:[
+    {tier:'A', label:'🍱 外帶便當推薦', list:[
+     {name:'大丸東京店 B1 ほっぺタウン', note:'10:00 開，八重洲南口巴士站旁！敘敘苑、淺草今半、まい泉三明治'},
+     {name:'駅弁屋 祭 東京站', note:'東京站改札內，逾 150 款鐵路便當'}
     ]}
    ]},
-   {slot:'🌙 除夕晚餐｜Fuji View Hotel 飯店內或自駕外食', match:'晚餐', tiers:[
-    {tier:'A', label:'🅰️ 飯店餐廳（需事先預約）', list:[
-     {name:'Fuji View Hotel 法式餐廳 Bellevue (ベルビュー)', note:'飯店內西式コース'},
-     {name:'Fuji View Hotel 日本料理 敷島 (Shikishima)', note:'飯店內會席料理'}
+   {slot:'🌙 除夕晚餐｜Fuji View Hotel 飯店內', match:'除夕晚宴', tiers:[
+    {tier:'A', label:'🅰️ 飯店餐廳（須事前預約 17:45 時段）', list:[
+     {name:'法式餐廳 Bellevue（ベルビュー）', note:'飯店內西式コース（兩部制 17:45／19:45）'},
+     {name:'日本料理 敷島（Shikishima）', note:'飯店內會席料理（兩部制 17:45／19:45）'}
     ]},
-    {tier:'B', label:'🅱️/🅲 若未訂飯店晚餐，自駕3–5分外食選擇', list:[
-     {name:'スシロー壽司郎 河口湖BELL店', note:'中文平板點餐'},
-     {name:'ガストGusto 河口湖店 / バーミヤンBamiyan 河口湖店', note:'西式/中華家庭餐廳，中文平板'},
-     {name:'すき家Sukiya ベル河口湖店', note:'牛丼快餐'}
+    {tier:'B', label:'🅱️／🅲 外食備案（自駕約 3–5 分鐘）', list:[
+     {name:'壽司郎 河口湖BELL店／ガスト Gusto／バーミヤン Bamiyan／すき家 Sukiya', note:'中文平板點餐、附免費停車場'}
     ]}
    ]}
   ]},
 
  {date:'2027-02-06', wd:'六', tag:'初一', title:'逆富士・天上山・冬花火', area:'河口湖', map:'河口湖', color:'#c8553d',
   items:[
-   ['06:15-06:30','🚗 開車前往河口湖北岸【大石公園】（車程15分） ⚠️ 清晨零下-8°C，過河口湖大橋須防路面黑冰，提早10分發動車子暖氣除霜，切勿潑熱水'],
-   ['06:30-07:00','📍 【大石公園】📸 賞日出（約06:40）與富士山逆富士絕景'],
-   ['07:00-07:15','🚗 開車回旅館'],
-   ['07:30-08:30','🍽️ 自助早餐：Fuji View Hotel'],
-   ['09:00-09:10','🚗 自駕出發前往【富士山景觀纜車】（車程10分）'],
-   ['09:10-11:30','📍 【富士山景觀纜車 (天上山公園)】🚡 登頂敲天上之鐘、俯瞰河口湖全景、吃狸貓糰子'],
-   ['11:30-11:40','🚗 自駕出發前往【旅の駅 kawaguchiko base】（車程10分）'],
-   ['11:40-13:10','🍽️ 【旅の駅 kawaguchiko base】地產地消市集 🥬 午餐 & 採購特產'],
-   ['13:10-13:20','🚗 自駕出發前往【河口湖音樂盒之森美術館】（車程10分）'],
-   ['13:20-15:30','📍 【河口湖音樂盒之森美術館】🎻 室內吹暖氣欣賞世界最大自動管風琴演奏、歐風庭園拍富士山'],
-   ['15:30-15:45','🚗 開車返回 Fuji View Hotel'],
-   ['17:00-18:30','🍽️ 晚餐：Fuji View Hotel 或外面餐廳'],
-   ['19:30-19:40','🚗 自駕5分鐘至【八木崎公園免費停車場】 ⚠️ 夜晚湖畔零下低溫極冷，建議開車前往並在車內吹暖氣等候'],
-   ['20:00-20:20','✨ 【河口湖冬花火】🎇 於【八木崎公園】觀賞湖上煙火（19:50再下車觀賞）'],
-   ['20:25-20:35','🚗 開車返回 Fuji View Hotel']
+   ['06:15-07:15','🚗 自駕前往北岸【大石公園】（車程約 15 分鐘）・📍【大石公園】賞日出（約 06:40）與富士山逆富士 ⚠️ 清晨約 -8°C，過河口湖大橋防路面黑冰；提早 10 分鐘發動暖氣除霜，賞日出後開車返回飯店'],
+   ['07:30-08:30','🍽️ 【Fuji View Hotel】自助早餐'],
+   ['08:50-09:00','🚗 自駕前往【富士山景觀纜車】（車程約 10 分鐘，停河口湖畔「縣營免費停車場」） ⚠️ 週末遊客眾多，建議提早出發排隊搭乘',{tt:[34],bk:12}],
+   ['09:30-11:30','📍 【富士山景觀纜車（天上山公園）】🚡 敲天上之鐘、俯瞰河口湖全景、吃狸貓糰子 💡 現場排隊搭乘；冬季末班下山 16:40',{tt:[34],bk:12}],
+   ['11:30-13:10','🍽️ 自駕前往【旅の駅 kawaguchiko base】（車程約 10 分鐘）地產市集・【午餐】Terrace Kitchen & 採購伴手禮'],
+   ['13:10-15:30','📍 自駕前往【河口湖音樂盒之森美術館】（車程約 10 分鐘）🎻 室內吹暖氣欣賞世界最大管風琴演奏、歐風庭園拍攝富士山'],
+   ['15:30-15:45','🚗 開車返回【Fuji View Hotel】休息泡湯'],
+   ['17:00-18:30','🍽️ 【晚餐】飯店晚餐（預約 17:45 場次）或河口湖外食',{bk:6}],
+   ['18:30-18:45','🚗 自駕前往【平浜駐車場】（車程約 12 分鐘，配雪胎）或【船津浜駐車場】 💡 19:00 前停妥避開車潮'],
+   ['19:00-19:50','🚗 車內休息（備毛毯、暖暖包） ⚠️ 19:30 施放「確認舉辦信號煙火」（強風大雪可能停辦）'],
+   ['20:00-20:20','✨ 【河口湖冬花火】'],
+   ['20:40-20:55','🚗 散場防塞：在車內休息約 15–20 分鐘待車潮消退，開車返回飯店']
   ],
-  hotel:'Fuji View Hotel 富士景觀飯店', night:'第6晚（連住第2晚）',
+  hotel:'Fuji View Hotel', night:'第 6 晚（連住第 2 晚）',
   prep:[
-   '📝【第6晚】準備明日新倉山淺間公園防滑雪靴與簡易鞋底冰爪'
+   '📝【第 6 晚】備妥明日【新倉山淺間公園】防滑雪靴與簡易鞋底冰爪'
   ],
   meals:[
    {slot:'🌞 午餐｜旅の駅 kawaguchiko base', match:'午餐', tiers:[
-    {tier:'B', label:'🅱️ テラスキッチン (Terrace Kitchen)', list:[
-     {name:'旅の駅 kawaguchiko base テラスキッチン', note:'甲州富士櫻豬排、富士山漢堡排、甲州牛排、烏龍麵（多語系中英觸控點餐機，180席免預約）'}
+    {tier:'B', label:'🅱️ テラスキッチン（Terrace Kitchen）', list:[
+     {name:'旅の駅 kawaguchiko base テラスキッチン', note:'甲州富士櫻豬排、富士山漢堡排、甲州牛排、烏龍麵（中英文觸控點餐機，180 席免預約）'}
     ]}
    ]},
-   {slot:'🌙 初一晚餐｜河口湖自駕外食（皆附免費停車場）', match:'晚餐', tiers:[
+   {slot:'🌙 初一晚餐｜河口湖自駕特選（皆附免費停車場）', match:'晚餐', tiers:[
     {tier:'A', label:'🅰️ 特色名店', list:[
-     {name:'網燒 HANA 河口湖', note:'HotPepper訂位，湖畔景觀燒肉，中英菜單'},
-     {name:'ほうとう蔵 步成 河口湖店', note:'現場/線上抽號，冠軍黃金餺飥麵，全桌中文平板點餐'}
+     {name:'網燒 HANA', note:'HotPepper 訂位，湖畔景觀燒肉，中英文菜單'},
+     {name:'ほうとう蔵 步成 河口湖店', note:'現場／線上抽號，冠軍餺飥麵，中文平板點餐'}
     ]},
-    {tier:'B', label:'🅱️ 平價家庭／壽司連鎖（離飯店開車3–5分）', list:[
-     {name:'スシロー壽司郎 河口湖BELL店', note:'App預約，中文平板'},
-     {name:'ガストGusto 河口湖店', note:'中文平板+貓咪機器人送餐'},
-     {name:'バーミヤンBamiyan 河口湖店', note:'日式中華家庭餐廳，煎餃/拉麵/炒飯，中文平板'}
-    ]},
-    {tier:'C', label:'🅲 快速牛丼／烏龍麵快餐（離飯店開車4分）', list:[
-     {name:'すき家Sukiya ベル河口湖店', note:'中文平板/得來速'},
-     {name:'丸龜製麵 河口湖ベル店', note:'現煮烏龍麵/天婦羅'}
+    {tier:'B', label:'🅱️／🅲 平價連鎖備案', list:[
+     {name:'壽司郎 河口湖BELL店／ガスト Gusto／バーミヤン Bamiyan／すき家 Sukiya／丸龜製麵', note:'同 Day 5 河口湖BELL周邊連鎖餐廳（開車 3–5 分鐘）'}
     ]}
    ]}
   ]},
 
- {date:'2027-02-07', wd:'日', tag:'初二', title:'新倉山五重塔・忍野八海・根場', area:'富士五湖', map:'山梨', color:'#c8553d',
+ {date:'2027-02-07', wd:'日', tag:'初二', title:'新倉山五重塔・忍野八海・西湖樹冰祭', area:'富士五湖', map:'山梨', color:'#c8553d',
   items:[
-   ['07:30-08:30','🍽️ 自助早餐：Fuji View Hotel'],
-   ['08:30-08:50','🚗 自駕出發前往【新倉山淺間公園】（車程20分）'],
-   ['08:50-10:30','📍 【新倉山淺間公園】📸 晨間順光拍攝忠靈塔與富士山絕景（登上398階觀景台） 💡 若膝蓋不適，右側有無階梯的車道緩坡可走 💡 防滑對策：冬晨新倉山淺間公園階梯有殘雪結冰，請穿著「保暖防滑雪靴或簡易鞋底冰爪」'],
-   ['10:30-11:00','🚗 開車至【忍野八海】（車程25分）'],
-   ['11:00-13:00','🍽️ 【忍野八海】午餐及湧泉雪景散步'],
-   ['13:00-13:45','🚗 開車至【西湖療癒之里根場】（實際車程約30-35分）'],
-   ['13:45-16:15','📍 【西湖療癒之里根場】（冬季營業至16:30，最後入場16:00）🏮 漫步日本原風景茅葺屋頂聚落、眺望富士山絕景、體驗手作工藝與茶屋甜點'],
-   ['16:30-17:00','🚗 開車返回 Fuji View Hotel'],
-   ['17:30-19:00','🍽️ 晚餐：Fuji View Hotel 或外面餐廳'],
-   ['20:00-20:20','✨ 【河口湖冬花火】DAY2']
+   ['07:30-08:30','🍽️ 【Fuji View Hotel】自助早餐'],
+   ['08:30-08:50','🚗 自駕前往【新倉山淺間公園】（車程約 20 分鐘）'],
+   ['08:50-10:30','📍 【新倉山淺間公園】📸 晨間順光拍攝忠靈塔與富士山（登 398 階；右側有緩坡車道） ⚠️ 冬晨階梯殘雪結冰，請穿防滑雪靴或簡易鞋底冰爪'],
+   ['10:30-11:00','🚗 自駕前往【忍野八海】（車程約 25 分鐘，建議停池本或中島停車場）'],
+   ['11:00-12:00','📍 【忍野八海】湧泉雪景漫步'],
+   ['12:00-13:00','🍽️ 【午餐】忍野八海周邊餐廳（蕎麥麵／烏龍麵）'],
+   ['13:00-13:45','🚗 自駕前往【西湖療癒之里根場】（車程約 30–35 分鐘）'],
+   ['13:45-15:00','📍 【西湖療癒之里根場】（冬季至 16:30，最後入場 16:00）🏮 漫步茅葺聚落、眺望富士山、體驗工藝與茶屋甜點'],
+   ['15:05-16:00','📍 【2027 西湖樹冰祭｜西湖野鳥之森公園】❄️ 2027/2/6–2/14 期間限定，距根場車程約 5 分鐘・🗻 欣賞高達 5–10 公尺巨型冰雕群與富士山同框、逛樹冰茶屋'],
+   ['16:30-17:00','🚗 開車返回【Fuji View Hotel】'],
+   ['17:30-18:45','🍽️ 【晚餐】飯店晚餐（預約 17:45 場次）或河口湖外食',{bk:6}],
+   ['20:00-20:20','✨ 【河口湖冬花火】Day 2（彈性備案）']
   ],
-  hotel:'Fuji View Hotel 富士景觀飯店', night:'第7晚（連住第3晚）',
+  hotel:'Fuji View Hotel', night:'第 7 晚（連住第 3 晚）',
   prep:[
-   '📝【第7晚】大行李打包，確認晴空塔觀景台預約門票'
+   '📝【第 7 晚】打包大行李，確認【東京晴空塔】觀景台預約門票 QR Code'
   ],
   meals:[
-   {slot:'🌞 午餐｜忍野八海＆順路國道', match:'午餐', tiers:[
-    {tier:'A', label:'🅰️ 在地名店', list:[
-     {name:'池本茶屋 忍野八海', note:'中池水車正對面，富士山湧泉蕎麥麵、炭烤岩魚，中英圖片菜單'},
-     {name:'名泉そば / 彥兵衛うどん', note:'忍野八海周邊吉田烏龍麵/蕎麥麵'}
+   {slot:'🌞 午餐｜忍野八海在地名店', match:'午餐', tiers:[
+    {tier:'A', label:'🅰️ 特色名店', list:[
+     {name:'池本茶屋', note:'中池水車正對面，湧泉蕎麥麵、炭烤岩魚，中英文圖片菜單'},
+     {name:'名泉そば／彥兵衛うどん', note:'吉田烏龍麵／蕎麥麵'}
     ]},
-    {tier:'C', label:'🅲 順路連鎖快餐（新倉山往忍野八海139號國道上）', list:[
-     {name:'松屋 + 松のや 富士吉田店', note:'牛丼+炸豬排複合店，24H，中文售票機'},
-     {name:'麥當勞 139富士吉田店', note:'附得來速與停車場'}
+    {tier:'C', label:'🅲 快速簡餐（139 號國道順路）', list:[
+     {name:'松屋＋松のや 富士吉田店（24H）／麥當勞 139 富士吉田店', note:'附停車場與中文點餐機'}
     ]}
    ]},
-   {slot:'🌙 初二晚餐｜河口湖自駕外食（皆附免費停車場）', match:'晚餐', tiers:[
+   {slot:'🌙 初二晚餐｜河口湖自駕特選（皆附免費停車場）', match:'晚餐', tiers:[
     {tier:'A', label:'🅰️ 特色名店', list:[
-     {name:'燒肉 ひまわり亭 (向日葵亭) 河口湖', note:'官網Toreta訂位，A5和牛燒肉，英菜單'},
-     {name:'ほうとう不動 東戀路店', note:'雲朵造型餐廳，300席翻桌快，中英菜單'}
+     {name:'燒肉 ひまわり亭 向日葵亭', note:'官網 Toreta 訂位，A5 和牛燒肉，英文菜單'},
+     {name:'ほうとう不動 東戀路店', note:'雲朵造型餐廳，300 席翻桌快，中英文菜單'}
     ]},
-    {tier:'B', label:'🅱️ 平價家庭／壽司連鎖', list:[
-     {name:'かっぱ寿司 河口湖インター店', note:'新幹線送壽司，HotPepper/EPARK預約'},
-     {name:'スシロー壽司郎 / ガストGusto / バーミヤンBamiyan 河口湖', note:'中文平板連鎖餐廳'}
-    ]},
-    {tier:'C', label:'🅲 快速牛丼／烏龍麵', list:[
-     {name:'すき家Sukiya ベル河口湖店 / 丸龜製麵 河口湖ベル店 / 摩斯漢堡 河口湖店', note:'快速簡餐選擇'}
+    {tier:'B', label:'🅱️／🅲 平價連鎖備案', list:[
+     {name:'かっぱ寿司 河口湖店（新幹線送餐）或同 Day 5 壽司郎／Gusto／Sukiya', note:'中文平板連鎖餐廳'}
     ]}
    ]}
   ]},
 
  {date:'2027-02-08', wd:'一', tag:'初三', title:'回到東京・淺草寺與晴空塔夕照', area:'東京', map:'東京', color:'#2f6f9f',
   items:[
-   ['07:30-08:15','🍽️ 自助早餐：Fuji View Hotel'],
-   ['08:15-08:30','🚗 先開車至【河口湖站】讓乘客與大行李下車，再由駕駛開去對面【ENEOS 河口湖】加滿油'],
-   ['08:45','🚗 於【Toyota 富士河口湖店】辦理還車後，駕駛輕裝步行7分鐘回河口湖站會合'],
-   ['09:30-11:35','🚌 【河口湖站】（2號站牌）搭乘高速巴士直達【東京站日本橋口】'],
-   ['11:59-12:05','🚃 東京站轉山手線至【御徒町站】'],
-   ['12:05-12:15','🚶 步行至【&Here TOKYO UENO】寄放行李（約10分）'],
-   ['12:45-14:00','🍽️ 午餐：上野廣小路站周邊餐廳'],
-   ['14:07-14:14','🚃 上野廣小路站搭銀座線到【淺草站】'],
-   ['14:16-15:30','📍 參觀【淺草寺】'],
-   ['15:30-15:50','🚶 淺草寺經【隅田川步道橋 (Sumida River Walk)】散步到【牛嶋神社】'],
-   ['15:50-16:05','📍 參拜【牛嶋神社】'],
-   ['16:05-16:20','🚶 牛嶋神社散步到晴空塔 💡 全程約2公里，若走累了，可由旁邊「とうきょうスカイツリー駅」搭1站電車或計程車前往'],
-   ['16:30-17:45','📍 【晴空塔觀景台】🌅 💡 2月日落約17:10，提早於16:30入場可一次飽覽白日街景、夕陽富士山剪影與東京夜景！（請事先購買指定時段門票）'],
+   ['07:30-08:15','🍽️ 【Fuji View Hotel】自助早餐'],
+   ['08:15-08:30','🚗 先送家人與行李至【河口湖站】，駕駛再開往「ENEOS セルフ富士河口湖SS」加滿油'],
+   ['08:45','🚗 【Toyota 富士河口湖店】還車，駕駛輕裝步行約 7 分鐘回車站會合',{tt:[33],bk:1}],
+   ['09:30-11:35','🚌 【河口湖站】（2 號站牌）搭富士急高速巴士 8 號 →【東京站日本橋口】',{tt:[25],bk:10}],
+   ['11:59-12:05','🚃 【東京站】搭 JR 山手線 →【御徒町站】',{tt:[15]}],
+   ['12:05-12:15','🧳 【&Here TOKYO UENO】步行至飯店寄放行李（約 10 分鐘）'],
+   ['12:45-14:00','🍽️ 【午餐】上野廣小路站周邊餐廳',{bk:6}],
+   ['14:07-14:14','🚃 【上野廣小路站】搭東京 Metro 銀座線 →【淺草站】',{tt:[16]}],
+   ['14:16-15:30','📍 【淺草寺】參拜，可順遊雷門正對面【淺草文化觀光中心】8F 免費展望台'],
+   ['15:30-16:20','🚶 【淺草寺】經隅田川步道橋（Sumida River Walk）→【牛嶋神社】參拜 → 散步前往【晴空塔】 ⚠️ 全程約 2 公里；若走累可於【淺草站】搭東武晴空塔線 1 站至「とうきょうスカイツリー駅」，或搭計程車前往'],
+   ['16:30-17:45','📍 【東京晴空塔觀景台】🌅 16:30 入場一次看白日街景、夕陽富士山（約 17:10 日落）與璀璨夜景 💡 出示線上預購門票 QR Code 入場（現場 4F 櫃檯購票每張加收 ¥500 手續費）',{tt:[36],bk:3}],
    ['17:45-19:00','📍 【晴空塔 Solamachi 商場】逛街採購'],
-   ['19:00-20:30','🍽️ 晚餐：晴空塔內餐廳'],
-   ['20:34-20:55','🚃 【押上站】（20:34發）搭都營淺草線至淺草站，走地下連通道（約7分）轉乘銀座線至【上野廣小路站】']
+   ['19:00-20:30','🍽️ 【晚餐】晴空塔內餐廳',{bk:6}],
+   ['20:34-20:55','🚃 【押上站】(20:34) 搭都營淺草線 →【淺草站】走地下連通道（約 7 分鐘）轉銀座線 →【上野廣小路站】',{tt:[17,18]}]
   ],
-  hotel:'&Here TOKYO UENO', night:'第8晚',
-  prep:[],
+  hotel:'&Here TOKYO UENO', night:'第 8 晚',
+  prep:[
+   '📝【第 8 晚】整理明日川越輕便隨身包、確認每人 Suica 餘額'
+  ],
   meals:[
-   {slot:'🌞 午餐｜上野廣小路站（&Here飯店步行3分）', match:'午餐', tiers:[
+   {slot:'🌞 午餐｜上野廣小路站（&Here 步行約 3 分鐘）', match:'午餐', tiers:[
     {tier:'A', label:'🅰️ 特色名店（可訂位）', list:[
-     {name:'敘敘苑 上野廣小路店 / 上野マルイ店', note:'官網/一休/Tabelog訂位，超值商業午餐，繁中平板'},
+     {name:'敘敘苑 上野廣小路店／マルイ店', note:'官網／一休訂位，商業午餐，繁中平板'},
      {name:'とんかつ井泉 本店', note:'炸豬排創始老店，英文菜單'}
     ]},
-    {tier:'B', label:'🅱️ 平價家庭／壽司連鎖', list:[
-     {name:'くら寿司藏壽司 御徒町店 / スシロー壽司郎 上野店', note:'App預約，中文平板'},
-     {name:'ガストGusto 上野広小路店 / サイゼリヤ薩莉亞 / 大戶屋', note:'平價家庭餐廳'}
-    ]},
-    {tier:'C', label:'🅲 快速牛丼／定食', list:[
-     {name:'吉野家 御徒町駅前店 / 松屋 上野店 / すき家 御徒町駅南口店 / なか卯 / やよい軒', note:'快速丼飯與定食'}
+    {tier:'B', label:'🅱️／🅲 平價連鎖備案', list:[
+     {name:'同 Day 1 上野連鎖餐廳（壽司郎／藏壽司／Gusto／薩莉亞／松屋／Sukiya）', note:'中文平板／快速點餐'}
     ]}
    ]},
-   {slot:'🌙 晚餐｜晴空塔 Solamachi ＆ 押上站', match:'晚餐', tiers:[
+   {slot:'🌙 晚餐｜晴空塔 Solamachi & 押上站', match:'晚餐', tiers:[
     {tier:'A', label:'🅰️ 特色名店（可訂位）', list:[
-     {name:'ひつまぶし名古屋 備長 東京晴空塔店', note:'Solamachi 6F，HotPepper/Tabelog訂位，鰻魚飯三吃，繁中菜單'},
-     {name:'敘敘苑 東京晴空塔店 (30F) / 利久牛舌 (6F)', note:'30F高空景觀燒肉官網訂位 / 6F仙台牛舌'}
+     {name:'ひつまぶし名古屋 備長', note:'Solamachi 6F，鰻魚飯三吃，繁中菜單'},
+     {name:'敘敘苑 晴空塔 30F 高空景觀店／利久牛舌 (6F)', note:'30F 高空燒肉官網訂位／6F 仙台牛舌'}
     ]},
     {tier:'B', label:'🅱️ 平價家庭／壽司連鎖', list:[
-     {name:'くら寿司 押上駅前店', note:'B3出口對面，全球旗艦店有大型數位遊戲檯！EPARK預約'},
-     {name:'とんかつ和幸 東京晴空塔店', note:'Solamachi 6F，高麗菜白飯無限續，繁中菜單'},
-     {name:'一風堂拉麵 / 宮武讚岐烏龍麵 東京晴空塔', note:'Solamachi 3F美食街'}
+     {name:'くら寿司 押上駅前店', note:'全球旗艦店，EPARK 預約'},
+     {name:'とんかつ和幸 (6F，繁中菜單)／一風堂拉麵／宮武讚岐烏龍麵 (3F)', note:'Solamachi 餐廳與美食街'}
     ]},
-    {tier:'C', label:'🅲 快速牛丼快餐', list:[
-     {name:'すき家 とうきょうスカイツリー駅前店 / 松屋 押上店 / 吉野家 押上店', note:'晴空塔周邊快速丼飯'}
+    {tier:'C', label:'🅲 快速牛丼', list:[
+     {name:'すき家／松屋／吉野家 押上周邊分店', note:'晴空塔周邊快速丼飯'}
     ]}
    ]}
   ]},
 
  {date:'2027-02-09', wd:'二', tag:'初四', title:'小江戶川越一日遊', area:'川越', map:'川越', color:'#8a5a44',
   items:[
-   ['08:15','🚶 出發步行至【JR 上野站】（約15分）'],
-   ['08:42-09:41','🚆 上野站(08:42發)搭JR宇都宮/高崎線至【赤羽站】(08:52着)，轉08:57川越線快速抵達【川越站】(09:41着)；🚌 於川越站東口購買「小江戸川越一日乗車券 (¥500)」 💡 或由御徒町搭山手線至池袋轉東武東上線急行30分直達川越'],
-   ['10:00-10:08','🚌 搭巡迴巴士到【喜多院前】'],
-   ['10:08-10:58','📍 參觀【喜多院】& 五百羅漢'],
-   ['10:58-11:08','🚌 搭巡迴巴士到【博物館前】'],
-   ['11:08-12:00','📍 參觀【川越城本丸御殿】'],
-   ['12:00-12:07','🚶 由本丸御殿直接散步至隔壁【川越冰川神社】'],
-   ['12:07-12:55','📍 參觀【川越冰川神社】（釣鯛魚詩籤、繪馬隧道）'],
-   ['12:55-13:10','🚶 由冰川神社走到【藏造一番街】'],
-   ['13:10-14:30','🍽️ 午餐：【藏造一番街】周邊餐廳（鰻魚飯 / 地瓜料理）'],
-   ['14:30-15:30','📍 漫步【菓子屋橫丁】→【藏造一番街】→【時之鐘】吃川越地瓜甜點與採買伴手禮'],
-   ['15:30-16:00','📍 持續漫步藏造一番街往南（【星巴克時之鐘店】、【吉伊卡哇川越店】）'],
-   ['16:00-17:35','🚶 順路往南散步參觀【川越熊野神社】（洗錢弁財天、足湯）→【大正浪漫夢通】'],
-   ['17:43-17:53','🚌 【蓮馨寺站】搭一般巴士到【川越站】'],
-   ['18:19-19:12','🚆 搭「東武東上線」到池袋轉「山手線」抵達【御徒町站】（轉車1次）'],
-   ['19:30-20:30','🍽️ 晚餐：御徒町站周邊餐廳']
+   ['07:30','🚶 步行至【JR 御徒町站】（約 3–5 分鐘）'],
+   ['07:45-08:49','🚆 【御徒町站】(07:45) 搭 JR 山手線 →【池袋站】(08:04) 轉 08:15 東武東上線急行 (始發) →【川越站】(08:49) 💡 備案：建議 07:20 出門，搭 07:28 JR 山手線 →【池袋站】(07:47) 轉 08:00 急行 →【川越站】(08:34) 💡 全程刷 Suica 即可，無須購買一日券',{tt:[19,20,21]}],
+   ['09:05-10:05','🚌 搭西武巴士「本52」（09:10 – 09:14 抵喜多院入口，刷 Suica，步行約 4 分鐘）・📍【喜多院 & 五百羅漢】參拜（冬季平日 09:00 開門，晨間人潮最少）',{tt:[30]}],
+   ['10:08-11:05','🚌 【喜多院前】搭東武巡迴巴士「名03」（平日首班）→【博物館前】・📍【川越城本丸御殿】參觀（09:00 開館）',{tt:[31]}],
+   ['11:05-12:10','🚶 漫步前往【川越冰川神社】（釣鯛魚詩籤、繪馬隧道），隨後散步至【藏造一番街】'],
+   ['12:10-13:20','🍽️ 【午餐】藏造一番街周邊餐廳（鰻魚飯／地瓜料理）',{bk:6}],
+   ['13:20-14:30','📍 【菓子屋橫丁】（含【吉伊卡哇川越店】）→【藏造一番街北段】品嚐地瓜甜點與採買伴手禮'],
+   ['14:30-15:20','📍 沿【藏造一番街】往南逛（【時之鐘】、【星巴克時之鐘店】；時間充裕可順遊【小江戶藏里】／【川越祭會館】）'],
+   ['15:20-16:40','🚶 步行參觀【大正浪漫夢通】→【川越熊野神社】'],
+   ['16:45-16:58','🚌 【蓮馨寺前站】搭東武「川越01」路線巴士 →【川越站】（備案：16:52 – 17:05，或步行約 15 分鐘）',{tt:[32]}],
+   ['17:21-18:15','🚆 【川越站】(17:21) 搭東武東上線川越特急 →【池袋站】(17:49) 轉 17:54／17:57 山手線 →【御徒町站】(18:12／18:15)',{tt:[22,21,23]}],
+   ['18:30-19:45','🍽️ 【晚餐】御徒町站周邊晚餐',{bk:5}]
   ],
-  hotel:'&Here TOKYO UENO', night:'第9晚（連住第2晚）',
+  hotel:'&Here TOKYO UENO', night:'第 9 晚（連住第 2 晚）',
   prep:[
-   '📝【第9晚】戰利品與行李打包，檢查隨身手提行李無液體超標、行動電源務必隨身攜帶不可託運'
+   '📝【第 9 晚】打包戰利品與行李，確認液體未超標、行動電源全數隨身攜帶（不可託運）'
   ],
   meals:[
    {slot:'🌞 午餐｜川越藏造一番街周邊', match:'午餐', tiers:[
     {tier:'A', label:'🅰️ 特色名店', list:[
-     {name:'川越 いちのや 本店', note:'HotPepper可事先線上訂位！300席百年鰻魚名店，中英菜單'},
-     {name:'小川菊 (Ogakiku) / うなぎ林屋 川越', note:'小川菊當日掃QR抽號（中文抽號機與中英菜單）/ 林屋EPARK線上抽號'},
-     {name:'陶路子 とろっこ 川越', note:'一番街地瓜迷你懷石膳，英菜單'}
+     {name:'川越 いちのや 本店', note:'HotPepper 線上訂位，300 席百年鰻魚名店，中英文菜單'},
+     {name:'小川菊／うなぎ傳米（DENBE）川越店', note:'小川菊當日掃 QR 抽號（中文抽號機與中英菜單）／傳米位於時之鐘旁，林屋同集團姊妹店，週二正常營業'},
+     {name:'陶路子 とろっこ', note:'地瓜迷你懷石膳，英文菜單'}
     ]},
-    {tier:'B', label:'🅱️ 平價中華／家庭連鎖', list:[
-     {name:'ぎょうざの満洲 本川越駅前店', note:'埼玉國民平價煎餃/中華定食，中文平板'},
-     {name:'ガストGusto 本川越店 / 大戶屋 川越クレアモール店', note:'平價家庭餐廳'}
-    ]},
-    {tier:'C', label:'🅲 快速牛丼快餐', list:[
-     {name:'すき家 本川越クレアモール店 / 吉野家 川越駅東口店 / 松屋 川越西口店', note:'快速丼飯選擇'}
+    {tier:'B', label:'🅱️／🅲 平價連鎖備案', list:[
+     {name:'ぎょうざの満洲 本川越駅前店（平價煎餃／定食）／Gusto／大戶屋／Sukiya', note:'中文平板與快速定食'}
     ]}
    ]},
-   {slot:'🌙 晚餐｜御徒町・上野廣小路（&Here飯店步行3分）', match:'晚餐', tiers:[
+   {slot:'🌙 晚餐｜御徒町慶功宴（&Here 步行約 3 分鐘）', match:'晚餐', tiers:[
     {tier:'A', label:'🅰️ 慶功名店（可訂位）', list:[
-     {name:'人形町今半 上野廣小路店', note:'官網TableCheck/一休訂位，頂級和牛壽喜燒女將代煮，繁中菜單'},
-     {name:'かに道樂(蟹道樂) 上野店', note:'官網/Gurunavi訂位，螃蟹料理包廂，繁中平板'}
+     {name:'人形町今半 上野廣小路店', note:'TableCheck／一休訂位，和牛壽喜燒女將代煮，繁中菜單'},
+     {name:'かに道樂 上野店', note:'官網／Gurunavi 訂位，螃蟹包廂，繁中平板'}
     ]},
-    {tier:'B', label:'🅱️ 平價家庭／壽司連鎖', list:[
-     {name:'しゃぶ菜 上野 / 牛角 御徒町店 / 壽司郎 / 藏壽司 / Gusto', note:'壽喜燒吃到飽/燒肉/迴轉壽司'}
-    ]},
-    {tier:'C', label:'🅲 快速牛丼／定食', list:[
-     {name:'松屋 上野店 / 吉野家 御徒町駅前店 / すき家 御徒町駅南口店 / やよい軒', note:'快速丼飯與定食'}
+    {tier:'B', label:'🅱️／🅲 平價連鎖備案', list:[
+     {name:'同 Day 1 上野周邊備案（しゃぶ菜／牛角／壽司郎／藏壽司／Gusto）', note:'壽喜燒吃到飽／燒肉／迴轉壽司'}
     ]}
    ]}
   ]},
 
  {date:'2027-02-10', wd:'三', tag:'初五', title:'滿載而歸・返回台灣', area:'東京→台灣', map:'成田機場', color:'#6b4fbb',
   items:[
-   ['09:30','🚶 辦理退房，步行至【京成上野站】（約10分）'],
-   ['10:00-10:57','🚆 搭乘「京成 Skyliner 127號」特急直奔【成田機場第一航廈】 ⚠️ 10:53停靠為「第2航廈(空港第2ビル)」請勿下車！長榮在終點站「成田空港(第1航廈) 10:57下車」'],
-   ['12:00','🍽️ 午餐：成田 T1 餐廳（出境前中央大樓 4F / B1F）'],
-   ['14:00-17:05','✈️ 搭乘長榮「BR197」返台'],
-   ['17:05','🛬 降落桃園 T2（台灣時間）']
+   ['09:30','🚶 辦理退房，步行至【京成上野站】（約 10 分鐘）'],
+   ['10:00-10:57','🚆 搭乘【京成 Skyliner 127號】→【成田機場 T1】 ⚠️ 10:53 停靠「第 2 航廈」請勿下車，長榮於終點站「第 1 航廈 (10:57)」下車',{tt:[6,7,8],bk:11}],
+   ['10:57-12:00','📍 抵達【成田機場 T1】，辦理長榮櫃檯登機報到＆托運行李'],
+   ['12:00-13:15','🍽️ 【午餐】成田機場 T1 餐廳（4F／B1F），餐後出境免稅採購'],
+   ['14:00-17:05','✈️ 搭乘【長榮 BR197】成田 T1 → 桃園 T2',{tt:[1]}],
+   ['17:05','🛬 降落【桃園機場 T2】']
   ],
   hotel:'', night:'',
   prep:[],
   meals:[
-   {slot:'🌞 午餐｜成田機場 第1航廈（出境前中央大樓 4F / B1F）', match:'午餐', tiers:[
+   {slot:'🌞 午餐｜成田機場 第 1 航廈（出境前中央大樓 4F／B1F）', match:'午餐', tiers:[
     {tier:'A', label:'🅰️ 特色名店（4F NARITA Dining Terrace）', list:[
-     {name:'成田山 川豐 成田機場店', note:'4F，現烤鰻魚飯/親子丼，中文觸控平板點餐'},
-     {name:'築地 壽司岩 成田機場第1航廈店', note:'4F，江戶前握壽司，中英菜單'}
+     {name:'成田山 川豐', note:'4F，現烤鰻魚飯／親子丼，中文平板點餐'},
+     {name:'築地 壽司岩', note:'4F，江戶前握壽司，中英文菜單'}
     ]},
     {tier:'B', label:'🅱️ 平價家庭餐廳（4F）', list:[
-     {name:'Royal Host ロイヤルホスト 成田機場店', note:'4F，空間極寬敞可放行李，黑毛和牛漢堡排/牛排/兒童餐，中英菜單'}
+     {name:'Royal Host ロイヤルホスト', note:'4F，空間寬敞可放行李，和牛漢堡排／兒童餐，中英文菜單'}
     ]},
-    {tier:'C', label:'🅲 快速天丼／茶泡飯／牛丼快餐（3–5分鐘上菜）', list:[
-     {name:'天丼てんや Tenya 成田機場第1航廈店', note:'4F，平價現炸天婦羅丼飯+烏龍麵，中英點餐'},
-     {name:'だし茶漬け えん 成田機場店', note:'4F，清爽高湯茶泡飯，中英點餐'},
-     {name:'吉野家 成田第1航廈店 / リンガーハット 長崎強棒麵 / 麥當勞', note:'B1F，吉野家24H中文點餐'}
+    {tier:'C', label:'🅲 快速簡餐（3–5 分鐘上菜）', list:[
+     {name:'天丼てんや Tenya（4F）／だし茶漬け えん（4F）', note:'現炸天丼／高湯茶泡飯'},
+     {name:'吉野家（B1F，24H）／長崎強棒麵（B1F）／麥當勞（B1F）', note:'B1F 快速簡餐'}
     ]}
    ]}
   ]}
 ];
 
-const HOTELS = [
-  {name:'MIMARU 東京 上野 NORTH', nights:'第1–2晚', dates:'2/1（一）– 2/3（三）', area:'東京・上野',
-   note:'步行約10分到 JR 上野站；京成上野站步行約15分（推大行李建議分搭2台計程車，車程5分約¥800/台）'},
-  {name:'輕井澤王子大飯店 西館', nights:'第3–4晚', dates:'2/3（三）– 2/5（五）', area:'長野・輕井澤',
-   note:'抵達時於輕井澤站南口右側「Smile Concierge」免費直送行李至西館；Day 3 下午18:00前於西館櫃檯將大行李辦黑貓宅急便寄往河口湖（指定2/5送達）'},
-  {name:'Fuji View Hotel 富士景觀飯店', nights:'第5–7晚', dates:'2/5（五）– 2/8（一）', area:'山梨・河口湖',
-   note:'自駕約15分到 Toyota 富士河口湖店；可泡溫泉、逛花園；需事先確認除夕晚餐（Bellevue 法式 / 敷島 日料）預約時間'},
-  {name:'&Here TOKYO UENO', nights:'第8–9晚', dates:'2/8（一）– 2/10（三）', area:'東京・上野',
-   note:'近御徒町站／上野廣小路站（步行3分）；Day 10 退房步行約10分到京成上野站搭 Skyliner 127號'}
+/* =========================================================
+   2. 訂票與預訂清單（100% 同步自 Google 試算表「訂票與預訂清單」）
+   ========================================================= */
+const BOOKINGS = [
+  {id:1, chkKey:'b0', openDate:'2026-08-05',
+   openJst:'已開放（出發前 6 個月起）',
+   openTwt:'已開放（現在即可訂）',
+   dayLabel:'Day 5–8 (2/5–2/8)', days:[5,6,7,8],
+   cat:'交通／租車',
+   title:'Toyota 租車（富士河口湖店）',
+   shortTitle:'Toyota 河口湖租車',
+   url:'https://rent.toyota.co.jp/',
+   note:'務必確認配備「冬季雪胎 (スタッドレスタイヤ)」及兒童安全座椅；現場備妥台灣駕照正本＋日文譯本正本＋護照。',
+   ttIds:[33],
+   cal:[]},
+
+  {id:2, chkKey:'b1', openDate:'2026-08-05',
+   openJst:'已開放（訂房後即可預約）',
+   openTwt:'已開放（現在即可訂）',
+   dayLabel:'Day 5 (2/5 晚) ※ 含 2/6–2/7 若於飯店用餐', days:[5,6,7],
+   cat:'餐飲預約',
+   title:'Fuji View Hotel 除夕晚餐（敷島／Bellevue）',
+   shortTitle:'Fuji View 除夕晚餐',
+   url:'https://www.fujiview.jp/',
+   tel:'+81-555-83-2211',
+   telLabel:'訂位專線 +81-555-83-2211 (10:00–18:00 JST)',
+   note:'敷島（週三四休）／Bellevue（週一二休）於 2/5 除夕皆營業；採兩部制「17:45／19:45」（L.O. 20:00），務必預約 17:45 時段。',
+   ttIds:[],
+   cal:[]},
+
+  {id:3, chkKey:'b2', openDate:'2026-12-01',
+   openJst:'2026/12/01（週二）※ 入場日 2 個月前 1 號整批開賣 2 月場次',
+   openTwt:'2026/12/01（週二）',
+   dayLabel:'Day 8 (2/8 16:30 場次)', days:[8],
+   cat:'景點門票',
+   title:'東京晴空塔觀景台門票（350m＋450m）',
+   shortTitle:'東京晴空塔觀景台門票',
+   url:'https://global-official-ticket.tokyo-skytree.jp/ja/home',
+   note:'2026/4/1 起實施「五級浮動票價」（線上預購成人 ¥3,000–¥4,800／國小生 ¥1,500–¥2,400）。16:30 為日落 (~17:10)＋夜景黃金時段；現場 4F 櫃檯購票較貴且每張加收 ¥500 手續費；購票後不可改期，且 30 天內退票須收手續費。',
+   ttIds:[36],
+   cal:[{label:'12/1 搶票提醒', title:'【搶票提醒】東京晴空塔觀景台門票（2/8 16:30 場次）開賣', start:'20261201T090000', end:'20261201T100000'}]},
+
+  {id:4, chkKey:'b3', openDate:'2026-12-01',
+   openJst:'2026/12/01（週二）活動開跑後 ※ 湘南の宝石 12/1–2/28 期間販售',
+   openTwt:'2026/12/01（週二）活動開跑後',
+   dayLabel:'Day 2 (2/2 15:00–18:30)', days:[2],
+   cat:'景點門票',
+   title:'江之島 Sea Candle 套票「＋ナイト」',
+   shortTitle:'江之島 Sea Candle 套票',
+   url:'https://enoshima-seacandle.com/tickets/',
+   note:'活動期間 17:00 後離苑皆須付夜間入苑費，務必購買「江の島シーキャンドルセット券 ＋ナイト」（大人 ¥1,550／小人 ¥750），亦可當日於 Escar 1 區現場購買（線上經由 Asoview／EMot）。',
+   ttIds:[35],
+   cal:[{label:'12/1 購票提醒', title:'【購票提醒】江之島 Sea Candle 套票「＋ナイト」開賣', start:'20261201T090000', end:'20261201T100000'}]},
+
+  {id:5, chkKey:'b4', openDate:'2026-12-09',
+   openJst:'2026/12/09（週三）※ 2 個月前開放線上預約',
+   openTwt:'2026/12/09（週三）',
+   dayLabel:'Day 9 (2/9 晚餐)', days:[9],
+   cat:'餐飲預約',
+   title:'人形町今半 上野廣小路店',
+   shortTitle:'人形町今半 慶功晚餐',
+   url:'https://www.tablecheck.com/ja/shops/imahanueno/reserve',
+   note:'TableCheck 官網開放 2 個月前（1–10 人）訂位；適逢日本旅遊旺季／家族慶功宴建議準時預約。',
+   ttIds:[],
+   cal:[{label:'12/9 訂位提醒', title:'【訂位提醒】人形町今半 上野廣小路店（2/9 晚餐）開放線上預約', start:'20261209T090000', end:'20261209T100000'}]},
+
+  {id:6, chkKey:'b5', openDate:'2026-12-05',
+   openJst:'2026/12 月上旬 – 2027/1 月上旬 ※ 依各店規則多為 1–2 個月前',
+   openTwt:'2026/12 月上旬 – 2027/1 月上旬',
+   dayLabel:'Day 1–9 各日午／晚餐', days:[1,2,3,4,6,7,8,9],
+   cat:'餐飲預約',
+   title:'A 級特色餐廳訂位（Day 1–9 各日午／晚餐）',
+   shortTitle:'各日 A 級特色餐廳訂位',
+   subItems:[
+     'D1 陽山道／伊豆榮',
+     'D2 GARDEN HOUSE／八倉',
+     'D3 SAWAMURA／Il Sogno',
+     'D3–4 Aging Beef／Primrose',
+     'D6–7 網燒 HANA／向日葵亭',
+     'D8 敘敘苑／備長',
+     'D9 川越 いちのや／かに道樂'
+   ],
+   url:'https://www.jojoen.co.jp/reserve/',
+   note:'敘敘苑使用官網訂位；其餘依各店使用 TableCheck／Tabelog／一休／HotPepper／Gurunavi／Toreta。2/5–2/9 適逢農曆春節尖峰，建議依開放日提早預約。',
+   ttIds:[],
+   cal:[{label:'12月初 餐廳預約提醒', title:'【訂位提醒】關東家族旅行 A 級特色餐廳（敘敘苑等）開放預約檢查', start:'20261205T100000', end:'20261205T110000'}]},
+
+  {id:7, chkKey:'b6', openDate:'2026-12-27',
+   openJst:'2026/12/27（週日）14:00（去程 2/3）、2026/12/29（週二）14:00（回程 2/5）※ 1 個月＋7 天前「事前受付」；正式開賣為 2027/1/3 及 2027/1/5 10:00',
+   openTwt:'2026/12/27（週日）13:00（去程 2/3）、2026/12/29（週二）13:00（回程 2/5）※ 1 個月＋7 天前「事前受付」；正式開賣為 2027/1/3 及 2027/1/5 09:00',
+   dayLabel:'Day 3 (2/3 08:47 發 はくたか 555號)／Day 5 (2/5 09:19 發 はくたか 554號)', days:[3,5],
+   cat:'鐵道車票',
+   title:'北陸新幹線指定席（上野→輕井澤／輕井澤→東京）',
+   shortTitle:'北陸新幹線指定席',
+   url:'https://www.eki-net.com/',
+   note:'「はくたか」號不適用 3 個月前早期予約（僅「あさま」號適用）。最早於 1 個月＋7 天前參加事前受付，或於 1 個月前 10:00 JST 搶「トクだ値」早鳥或指定席。時刻表與早鳥規則詳見「交通時刻表與常用連結」#2–5。',
+   ttIds:[2,3,4,5],
+   cal:[
+     {label:'12/27 去程事前受付', title:'【搶票提醒】北陸新幹線去程 (2/3 はくたか555號) 事前受付開放', start:'20261227T130000', end:'20261227T140000'},
+     {label:'12/29 回程事前受付', title:'【搶票提醒】北陸新幹線回程 (2/5 はくたか554號) 事前受付開放', start:'20261229T130000', end:'20261229T140000'}
+   ]},
+
+  {id:8, chkKey:'b7', openDate:'2027-01-01',
+   openJst:'2027/01/01（週五）09:00',
+   openTwt:'2027/01/01（週五）08:00',
+   dayLabel:'Day 1 (2/1 14:18 發)', days:[1],
+   cat:'鐵道車票',
+   title:'京成 Skyliner 136號（成田 T1→京成上野）',
+   shortTitle:'京成 Skyliner 去程 136號',
+   url:'https://skyliner.ec.keisei.co.jp/',
+   note:'12:55 降落約 83 分鐘緩衝，不建議預先鎖死班次付款；建議過關後現場購票／機器劃位，或預買不限班次兌換券現場換位（備案 14:38 發 38 號）。時刻表詳見「交通時刻表與常用連結」#6–7。',
+   ttIds:[6,7,8],
+   cal:[{label:'1/1 開放預訂提醒', title:'【訂票提醒】京成 Skyliner 去程 (2/1 136號) 開放預訂／買兌換券', start:'20270101T080000', end:'20270101T090000'}]},
+
+  {id:9, chkKey:'b8', openDate:'2027-01-05',
+   openJst:'2027/01/05（週二）電話 09:00／網路 10:00',
+   openTwt:'2027/01/05（週二）電話 08:00／網路 09:00',
+   dayLabel:'Day 5 (2/5 11:10 發)', days:[5],
+   cat:'高速巴士',
+   title:'富士急高速巴士 119 號（東京站→河口湖）',
+   shortTitle:'富士急巴士去程 119號',
+   url:'https://secure.j-bus.co.jp/hon',
+   note:'全車指定席，乘車日 1 個月前開賣。上車務必選「東京駅（八重洲南口）」（非鐵鋼大樓），除夕週五建議準時搶票。官網時刻詳見「交通時刻表與常用連結」#25。',
+   ttIds:[25],
+   cal:[{label:'1/5 09:00 搶票提醒', title:'【搶票提醒】富士急高速巴士 119號（2/5 東京站八重洲南口→河口湖）開賣', start:'20270105T090000', end:'20270105T100000'}]},
+
+  {id:10, chkKey:'b9', openDate:'2027-01-08',
+   openJst:'2027/01/08（週五）電話 09:00／網路 10:00',
+   openTwt:'2027/01/08（週五）電話 08:00／網路 09:00',
+   dayLabel:'Day 8 (2/8 09:30 發)', days:[8],
+   cat:'高速巴士',
+   title:'富士急高速巴士 8 號（河口湖→東京站日本橋口）',
+   shortTitle:'富士急巴士回程 8號',
+   url:'https://secure.j-bus.co.jp/hon',
+   note:'乘車日 1 個月前開賣，選「河口湖駅」上車、「東京駅（日本橋口）」下車。官網時刻詳見「交通時刻表與常用連結」#25。',
+   ttIds:[25],
+   cal:[{label:'1/8 09:00 搶票提醒', title:'【搶票提醒】富士急高速巴士 8號（2/8 河口湖→東京站日本橋口）開賣', start:'20270108T090000', end:'20270108T100000'}]},
+
+  {id:11, chkKey:'b10', openDate:'2027-01-10',
+   openJst:'2027/01/10（週日）09:00',
+   openTwt:'2027/01/10（週日）08:00',
+   dayLabel:'Day 10 (2/10 10:00 發)', days:[10],
+   cat:'鐵道車票',
+   title:'京成 Skyliner 127號（京成上野→成田 T1）',
+   shortTitle:'京成 Skyliner 回程 127號',
+   url:'https://skyliner.ec.keisei.co.jp/',
+   note:'回程時間固定建議提前劃位，留意於終點站「成田空港（第 1 航廈）」下車（10:53 停靠第 2 航廈勿提前下車）。時刻表詳見「交通時刻表與常用連結」#6。',
+   ttIds:[6,7,8],
+   cal:[{label:'1/10 08:00 搶票提醒', title:'【搶票提醒】京成 Skyliner 回程 (2/10 127號 10:00發) 開放預訂', start:'20270110T080000', end:'20270110T090000'}]},
+
+  {id:12, chkKey:'b11', openDate:'2027-01-15',
+   openJst:'出發前數週（依官網預售開放為準）',
+   openTwt:'出發前數週',
+   dayLabel:'Day 6 (2/6 上午)', days:[6],
+   cat:'景點門票',
+   title:'富士山景觀纜車「乘車時間指定券」（選購）',
+   shortTitle:'富士山景觀纜車指定券',
+   url:'https://www.mtfujiropeway.jp/',
+   note:'一般現場排隊即可（非完全預約制），若週六不想久候可留意官網線上預售時段券；2026/11/1 起票價為往返大人 ¥1,200／小人 ¥600。',
+   ttIds:[34],
+   cal:[{label:'1/15 預售檢查提醒', title:'【購票提醒】檢查富士山景觀纜車（2/6 上午）預售時段券', start:'20270115T100000', end:'20270115T110000'}]}
 ];
 
-const BOOKING_CHECKS = [
-  '✈️ 長榮航空機票確認（去程 2/1 BR198 08:50 / 回程 2/10 BR197 14:00）',
-  '🚆 京成 Skyliner 車票（2/1 去程 136號 14:18發 / 2/10 回程 127號 10:00發）',
-  '🚆 北陸新幹線車票（2/3 はくたか555號 08:47上野發 / 2/5 はくたか554號 09:06輕井澤發）',
-  '🚌 河口湖高速巴士車票（2/5 東京站八重洲南口 119便 11:10發 / 2/8 河口湖站2號站牌 09:30發）',
-  '🚗 Toyota Rent-a-Car 富士河口湖店預約確認（2/5 14:00取車～2/8 08:45還車，務必確認配備冬季雪胎 スタッドレスタイヤ）',
-  '🍽️ Fuji View Hotel 2/5（五）除夕晚餐預約確認（Bellevue 法式餐廳 或 敷島 日本料理）',
-  '🗼 東京晴空塔觀景台指定時段門票（2/8 16:30 入場，看 17:10 日落富士山與夜景）',
-  '🥩 熱門 A 級餐廳訂位確認（如：敘敘苑、人形町今半、蟹道樂、川越いちのや、陽山道等）'
+/* =========================================================
+   3. 交通時刻表與常用連結（100% 同步自 Google 試算表「交通時刻表與常用連結」）
+   ========================================================= */
+const TIMETABLES = [
+  {id:1, cat:'國際航班', title:'長榮航空官網（BR198／BR197 航班查詢）', dayLabel:'Day 1、10 (2/1、2/10)', days:[1,10],
+   url:'https://www.evaair.com/',
+   note:'Day 1 去程 BR198 (08:50–12:55)；Day 10 回程 BR197 (14:00–17:05)，皆於桃園 T2／成田 T1 起降'},
+  {id:2, cat:'新幹線', title:'北陸新幹線【はくたか 555號】（上野→輕井澤）時刻表', dayLabel:'Day 3 (2/3 週三)', days:[3],
+   url:'https://timetables.jreast.co.jp/2611/train/035/038632.html',
+   note:'上野 08:47 發車 → 輕井澤 09:43 抵達；全車指定席，須提前於 えきねっと 劃位', bkId:7},
+  {id:3, cat:'新幹線', title:'北陸新幹線【はくたか 554號】（輕井澤→東京）時刻表', dayLabel:'Day 5 (2/5 週五)', days:[5],
+   url:'https://timetables.jreast.co.jp/2611/train/035/038901.html',
+   note:'輕井澤 09:19 發車 → 東京站 10:22 抵達；全車指定席', bkId:7},
+  {id:4, cat:'新幹線', title:'JR 東日本 えきねっと（Eki-net）訂票官網', dayLabel:'Day 3、5 (2/3、2/5)', days:[3,5],
+   url:'https://www.eki-net.com/',
+   note:'乘車日 1 個月前 10:00 JST 正式開賣；1 個月＋7 天前 14:00 JST 開放「事前受付」', bkId:7},
+  {id:5, cat:'新幹線', title:'えきねっと 早期預約規則說明', dayLabel:'Day 3、5 (2/3、2/5)', days:[3,5],
+   url:'https://www.eki-net.com/top/jrticket/guide/early/',
+   note:'留意 はくたか 號不適用 3 個月前早期予約（僅 あさま 號適用）', bkId:7},
+  {id:6, cat:'鐵道電車', title:'京成電鐵 Skyliner 全線時刻表', dayLabel:'Day 1、10 (2/1、2/10)', days:[1,10],
+   url:'https://www.keisei.co.jp/keisei/tetudou/skyliner/jp/traffic/skyliner_timetable.php',
+   note:'Day 1 主班 136 號 (14:18–15:09)、備案 38 號 (14:38–15:23)；Day 10 回程 127 號 (10:00–10:57)', bkId:8},
+  {id:7, cat:'鐵道電車', title:'京成電鐵 11/21 時刻表改點公告', dayLabel:'Day 1、10 (2/1、2/10)', days:[1,10],
+   url:'https://www.keisei.co.jp/news/detail.php?CN=8045',
+   note:'確認 2026/11/21 改點後最新發車時刻與停靠時間'},
+  {id:8, cat:'鐵道電車', title:'京成電鐵 Skyliner 線上預訂官網', dayLabel:'Day 1、10 (2/1、2/10)', days:[1,10],
+   url:'https://skyliner.ec.keisei.co.jp/',
+   note:'成田 T1⇄京成上野約 40–53 分鐘，全車對號特急', bkId:8},
+  {id:9, cat:'鐵道電車', title:'JR 東日本 上野站時刻表', dayLabel:'Day 2、3 (2/2、2/3)', days:[2,3],
+   url:'https://timetables.jreast.co.jp/timetable/list0204.html',
+   note:'查詢東海道線（Day 2 07:46 往戶塚轉鎌倉）及北陸新幹線時刻'},
+  {id:10, cat:'鐵道電車', title:'江之島電鐵（江之電）鎌倉站時刻表', dayLabel:'Day 2 (2/2 週二)', days:[2],
+   url:'https://www.enoden.co.jp/train/station/kamakura/time-table/',
+   note:'鎌倉站往長谷・藤澤方向發車時刻（12:36 發 → 12:40 抵長谷）'},
+  {id:11, cat:'鐵道電車', title:'江之島電鐵（江之電）長谷站時刻表', dayLabel:'Day 2 (2/2 週二)', days:[2],
+   url:'https://www.enoden.co.jp/train/station/hase/time-table/',
+   note:'長谷站往江之島・藤澤方向發車時刻（14:33 發 → 14:53 抵江之島）'},
+  {id:12, cat:'鐵道電車', title:'江之島電鐵（江之電）江之島站時刻表', dayLabel:'Day 2 (2/2 週二)', days:[2],
+   url:'https://www.enoden.co.jp/train/station/enoshima/time-table/',
+   note:'Day 2 備案：江之島站 18:54 發 → 19:03 抵藤澤站'},
+  {id:13, cat:'鐵道電車', title:'小田急電鐵 片瀨江之島站時刻表（上行）', dayLabel:'Day 2 (2/2 週二)', days:[2],
+   url:'https://www.odakyu.jp/station/katase_enoshima/timetable/up/',
+   note:'片瀨江之島 19:01 發 → 19:07 抵藤澤站'},
+  {id:14, cat:'鐵道電車', title:'JR 東日本 藤澤站時刻表', dayLabel:'Day 2 (2/2 週二)', days:[2],
+   url:'https://timetables.jreast.co.jp/timetable/list1361.html',
+   note:'藤澤 19:40 搭東海道線直達上野 (20:34)'},
+  {id:15, cat:'鐵道電車', title:'JR 東日本 東京站山手線時刻表', dayLabel:'Day 8 (2/8 週一)', days:[8],
+   url:'https://timetables.jreast.co.jp/timetable/list1039.html',
+   note:'東京站搭山手線（內回り）往御徒町／上野（11:59–12:05）'},
+  {id:16, cat:'鐵道電車', title:'東京 Metro 地鐵 上野廣小路站時刻表', dayLabel:'Day 8 (2/8 週一)', days:[8],
+   url:'https://www.tokyometro.jp/station/ueno-hirokoji/timetable/index.html',
+   note:'銀座線往淺草方向班次查詢（14:07–14:14）'},
+  {id:17, cat:'鐵道電車', title:'都營地下鐵 押上站時刻表（平日西向）', dayLabel:'Day 8 (2/8 週一)', days:[8],
+   url:'https://www.kotsu.metro.tokyo.jp/subway/timetable/asakusa/A20SD.html',
+   note:'淺草線 20:34 往淺草／日本橋方向時刻查詢'},
+  {id:18, cat:'鐵道電車', title:'東京 Metro 地鐵 淺草站時刻表', dayLabel:'Day 8 (2/8 週一)', days:[8],
+   url:'https://www.tokyometro.jp/station/asakusa/timetable/index.html',
+   note:'淺草站轉乘銀座線返回上野廣小路時刻查詢'},
+  {id:19, cat:'鐵道電車', title:'JR 東日本 御徒町站時刻表', dayLabel:'Day 9 (2/9 週二)', days:[9],
+   url:'https://timetables.jreast.co.jp/timetable/list0355.html',
+   note:'平日山手線往池袋：主班 07:45→08:04；備案 07:28 (712G)→07:47 或 07:31 (766G)→07:50'},
+  {id:20, cat:'鐵道電車', title:'東武鐵道 池袋站時刻表與設施資訊', dayLabel:'Day 9 (2/9 週二)', days:[9],
+   url:'https://www.tobu.co.jp/railway/guide/station/info/7105/',
+   note:'東武東上線急行往川越查詢（08:15 始發／備案 08:00）'},
+  {id:21, cat:'鐵道電車', title:'東武鐵道 東武東上線路線圖與車種資訊', dayLabel:'Day 9 (2/9 週二)', days:[9],
+   url:'https://www.tobu.co.jp/railway/guide/line/tojo_line.html/',
+   note:'確認東上線急行／川越特急停靠站與轉乘資訊'},
+  {id:22, cat:'鐵道電車', title:'東武鐵道 川越站時刻表', dayLabel:'Day 9 (2/9 週二)', days:[9],
+   url:'https://www.tobu.co.jp/railway/guide/station/info/7315/',
+   note:'回程 17:21 川越特急往池袋 (17:49) 查詢'},
+  {id:23, cat:'鐵道電車', title:'JR 東日本 池袋站時刻表', dayLabel:'Day 9 (2/9 週二)', days:[9],
+   url:'https://timetables.jreast.co.jp/timetable/list0108.html',
+   note:'回程池袋轉乘山手線（17:54／17:57）往御徒町'},
+  {id:24, cat:'高速／接駁巴士', title:'輕井澤王子大飯店 免費接駁車時刻表（棕線／綠線）', dayLabel:'Day 3–5 (2/3–2/5)', days:[3,4,5],
+   url:'https://www.princehotels.co.jp/karuizawa/pickup_bus/time_table.pdf',
+   note:'西館⇄車站南口⇄Outlet⇄東館全區接駁；適用 2026/11/1–2027/3/31 冬季時刻'},
+  {id:25, cat:'高速／接駁巴士', title:'富士急高速巴士官網（東京站⇄河口湖）', dayLabel:'Day 5、8 (2/5、2/8)', days:[5,8],
+   url:'https://bus.fujikyu.co.jp/highway/fujisan/tokyo/',
+   note:'全車指定席（D5 119 號 11:10 發；D8 8 號 09:30 發），乘車日 1 個月前開賣', bkId:9},
+  {id:26, cat:'觀光／路線公車', title:'西武觀光巴士（輕井澤站→星野溫泉）冬季去程時刻表', dayLabel:'Day 3 (2/3 週三)', days:[3],
+   url:'https://www.seibubus.co.jp/docs/rosen/karuizawa/eki.pdf',
+   note:'D3 去程主案由西館搭計程車直達星野；巴士備案於北口 1 號站牌出發（冬季平日 10:50／11:30→11:49）；12/1 起無 11:00 班次'},
+  {id:27, cat:'觀光／路線公車', title:'西武觀光巴士（星野溫泉・舊輕井澤→輕井澤站）冬季回程時刻表', dayLabel:'Day 3、4 (2/3–2/4)', days:[3,4],
+   url:'https://www.seibubus.co.jp/docs/rosen/karuizawa/onsen.pdf',
+   note:'D3 15:00（備案 16:00）；D4 舊輕井澤 16:15→16:20'},
+  {id:28, cat:'觀光／路線公車', title:'西武觀光巴士 12/1 冬季改點公告', dayLabel:'Day 3、4 (2/3–2/4)', days:[3,4],
+   url:'https://www.seibubus.co.jp/sp/news/20261201karuizawa-dia.html',
+   note:'2026/12/1 輕井澤線冬季減班與時刻調整說明'},
+  {id:29, cat:'觀光／路線公車', title:'草輕交通巴士路線時刻表（輕井澤站⇄舊輕井澤）', dayLabel:'Day 4 (2/4 週四)', days:[4],
+   url:'https://www.kkkg.co.jp/bus/rosen-bus.html',
+   note:'北口 2 號站牌 14:10→14:17；不支援 IC 卡，可用現金／感應信用卡／PayPay'},
+  {id:30, cat:'觀光／路線公車', title:'西武巴士官網時刻查詢（川越 本52 路線）', dayLabel:'Day 9 (2/9 週二)', days:[9],
+   url:'https://www.seibubus.co.jp/',
+   note:'川越站 09:10→09:14 抵喜多院入口（刷 Suica，不適用東武券）'},
+  {id:31, cat:'觀光／路線公車', title:'東武小江戶巡迴巴士時刻表（名03 路線）', dayLabel:'Day 9 (2/9 週二)', days:[9],
+   url:'https://www.tobu-bus.com/pc/area/koedo_routetour.html',
+   note:'喜多院前 10:08 平日首班 → 博物館前 10:18'},
+  {id:32, cat:'觀光／路線公車', title:'東武巴士路線時刻查詢（川越01 路線）', dayLabel:'Day 9 (2/9 週二)', days:[9],
+   url:'https://www.tobu-bus.com/pc/search/',
+   note:'蓮馨寺前站 16:45（備案 16:52）返回川越站'},
+  {id:33, cat:'自駕／景點設施', title:'Toyota 租車 富士河口湖店分店資訊', dayLabel:'Day 5–8 (2/5–2/8)', days:[5,6,7,8],
+   url:'https://rent.toyota.co.jp/shop/?muni=19430',
+   note:'營業時間 08:00 起；自駕配雪胎，備妥台灣駕照正本＋日文譯本正本＋護照', bkId:1},
+  {id:34, cat:'自駕／景點設施', title:'富士山景觀纜車（天上山公園）營業與票價指南', dayLabel:'Day 6 (2/6 週六)', days:[6],
+   url:'https://www.mtfujiropeway.jp/guide/',
+   note:'冬季 09:30 起、末班下山 16:40；往返大人 ¥1,200／小人 ¥600', bkId:12},
+  {id:35, cat:'自駕／景點設施', title:'江之島 Sea Candle 套票官方購票指南', dayLabel:'Day 2 (2/2 週二)', days:[2],
+   url:'https://enoshima-seacandle.com/tickets/',
+   note:'17:00 後離苑須持「＋ナイト」夜間套票（大人 ¥1,550／小人 ¥750）', bkId:4},
+  {id:36, cat:'自駕／景點設施', title:'東京晴空塔官方門票預訂網站', dayLabel:'Day 8 (2/8 週一)', days:[8],
+   url:'https://global-official-ticket.tokyo-skytree.jp/ja/home',
+   note:'天望甲板 (350m)＋天望回廊 (450m)，入場日 2 個月前 1 號開賣；2026/4/1 起採五級浮動票價（成人 ¥3,000–¥4,800），30 天內退票收手續費、現場購票加收 ¥500／張', bkId:3}
+];
+
+/* 10 天核心交通班次速查表（供離線快速比對） */
+const QUICK_SCHEDULES = [
+  {day:'Day 1 (2/1)', route:'桃園 T2 → 成田 T1 → 京成上野', main:'✈️ BR198 (08:50–12:55)\n🚆 Skyliner 136號 (14:18–15:09)', backup:'🚆 Skyliner 38號 (14:38–15:23)', note:'建議出關後現場購票／機器劃位或持兌換券換位'},
+  {day:'Day 2 (2/2) 去', route:'上野 → 戶塚 → 鎌倉 → 長谷 → 江之島', main:'🚆 07:46 上野 (東海道線) → 08:30 戶塚 (4月台轉對面3月台) → 08:40 橫須賀線 → 08:51 鎌倉\n🚃 江之電：12:36–12:40 (往長谷)、14:33–14:53 (往江之島)', backup:'江之電約每 14 分鐘一班', note:'上 JR 前先用 Suica 買自由席 Green 券；全程刷 Suica 免買一日券'},
+  {day:'Day 2 (2/2) 回', route:'片瀨江之島 → 藤澤 → 上野', main:'🚃 小田急線 19:01–19:07 抵藤澤\n🚆 JR 東海道線 19:40–20:34 直達上野', backup:'🚃 江之電 江之島站 18:54–19:03 抵藤澤', note:'可於藤澤買便當上 JR 綠車享用'},
+  {day:'Day 3 (2/3)', route:'上野 → 輕井澤 → 西館 → 星野榆樹街', main:'🚅 北陸新幹線 はくたか555號 (08:47–09:43)\n🚗 10:00 南口(B-1) 棕線接駁車 → 10:10 西館(B-12M)\n🚕 10:35 西館搭計程車 → 10:50 星野\n🚌 回程西武巴士 15:00–15:20 → 南口 15:30 棕線接駁車', backup:'🚌 去程北口1號站牌 11:30–11:49 西武巴士\n🚌 回程星野 16:00–16:20 西武巴士', note:'10:10 於西館寄放當日行李並交寄黑貓大行李往河口湖（2/5送達）'},
+  {day:'Day 4 (2/4)', route:'西館 → 東館 Snow Park → Outlet → 舊輕井澤', main:'🚗 09:05 棕線 → 東館；11:15 綠線(G-4T) → Outlet\n🚌 14:10–14:17 北口2號站牌草輕巴士 → 舊輕井澤\n🚌 16:15–16:20 西武巴士回北口（16:08前候車）', backup:'🚕 Outlet 搭計程車往舊輕井澤約 5 分鐘', note:'草輕／西武巴士不支援 Suica，可付現、感應信用卡或 PayPay'},
+  {day:'Day 5 (2/5)', route:'西館 → 輕井澤 → 東京站 → 河口湖', main:'🚗 08:20 西館(G-12M) 綠線接駁車 → 08:25 南口\n🚅 北陸新幹線 はくたか554號 (09:19–10:22)\n🚌 八重洲南口 富士急高速巴士 119號 (11:10–13:17)', backup:'🚗 接駁車備案：08:05–08:25 棕線始發', note:'東京站走「八重洲南口改札」出站正前方即 1F 巴士站；塞車逾14:00電洽 Toyota 0555-72-1100'},
+  {day:'Day 8 (2/8)', route:'河口湖 → 東京站 → 御徒町 → 淺草 → 晴空塔', main:'🚌 河口湖站(2號站牌) 富士急巴士 8號 (09:30–11:35 抵日本橋口)\n🚃 山手線 11:59–12:05 抵御徒町\n🚃 銀座線 14:07–14:14 往淺草\n🚃 回程押上 20:34 淺草線 → 淺草轉銀座線 → 上野廣小路', backup:'淺草走累可搭東武晴空塔線 1 站至晴空塔', note:'08:15 先送家人行李至河口湖站，駕駛去 ENEOS 加油、08:45 Toyota 還車'},
+  {day:'Day 9 (2/9)', route:'御徒町 → 池袋 → 川越一日遊 → 御徒町', main:'🚆 07:45 御徒町(山手線) → 08:04 池袋轉 08:15 東武東上線急行(始發) → 08:49 川越\n🚌 09:10 西武「本52」→ 09:14 喜多院入口\n🚌 10:08 東武「名03」→ 10:18 博物館前\n🚌 16:45 蓮馨寺前「川越01」→ 16:58 川越站\n🚆 17:21 川越特急 → 17:49 池袋轉 17:54/17:57 山手線 → 18:12/18:15 御徒町', backup:'🚆 去程備案：07:28 山手線 → 07:47 池袋轉 08:00 急行 → 08:34 川越\n🚌 回程巴士備案：16:52–17:05', note:'全程刷 Suica 即可，無須買一日券（本52為西武巴士不適用東武券）'},
+  {day:'Day 10 (2/10)', route:'京成上野 → 成田 T1 → 桃園 T2', main:'🚆 京成 Skyliner 127號 (10:00–10:57)\n✈️ 長榮 BR197 (14:00–17:05)', backup:'—', note:'⚠️ 10:53 停靠「第2航廈」請勿下車，終點站 10:57「第1航廈」下車'}
+];
+
+const HOTELS = [
+  {name:'MIMARU 東京 上野 NORTH', nights:'第 1–2 晚', dates:'2/1（一）– 2/3（三）', area:'東京・上野',
+   note:'步行約 10 分鐘到 JR 上野站；京成上野站步行約 15 分鐘（推大行李建議分搭 2 台計程車，車程約 5 分鐘，約 ¥800／台）；Day 2 晚整理行李分為「輕井澤使用」及「明日寄送至河口湖旅館」2 類'},
+  {name:'輕井澤王子大飯店 西館', nights:'第 3–4 晚', dates:'2/3（三）– 2/5（五）', area:'長野・輕井澤',
+   note:'Day 3 09:43 抵輕井澤站後，於南口 (B-1) 搭 10:00 棕線接駁車至西館 (B-12M)，於櫃檯寄放當日行李並順便交寄黑貓宅急便大行李往 Fuji View Hotel（指定 2/5 送達），10:35 直接由西館搭計程車往星野榆樹街'},
+  {name:'Fuji View Hotel 富士景觀飯店', nights:'第 5–7 晚', dates:'2/5（五）– 2/8（一）', area:'山梨・河口湖',
+   note:'自駕約 15 分鐘到 Toyota 富士河口湖店；可泡富士溫泉、逛庭園；除夕晚餐（敷島／Bellevue）採 17:45／19:45 兩部制，務必事前預約 17:45 時段；入住時可向櫃檯詢問冬花火有無預約制免費接駁車'},
+  {name:'&Here TOKYO UENO', nights:'第 8–9 晚', dates:'2/8（一）– 2/10（三）', area:'東京・上野',
+   note:'近 JR 御徒町站／東京 Metro 上野廣小路站（步行約 3–5 分鐘）；Day 10 09:30 退房步行約 10 分鐘到京成上野站搭 10:00 Skyliner 127號'}
 ];
 
 const PACKING = [
-  '護照正本（效期6個月以上）',
-  'Visit Japan Web QR Code 截圖（全家人份）',
-  '台灣駕照正本 + 日文譯本正本（自駕必備，不可用國際駕照）',
-  '日幣現金（含百元零錢與千元鈔，輕井澤西武巴士不收Suica）＆ 信用卡',
-  'Suica / IC 交通卡（建議儲值¥5,000；6–11歲國小生辦記名小児Suica）',
-  '洋蔥式冬裝：發熱衣 + 薄長袖 + 防風羽絨外套（室內電車暖氣24°C極強，避免給小孩穿難穿脫的高領厚毛衣）',
-  '保暖防滑雪靴 或 簡易鞋底冰爪（新倉山淺間公園398階防結冰必備）',
-  '小孩玩雪裝備：防水手套、備用乾襪（Snow Park 玩雪盆替換用）、毛帽、圍巾',
-  '隨身1晚換洗衣物袋（Day 3 寄出大行李後，Day 3–4 輕井澤隨身使用）',
-  '手機、充電器、轉接頭、行動電源（⚠️行動電源務必隨身攜帶上機，不可託運）',
+  '護照正本（效期 6 個月以上）＆ Visit Japan Web QR Code 截圖（全家人份）',
+  '台灣駕照正本 ＋ 日文譯本正本 ＋ 護照（日本自駕必備，不可用國際駕照）',
+  '日幣現金（含百元零錢與千元鈔，輕井澤巴士可付現／感應卡／PayPay）＆ 信用卡',
+  'Suica / IC 交通卡（建議儲值 ¥5,000；鎌倉江之電與川越全程刷 Suica 即可）',
+  '洋蔥式冬裝：發熱衣 ＋ 薄長袖 ＋ 防風羽絨外套（室內與電車暖氣強，勿給孩童穿厚高領毛衣）',
+  '保暖防滑雪靴 或 簡易鞋底冰爪（新倉山淺間公園 398 階冬晨防殘雪結冰必備）',
+  '孩童玩雪裝備：防水手套、備用乾襪（Snow Park 玩雪盆替換用）、防寒毛帽、圍巾',
+  '輕井澤 2 晚隨身行李袋（Day 2 晚將大行李分為「輕井澤使用」與「寄往河口湖」2 類）',
+  '車宿賞花火＆晨間除霜保暖小物：隨身毛毯、暖暖包（Day 6 平浜駐車場車內候花火用）',
+  '手機、充電器、轉接頭、行動電源（⚠️行動電源全數隨身攜帶上機，不可託運）',
   '網卡 / eSIM / Wi‑Fi 分享器',
-  '暖暖包、保濕乳液、護唇膏、常備藥品與個人藥物'
+  '保濕乳液、護唇膏、常備藥品與個人藥物'
 ];
 
 const PHRASES = [
   {zh:'請問有中文或英文菜單嗎？', ja:'中国語（繁体字）か英語のメニューはありますか？', ro:'Chuugokugo ka Eigo no menyuu wa arimasu ka?'},
   {zh:'請給我們兒童座椅與兒童餐具', ja:'子ども用のイスと取り皿をお願いします。', ro:'Kodomo-you no isu to torizara wo onegaishimasu.'},
-  {zh:'我想把大行李透過宅急便寄到下一個飯店（2/5送達）', ja:'この荷物を宅急便で次のホテルへ送りたいです（2月5日着希望）。', ro:'Kono nimotsu wo takkyuubin de tsugi no hoteru e okuritai desu (2-gatsu 5-ka chaku kibou).'},
-  {zh:'請幫我把行李免費送到輕井澤王子西館', ja:'荷物をプリンスホテル ウエストへ配送お願いします。', ro:'Nimotsu wo Purinsu Hoteru Uesuto e haisou onegaishimasu.'},
+  {zh:'我想寄放今天入住的行李，並把這件大行李用宅急便寄到河口湖的飯店（指定 2/5 送達）', ja:'本日宿泊の荷物を預けて、こちらの荷物を宅急便で河口湖のホテルへ送りたいです（2月5日着希望）。', ro:'Honjitsu shukuhaku no nimotsu wo azukete, kochira no nimotsu wo takkyuubin de Kawaguchiko no hoteru e okuritai desu (2-gatsu 5-ka chaku kibou).'},
+  {zh:'請問明後兩晚的「河口湖冬花火」飯店有免費接駁車可以預約嗎？', ja:'明日と明後日の「河口湖冬花火」について、ホテルの無料送迎バスの予約はありますか？', ro:'Ashita to asatte no Kawaguchiko Fuyu Hanabi ni tsuite, hoteru no muryou sougei basu no yoyaku wa arimasu ka?'},
+  {zh:'請幫我們叫計程車到星野榆樹街小鎮（ハルニレテラス）', ja:'ハルニレテラスまでタクシーを呼んでいただけますか？', ro:'Harunire Terasu made takushii wo yonde itadakemasu ka?'},
   {zh:'請加滿普通汽油（Regular）', ja:'レギュラー満タンでお願いします。', ro:'Regyuraa mantan de onegaishimasu.'},
-  {zh:'請幫我們結帳（分開／一起結）', ja:'お会計をお願いします（一緒で）。', ro:'Okaikei wo onegaishimasu (issho de).'}
+  {zh:'請幫我們結帳（一起結）', ja:'お会計をお願いします（一緒で）。', ro:'Okaikei wo onegaishimasu (issho de).'}
 ];
 
 /* =========================================================
@@ -894,30 +1214,34 @@ const TYPES = {
   food:{label:'餐食', ic:'🍽️'}, hotel:{label:'住宿/行李', ic:'🏨'}, event:{label:'活動/提醒', ic:'✨'}
 };
 const LEAD = [
-  ['✈️','flight','✈️'],['🛬','flight','🛬'],['🚆','transit','🚆'],['🚃','transit','🚃'],['🚌','transit','🚌'],
-  ['🚗','transit','🚗'],['🚶','transit','🚶'],['🍽️','food','🍽️'],['🧳','hotel','🧳'],['📝','event','📝'],
+  ['✈️','flight','✈️'],['🛬','flight','🛬'],['🚆','transit','🚆'],['🚅','transit','🚅'],
+  ['🚃','transit','🚃'],['🚌','transit','🚌'],['🚕','transit','🚕'],['🚗','transit','🚗'],
+  ['🚶','transit','🚶'],['🍽️','food','🍽️'],['🧳','hotel','🧳'],['📝','event','📝'],
   ['✨','event','🎆'],['📍','sight','📍']
 ];
 const toMin = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
 
-function parseItem([time, raw]){
+function parseItem([time, raw, meta]){
   let text = raw.trim(), type = 'sight', icon = '📍';
   for (const [e,t,i] of LEAD){ if (text.startsWith(e)){ type=t; icon=i; text=text.slice(e.length).trim(); break; } }
   if (/Check-in|辦理入住/.test(text)){ type='hotel'; icon='🏨'; }
-  // 分離提醒
   const tips = [];
   const m = text.match(/(⚠️|💡)/);
   if (m){ const rest = text.slice(m.index); text = text.slice(0, m.index).trim();
     rest.split(/(?=⚠️|💡)/).forEach(s => { s=s.trim(); if(s) tips.push({warn:s.startsWith('⚠️'), text:s.replace(/^(⚠️|💡)\s*/,'')}); }); }
   const times = (time.match(/\d{1,2}:\d{2}/g) || []);
   const places = [...text.matchAll(/【(.+?)】/g)].map(x => x[1]);
-  return {time, start: times[0] ? toMin(times[0]) : null, end: times[1] ? toMin(times[1]) : null, type, icon, text, tips, places};
+  const ttIds = meta?.tt || [];
+  const bkId = meta?.bk || null;
+  return {time, start: times[0] ? toMin(times[0]) : null, end: times[1] ? toMin(times[1]) : null, type, icon, text, tips, places, ttIds, bkId};
 }
 DAYS.forEach((d,i) => { d.idx=i; d.parsed = d.items.map(parseItem); });
 
 function renderText(text, day){
-  return esc(text).replace(/【(.+?)】/g, (_, name) =>
-    `<a class="place" href="${mapUrl(name + ' ' + day.map)}" target="_blank" rel="noopener" title="在 Google 地圖開啟：${esc(name)}">${esc(name)}</a>`);
+  return esc(text).replace(/【(.+?)】/g, (_, name) => {
+    if (/^(午餐|晚餐|除夕晚宴|第\s*\d+\s*晚)/.test(name)) return `<b>【${esc(name)}】</b>`;
+    return `<a class="place" href="${mapUrl(name + ' ' + day.map)}" target="_blank" rel="noopener" title="在 Google 地圖開啟：${esc(name)}">${esc(name)}</a>`;
+  });
 }
 function fmtDate(d){ const [y,m,dd] = d.date.split('-'); return `${+m}/${+dd}（${d.wd}）`; }
 
@@ -928,18 +1252,32 @@ function renderMealTiersHTML(meal, mapArea){
       <div class="tier-badge ${cls}">${esc(tb.label)}</div>
       <ul class="tier-list">${tb.list.map(r => `
         <li><b>${esc(r.name)}</b>${r.note ? ` <span style="color:var(--muted)">（${esc(r.note)}）</span>` : ''}
-          <a class="map-mini" href="${mapUrl(r.name + ' ' + mapArea)}" target="_blank" rel="noopener">🗺️ 地圖</a>
+          <a class="map-mini" href="${mapUrl(r.name.split(/[／/（(]/)[0].trim() + ' ' + mapArea)}" target="_blank" rel="noopener">🗺️ 地圖</a>
         </li>`).join('')}</ul>
     </div>`;
   }).join('');
 }
 
-/* ---------- 日本時間 ---------- */
+/* ---------- 日本時間 & 日期計算 ---------- */
 function jstNow(){
   const n = new Date(Date.now() + 9*3600e3);
   return {date: n.toISOString().slice(0,10), min: n.getUTCHours()*60 + n.getUTCMinutes(), ts: n};
 }
 function todayIdx(){ const t = jstNow().date; return DAYS.findIndex(d => d.date === t); }
+function diffDays(dateStrA, dateStrB){
+  const a = Date.UTC(...dateStrA.split('-').map((v,i)=>i===1?v-1:+v));
+  const b = Date.UTC(...dateStrB.split('-').map((v,i)=>i===1?v-1:+v));
+  return Math.round((b - a) / 864e5);
+}
+
+function getBookingStatus(bk){
+  const doneMap = store.get('chk', {});
+  const isDone = !!doneMap[bk.chkKey];
+  const today = jstNow().date;
+  const daysUntilOpen = diffDays(today, bk.openDate);
+  const isOpen = daysUntilOpen <= 0;
+  return {isDone, isOpen, daysUntilOpen};
+}
 
 /* =========================================================
    字級 & 主題
@@ -966,17 +1304,22 @@ setTheme(store.get('theme', matchMedia('(prefers-color-scheme: dark)').matches ?
    導覽
    ========================================================= */
 const VIEWS = [
-  ['day','📅','每日行程'],
-  ['food','🍽️','推薦餐廳'],
-  ['overview','🗺️','總覽'],
-  ['hotel','🏨','住宿'],
-  ['check','📝','清單'],
-  ['info','ℹ️','資訊']
+  ['day','📅','每日行程','行程'],
+  ['booking','🎟️','訂票提醒','訂票'],
+  ['transit','🚆','交通時刻表','時刻表'],
+  ['food','🍽️','推薦餐廳','餐廳'],
+  ['overview','🗺️','行程總覽','總覽'],
+  ['hotel','🏨','住宿行李','住宿'],
+  ['check','📝','準備清單','清單'],
+  ['info','ℹ️','實用資訊','資訊']
 ];
 function buildNav(){
-  const html = VIEWS.map(([id,ic,lb]) => `<button data-view="${id}"><span class="ic" aria-hidden="true">${ic}</span><span>${lb}</span></button>`).join('');
-  document.querySelector('nav.bottom').innerHTML = html;
-  document.querySelector('nav.tabs').innerHTML = VIEWS.map(([id,ic,lb]) => `<button data-view="${id}">${ic} ${lb}</button>`).join('');
+  const openUnbookedCount = BOOKINGS.filter(b => { const s = getBookingStatus(b); return s.isOpen && !s.isDone; }).length;
+  const badgeHtml = openUnbookedCount > 0 ? `<span class="nav-badge" title="${openUnbookedCount} 項已開放待預訂">${openUnbookedCount}</span>` : '';
+  document.querySelector('nav.bottom').innerHTML = VIEWS.map(([id,ic,lb,shortLb]) =>
+    `<button data-view="${id}"><span class="ic" aria-hidden="true">${ic}</span><span>${shortLb}</span>${id==='booking'?badgeHtml:''}</button>`).join('');
+  document.querySelector('nav.tabs').innerHTML = VIEWS.map(([id,ic,lb]) =>
+    `<button data-view="${id}">${ic} ${lb}${id==='booking'?badgeHtml:''}</button>`).join('');
   document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => go(b.dataset.view)));
 }
 function go(view, push=true){
@@ -987,10 +1330,19 @@ function go(view, push=true){
 }
 
 /* =========================================================
-   每日行程
+   全域狀態
    ========================================================= */
-const state = { day: 0, filter: 'all', foodDay: 'all', foodTier: 'all', onlyUnchecked: false };
+const state = {
+  day: 0, filter: 'all',
+  foodDay: 'all', foodTier: 'all',
+  bookingStatus: 'all', bookingCat: 'all',
+  transitCat: 'all', transitDay: 'all',
+  onlyUnchecked: false
+};
 
+/* =========================================================
+   每日行程 (v-day)
+   ========================================================= */
 function buildPicker(){
   const ti = todayIdx();
   $('#daypicker').innerHTML = DAYS.map((d,i) => `
@@ -1014,23 +1366,57 @@ function selectDay(i, scroll=true){
 
 function findMatchingMeal(d, p){
   if (!d.meals || !d.meals.length) return null;
-  if (p.type !== 'food' && !p.text.includes('便當') && !p.text.includes('午餐') && !p.text.includes('晚餐')) return null;
   if (p.text.includes('早餐')) return null;
+  const full = p.text + ' ' + p.tips.map(t=>t.text).join(' ');
   for (const m of d.meals){
-    if (m.match && p.text.includes(m.match)) return m;
+    if (m.match && full.includes(m.match)) return m;
   }
+  if (p.type !== 'food' && !full.includes('便當') && !full.includes('午餐') && !full.includes('晚餐')) return null;
   if (p.start !== null && p.start < 15*60) return d.meals.find(m => m.slot.includes('午餐'));
   if (p.start !== null && p.start >= 16*60) return d.meals.find(m => m.slot.includes('晚餐'));
   return null;
 }
 
+function jumpToBooking(id){
+  state.bookingStatus = 'all';
+  state.bookingCat = 'all';
+  if ($('#bq')) $('#bq').value = '';
+  renderBookings();
+  go('booking');
+  setTimeout(() => {
+    const el = document.getElementById('bk-card-'+id);
+    if (el){ el.scrollIntoView({behavior:'smooth', block:'center'}); el.style.outline='3px solid var(--accent)'; setTimeout(()=>el.style.outline='', 2200); }
+  }, 80);
+}
+
+function jumpToTimetableDay(dayNum){
+  state.transitCat = 'all';
+  state.transitDay = String(dayNum);
+  if ($('#tq')) $('#tq').value = '';
+  renderTimetables();
+  go('transit');
+}
+
+function jumpToTimetableId(ttId){
+  state.transitCat = 'all';
+  state.transitDay = 'all';
+  if ($('#tq')) $('#tq').value = '';
+  renderTimetables();
+  go('transit');
+  setTimeout(() => {
+    const el = document.getElementById('tt-card-'+ttId);
+    if (el){ el.scrollIntoView({behavior:'smooth', block:'center'}); el.style.outline='3px solid var(--accent)'; setTimeout(()=>el.style.outline='', 2200); }
+  }, 80);
+}
+
 function renderDay(){
   const d = DAYS[state.day];
+  const dayNum = state.day + 1;
   const counts = {};
   d.parsed.forEach(p => counts[p.type] = (counts[p.type]||0) + 1);
   $('#dayhead').innerHTML = `
     <div class="row1">
-      <span class="pill area">Day ${state.day+1}</span>
+      <span class="pill area">Day ${dayNum}</span>
       <span class="pill">📍 ${esc(d.area)}</span>
       ${d.tag ? `<span class="pill holiday">🧧 ${d.tag}</span>` : ''}
     </div>
@@ -1062,15 +1448,29 @@ function renderDay(){
   }
   const list = d.parsed.map((p,i) => ({p,i})).filter(({p}) => state.filter==='all' || p.type===state.filter ||
      (state.filter==='transit' && p.type==='flight') || (state.filter==='sight' && (p.type==='event' || p.type==='hotel')));
+
   $('#timeline').innerHTML = list.map(({p,i}) => {
     const past = isToday && p.start !== null && i < nowIdx && nowIdx >= 0;
     const matchedMeal = findMatchingMeal(d, p);
+    const tts = (p.ttIds || []).map(id => TIMETABLES.find(t => t.id === id)).filter(Boolean);
+    const bk = p.bkId ? BOOKINGS.find(b => b.id === p.bkId) : null;
+    const bkSt = bk ? getBookingStatus(bk) : null;
+
+    let chipsHtml = '';
+    if (tts.length || bk){
+      chipsHtml = `<div class="ev-links">
+        ${tts.map(t => `<a class="ev-chip" href="${esc(t.url)}" target="_blank" rel="noopener" title="${esc(t.note)}">🕒 #${t.id} ${esc(t.title.replace(/（.+?）|【|】/g,''))} ↗</a>`).join('')}
+        ${bk ? `<button type="button" class="ev-chip bk-chip ${bkSt.isDone?'done':''}" onclick="jumpToBooking(${bk.id})">🎟️ 訂票提醒 #${bk.id}：${esc(bk.shortTitle)}（${bkSt.isDone?'✅ 已預訂':bkSt.isOpen?'🔥 已開放':'⏳ '+bk.openTwt.split('（')[0]}）</button>` : ''}
+      </div>`;
+    }
+
     return `<li class="ev ${p.type} ${i===nowIdx?'now':''} ${past?'past':''}">
       <span class="dot" aria-hidden="true">${p.icon}</span>
       <div class="card">
         <div class="time">${esc(p.time.replace(/-/g, ' – '))} <span class="cat">${TYPES[p.type].label}</span>${i===nowIdx?'<span class="nowtag">進行中</span>':''}</div>
         <div class="txt">${renderText(p.text, d)}</div>
         ${p.tips.map(t => `<div class="tip ${t.warn?'warn':''}">${t.warn?'⚠️ 注意：':'💡 小提醒：'}${esc(t.text)}</div>`).join('')}
+        ${chipsHtml}
         ${matchedMeal ? `<details class="meal-drawer">
           <summary><span>🍴 查看 ${esc(matchedMeal.slot)} 推薦清單（A/B/C三級）</span><span>▾</span></summary>
           <div class="meal-drawer-body">${renderMealTiersHTML(matchedMeal, d.map)}</div>
@@ -1085,8 +1485,36 @@ function renderDay(){
       <div class="hotelname">${esc(d.hotel)}</div><div style="color:var(--muted)">${esc(d.night)}</div>
       <a class="btn primary" href="${mapUrl(d.hotel)}" target="_blank" rel="noopener">🗺️ 開啟地圖導航</a></div>`;
   } else {
-    side += `<div class="box"><h3>🏠 回到溫暖的家</h3><div>旅程結束，一路平安！</div></div>`;
+    side += `<div class="box"><h3>🏠 溫暖的家</h3><div>返抵國門，旅程圓滿結束！</div></div>`;
   }
+
+  // 當日相關訂票提醒
+  const dayBookings = BOOKINGS.filter(b => b.days.includes(dayNum));
+  if (dayBookings.length){
+    side += `<div class="box"><h3>🎟️ 今日相關預訂 ＆ 票券狀態</h3>
+      <ul style="padding-left:1.1rem;font-size:.92rem">${dayBookings.map(b => {
+        const st = getBookingStatus(b);
+        const badge = st.isDone ? '<span class="pill done">✅ 已預訂</span>' : st.isOpen ? '<span class="pill urgent">🔥 已開放待訂</span>' : `<span class="pill upcoming">⏳ ${esc(b.openTwt.split(/[（※\n]/)[0])} 開放</span>`;
+        return `<li style="margin:.45rem 0">
+          <div style="display:flex;align-items:center;gap:.35rem;flex-wrap:wrap"><b>#${b.id} ${esc(b.shortTitle)}</b> ${badge}</div>
+          <div style="font-size:.82rem;color:var(--muted)">${esc(b.dayLabel)}｜<a href="#" onclick="event.preventDefault();jumpToBooking(${b.id})">查看詳情</a>・<a href="${esc(b.url)}" target="_blank" rel="noopener">官網 ↗</a></div>
+        </li>`;
+      }).join('')}</ul>
+      <button class="btn" onclick="go('booking')">前往訂票提醒清單 →</button></div>`;
+  }
+
+  // 當日相關交通時刻表
+  const dayTimetables = TIMETABLES.filter(t => t.days.includes(dayNum));
+  if (dayTimetables.length){
+    side += `<div class="box"><h3>🚆 今日交通時刻表 ＆ 常用連結</h3>
+      <ul style="padding-left:1.1rem;font-size:.9rem">${dayTimetables.map(t => `
+        <li style="margin:.35rem 0">
+          <a href="${esc(t.url)}" target="_blank" rel="noopener" style="font-weight:700">#${t.id} ${esc(t.title)} ↗</a>
+          <div style="font-size:.8rem;color:var(--muted)">${esc(t.note)}</div>
+        </li>`).join('')}</ul>
+      <button class="btn" onclick="jumpToTimetableDay(${dayNum})">查看 Day ${dayNum} 完整時刻表 →</button></div>`;
+  }
+
   if (d.prep.length){
     side += `<div class="box"><h3>📝 提前準備事項</h3><ul>${d.prep.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
       <button class="btn" onclick="go('check')">前往清單勾選 →</button></div>`;
@@ -1100,7 +1528,7 @@ function renderDay(){
       <button class="btn" onclick="state.foodDay='${state.day}';renderFood();go('food')">查看完整美食指南 →</button>
     </div>`;
   }
-  const spots = [...new Set(d.parsed.filter(p => p.type==='sight'||p.type==='event'||p.type==='hotel').flatMap(p => p.places))];
+  const spots = [...new Set(d.parsed.filter(p => p.type==='sight'||p.type==='event'||p.type==='hotel').flatMap(p => p.places))].filter(s => !/^(午餐|晚餐|除夕晚宴|第\s*\d+\s*晚)/.test(s));
   if (spots.length){
     side += `<div class="box"><h3>🗺️ 今日地點快速導航</h3><ul>${spots.map(s =>
       `<li><a href="${mapUrl(s + ' ' + d.map)}" target="_blank" rel="noopener">${esc(s)}</a></li>`).join('')}</ul></div>`;
@@ -1120,7 +1548,7 @@ function renderDay(){
 })();
 
 /* =========================================================
-   橫幅（倒數 / 今日進行中）
+   橫幅（倒數 / 今日進行中 + 訂票搶票即時提醒）
    ========================================================= */
 function renderBanner(){
   const now = jstNow(), ti = todayIdx();
@@ -1128,14 +1556,338 @@ function renderBanner(){
   let html = '';
   if (today < start){
     const days = Math.round((start - today) / 864e5);
-    html = `<div class="banner"><span class="big">🧳</span><div><b>距離出發還有 ${days} 天！</b><br>2027/2/1（一）05:30 出發前往桃園機場 T2（BR198 08:50 起飛）</div></div>`;
+    html += `<div class="banner">
+      <div class="banner-main"><span class="big">🧳</span><div><b>距離出發還有 ${days} 天！</b><br>2027/2/1（一）05:30 出發前往桃園機場 T2（BR198 08:50 起飛）</div></div>
+      <div style="display:flex;gap:.4rem;flex-wrap:wrap">
+        <button class="btn" style="margin:0;background:rgba(255,255,255,.2);color:#fff;border-color:rgba(255,255,255,.4)" onclick="go('booking')">🎟️ 訂票提醒</button>
+        <button class="btn" style="margin:0;background:rgba(255,255,255,.2);color:#fff;border-color:rgba(255,255,255,.4)" onclick="go('transit')">🚆 時刻表查詢</button>
+      </div>
+    </div>`;
   } else if (ti >= 0){
     const d = DAYS[ti];
     const next = d.parsed.find(p => p.start !== null && p.start > now.min);
-    html = `<div class="banner"><span class="big">📍</span><div><b>今天是 Day ${ti+1}：${esc(d.title)}</b><br>${next ? `下一站 ${esc(next.time.split(/[-或]/)[0].trim())}：${esc(next.text.replace(/[【】「」]/g,''))}` : '今天的行程已完成，好好休息！'}</div></div>`;
+    html += `<div class="banner"><div class="banner-main"><span class="big">📍</span><div><b>今天是 Day ${ti+1}：${esc(d.title)}</b><br>${next ? `下一站 ${esc(next.time.split(/[-或／]/)[0].trim())}：${esc(next.text.replace(/[【】「」]/g,''))}` : '今天的行程已完成，好好休息！'}</div></div></div>`;
+  }
+
+  // 訂票提醒摘要列
+  const doneCount = BOOKINGS.filter(b => getBookingStatus(b).isDone).length;
+  const openUnbooked = BOOKINGS.filter(b => { const s = getBookingStatus(b); return s.isOpen && !s.isDone; });
+  const upcomingUnbooked = BOOKINGS.filter(b => { const s = getBookingStatus(b); return !s.isOpen && !s.isDone; })
+    .sort((a,b) => a.openDate.localeCompare(b.openDate));
+
+  if (doneCount < BOOKINGS.length){
+    const nextDate = upcomingUnbooked.length ? upcomingUnbooked[0].openDate : null;
+    const nextBatch = nextDate ? upcomingUnbooked.filter(b => b.openDate === nextDate) : [];
+    const nextDays = nextDate ? diffDays(now.date, nextDate) : null;
+    html += `<div class="booking-strip">
+      <div class="booking-strip-info">
+        <div class="booking-strip-row">
+          <span class="pill area">🎟️ 訂票進度 ${doneCount}/${BOOKINGS.length}</span>
+          ${openUnbooked.length ? `<span class="pill urgent">🔥 現已開放待訂 ${openUnbooked.length} 項</span>
+            <span><b>${openUnbooked.slice(0,3).map(b => esc(b.shortTitle)).join('、')}${openUnbooked.length>3?' 等':''}</b></span>` : '<span class="pill done">✅ 目前已開放項目皆已預訂</span>'}
+        </div>
+        ${nextBatch.length ? `<div class="booking-strip-row" style="color:var(--muted);font-size:.86rem">
+          <span>⏰ 下次搶票日：<b>${esc(nextDate.replace(/-/g,'/'))}（倒數 ${nextDays} 天）</b>— ${nextBatch.map(b => esc(b.shortTitle)).join('、')}</span>
+        </div>` : ''}
+      </div>
+      <button class="btn primary btn-sm" onclick="go('booking')">前往訂票提醒 →</button>
+    </div>`;
   }
   $('#banner').innerHTML = html;
 }
+
+/* =========================================================
+   訂票與預訂提醒功能 (v-booking) & 行事曆匯出
+   ========================================================= */
+function gcalUrl(ev, bk){
+  const details = `${bk.title}\n對應行程：${bk.dayLabel}\n台灣時間：${bk.openTwt}\n日本時間：${bk.openJst}\n注意事項：${bk.note}\n訂票網址：${bk.url}`;
+  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(ev.title)}&dates=${ev.start}/${ev.end}&ctz=Asia/Taipei&details=${encodeURIComponent(details)}&location=${encodeURIComponent(bk.url)}`;
+}
+
+function downloadAllBookingICS(){
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//2027 Kanto Family Trip//Booking Reminders//ZH',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    'X-WR-CALNAME:2027關東家族旅行-訂票搶票提醒',
+    'X-WR-TIMEZONE:Asia/Taipei'
+  ];
+  BOOKINGS.forEach(bk => {
+    (bk.cal || []).forEach((ev, idx) => {
+      const desc = `${bk.title}\\n對應行程：${bk.dayLabel.replace(/\n/g,' ')}\\n最早可訂(台灣)：${bk.openTwt.replace(/\n/g,' ')}\\n注意事項：${bk.note.replace(/\n/g,' ')}\\n訂票官網：${bk.url}`;
+      lines.push(
+        'BEGIN:VEVENT',
+        `UID:kanto2027-bk-${bk.id}-${idx}@trip.local`,
+        `DTSTAMP:20261118T000000Z`,
+        `DTSTART;TZID=Asia/Taipei:${ev.start}`,
+        `DTEND;TZID=Asia/Taipei:${ev.end}`,
+        `SUMMARY:${ev.title}`,
+        `DESCRIPTION:${desc}`,
+        `URL:${bk.url}`,
+        'BEGIN:VALARM',
+        'TRIGGER:-PT30M',
+        'ACTION:DISPLAY',
+        `DESCRIPTION:${ev.title}（30分鐘後開放）`,
+        'END:VALARM',
+        'END:VEVENT'
+      );
+    });
+  });
+  lines.push('END:VCALENDAR');
+  const blob = new Blob([lines.join('\r\n')], {type:'text/calendar;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '2027關東家族旅行_訂票搶票提醒.ics';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function toggleBookingDone(chkKey){
+  const s = store.get('chk', {});
+  s[chkKey] = !s[chkKey];
+  store.set('chk', s);
+  renderBookings();
+  renderChecks();
+  renderBanner();
+  renderDay();
+  buildNav();
+}
+
+function renderBookings(){
+  const q = ($('#bq')?.value || '').trim().toLowerCase();
+  const notesMap = store.get('bk_notes', {});
+  const subChkMap = store.get('bk_sub', {});
+
+  let doneCnt = 0, openWaitCnt = 0, upcomingCnt = 0;
+  BOOKINGS.forEach(b => {
+    const st = getBookingStatus(b);
+    if (st.isDone) doneCnt++;
+    else if (st.isOpen) openWaitCnt++;
+    else upcomingCnt++;
+  });
+  const pct = Math.round(doneCnt / BOOKINGS.length * 100);
+
+  $('#bookingDash').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:.6rem;flex-wrap:wrap">
+      <div>
+        <b style="font-size:1.08rem">預訂完成度：${doneCnt} / ${BOOKINGS.length} 項（${pct}%）</b>
+        <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.35rem">
+          <span class="pill urgent">🔥 已開放待訂：${openWaitCnt} 項</span>
+          <span class="pill upcoming">⏳ 即將開放：${upcomingCnt} 項</span>
+          <span class="pill done">✅ 已完成預訂：${doneCnt} 項</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:.4rem;flex-wrap:wrap">
+        <button class="btn primary" id="exportIcsBtn" style="margin:0">📥 匯出全部搶票提醒至手機行事曆 (.ics)</button>
+      </div>
+    </div>
+    <div class="progress" style="margin-top:.65rem" aria-hidden="true"><div style="width:${pct}%"></div></div>
+    <small style="color:var(--muted);display:block;margin-top:.4rem">💡 提示：所有開放時間皆已換算對照<b>台灣時間</b>與<b>日本時間 (JST)</b>；您可點擊各卡片的「📅 加入 Google 行事曆」或匯出 .ics 檔案設定手機鬧鐘提醒，並於預訂後填寫預約代號。</small>`;
+
+  $('#exportIcsBtn').onclick = downloadAllBookingICS;
+
+  const stOpts = [
+    ['all', `全部 (${BOOKINGS.length})`],
+    ['open', `🔥 已開放待訂 (${openWaitCnt})`],
+    ['upcoming', `⏳ 即將開放 (${upcomingCnt})`],
+    ['done', `✅ 已完成預訂 (${doneCnt})`]
+  ];
+  $('#bookingStatusFilters').innerHTML = stOpts.map(([k,l]) => `<button data-bs="${k}" aria-pressed="${state.bookingStatus===k}">${esc(l)}</button>`).join('');
+  $('#bookingStatusFilters').querySelectorAll('button').forEach(b => b.onclick = () => { state.bookingStatus = b.dataset.bs; renderBookings(); });
+
+  const cats = ['all', '鐵道車票', '高速巴士', '交通／租車', '景點門票', '餐飲預約'];
+  $('#bookingCatFilters').innerHTML = cats.map(c => `<button data-bc="${c}" aria-pressed="${state.bookingCat===c}">${c==='all'?'全部類別':esc(c)}</button>`).join('');
+  $('#bookingCatFilters').querySelectorAll('button').forEach(b => b.onclick = () => { state.bookingCat = b.dataset.bc; renderBookings(); });
+
+  const filtered = BOOKINGS.filter(b => {
+    const st = getBookingStatus(b);
+    if (state.bookingStatus === 'open' && (st.isDone || !st.isOpen)) return false;
+    if (state.bookingStatus === 'upcoming' && (st.isDone || st.isOpen)) return false;
+    if (state.bookingStatus === 'done' && !st.isDone) return false;
+    if (state.bookingCat !== 'all' && b.cat !== state.bookingCat) return false;
+    if (q){
+      const hay = `${b.id} ${b.title} ${b.dayLabel} ${b.openTwt} ${b.openJst} ${b.note} ${b.cat} ${(b.subItems||[]).join(' ')} ${notesMap[b.id]||''}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  $('#bookingGrid').innerHTML = filtered.map(b => {
+    const st = getBookingStatus(b);
+    const borderCol = st.isDone ? 'var(--now)' : st.isOpen ? 'var(--urgent)' : 'var(--upcoming)';
+    const statusBadge = st.isDone
+      ? `<span class="pill done">✅ 已完成預訂</span>`
+      : st.isOpen
+        ? `<span class="pill urgent">🔥 已開放！立即可訂</span>`
+        : `<span class="pill upcoming">⏳ 倒數 ${st.daysUntilOpen} 天開放（${esc(b.openDate.replace(/-/g,'/'))}）</span>`;
+
+    const subHtml = b.subItems ? `
+      <div class="sub-chk-grid">
+        ${b.subItems.map((si, idx) => {
+          const sk = `${b.id}-${idx}`;
+          return `<label><input type="checkbox" data-sub="${sk}" ${subChkMap[sk]?'checked':''}> <span style="${subChkMap[sk]?'text-decoration:line-through;color:var(--muted)':''}">${esc(si)}</span></label>`;
+        }).join('')}
+      </div>` : '';
+
+    return `<div class="box bk-card ${st.isDone?'is-done':''}" id="bk-card-${b.id}" style="border-top:5px solid ${borderCol}">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:.4rem;flex-wrap:wrap">
+        <div style="display:flex;gap:.35rem;align-items:center;flex-wrap:wrap">
+          <span class="pill area">順序 #${b.id}</span>
+          <span class="pill">${esc(b.cat)}</span>
+        </div>
+        ${statusBadge}
+      </div>
+
+      <h3 style="margin:.15rem 0 0;font-size:1.15rem">${esc(b.title)}</h3>
+
+      <div style="display:flex;gap:.35rem;align-items:center;flex-wrap:wrap;font-size:.86rem">
+        <span style="color:var(--muted);font-weight:700">📅 對應行程：${esc(b.dayLabel)}</span>
+        ${b.days.slice(0,4).map(dNum => `<button type="button" class="btn btn-sm" onclick="go('day');selectDay(${dNum-1})">Day ${dNum} →</button>`).join('')}
+      </div>
+
+      <div class="bk-meta">
+        <div class="bk-meta-item">
+          <b>🇹🇼 最早可訂時間（台灣時間）</b>
+          <span style="font-weight:800;color:var(--primary)">${esc(b.openTwt)}</span>
+        </div>
+        <div class="bk-meta-item">
+          <b>🇯🇵 最早可訂時間（日本 JST）</b>
+          <span>${esc(b.openJst)}</span>
+        </div>
+      </div>
+
+      <div class="tip" style="margin-top:0">💡 <b>備註與注意事項：</b>${esc(b.note)}</div>
+      ${subHtml}
+
+      <div>
+        <input type="text" class="bk-note-inp" data-note-id="${b.id}" value="${esc(notesMap[b.id]||'')}" placeholder="📝 填寫預約編號、訂位時間或備忘錄（自動儲存）…">
+      </div>
+
+      <div class="bk-actions">
+        <button type="button" class="btn btn-sm ${st.isDone?'done-btn':'accent'}" data-toggle-bk="${b.chkKey}">
+          ${st.isDone ? '✅ 已預訂（點擊改為待預訂）' : '⬜ 待預訂（完成後點此打勾）'}
+        </button>
+        <a class="btn primary btn-sm" href="${esc(b.url)}" target="_blank" rel="noopener">🔗 官方訂票／預約網站 ↗</a>
+        ${b.tel ? `<a class="btn btn-sm" href="tel:${esc(b.tel)}">📞 ${esc(b.telLabel)}</a>` : ''}
+        ${(b.cal || []).map(ev => `<a class="btn btn-sm" href="${gcalUrl(ev, b)}" target="_blank" rel="noopener">📅 加入行事曆（${esc(ev.label)}）</a>`).join('')}
+        ${(b.ttIds || []).map(tid => `<button type="button" class="btn btn-sm" onclick="jumpToTimetableId(${tid})">🕒 時刻表 #${tid}</button>`).join('')}
+      </div>
+    </div>`;
+  }).join('') || '<div class="box">沒有符合篩選條件的預訂項目。</div>';
+
+  $('#bookingGrid').querySelectorAll('[data-toggle-bk]').forEach(btn => {
+    btn.onclick = () => toggleBookingDone(btn.dataset.toggleBk);
+  });
+  $('#bookingGrid').querySelectorAll('[data-note-id]').forEach(inp => {
+    inp.oninput = () => {
+      const m = store.get('bk_notes', {});
+      m[inp.dataset.noteId] = inp.value;
+      store.set('bk_notes', m);
+    };
+  });
+  $('#bookingGrid').querySelectorAll('[data-sub]').forEach(chk => {
+    chk.onchange = () => {
+      const m = store.get('bk_sub', {});
+      m[chk.dataset.sub] = chk.checked;
+      store.set('bk_sub', m);
+      renderBookings();
+    };
+  });
+}
+$('#bq').addEventListener('input', renderBookings);
+
+/* =========================================================
+   交通時刻表與常用連結查詢功能 (v-transit)
+   ========================================================= */
+function buildQuickScheduleTable(){
+  $('#quickTtWrap').innerHTML = `
+    <table class="quick-tt-table">
+      <thead>
+        <tr><th>行程日</th><th>區間／路線</th><th>主班次（時刻與月台）</th><th>備案班次</th><th>購票／IC卡注意事項</th></tr>
+      </thead>
+      <tbody>
+        ${QUICK_SCHEDULES.map(s => `<tr>
+          <td style="font-weight:800;white-space:nowrap">${esc(s.day)}</td>
+          <td style="font-weight:700">${esc(s.route)}</td>
+          <td style="white-space:pre-line">${esc(s.main)}</td>
+          <td style="white-space:pre-line;color:var(--muted)">${esc(s.backup)}</td>
+          <td>${esc(s.note)}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+$('#toggleQuickTtBtn').onclick = () => {
+  const el = $('#quickTtWrap');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+};
+
+const TT_CAT_ICONS = {
+  '國際航班':'✈️',
+  '新幹線':'🚅',
+  '鐵道電車':'🚆',
+  '高速／接駁巴士':'🚌',
+  '觀光／路線公車':'🚏',
+  '自駕／景點設施':'🚗'
+};
+
+function renderTimetables(){
+  const q = ($('#tq')?.value || '').trim().toLowerCase();
+
+  const catCounts = {};
+  TIMETABLES.forEach(t => catCounts[t.cat] = (catCounts[t.cat]||0) + 1);
+  const catOpts = [
+    ['all', `全部 (${TIMETABLES.length})`],
+    ...Object.keys(TT_CAT_ICONS).map(c => [c, `${TT_CAT_ICONS[c]} ${c} (${catCounts[c]||0})`])
+  ];
+  $('#transitCatFilters').innerHTML = catOpts.map(([k,l]) => `<button data-tc="${k}" aria-pressed="${state.transitCat===k}">${esc(l)}</button>`).join('');
+  $('#transitCatFilters').querySelectorAll('button').forEach(b => b.onclick = () => { state.transitCat = b.dataset.tc; renderTimetables(); });
+
+  const dayOpts = [['all','全部天數'], ...DAYS.map((d,i) => [String(i+1), `Day ${i+1} (${+d.date.slice(5,7)}/${+d.date.slice(8,10)})`])];
+  $('#transitDayFilters').innerHTML = dayOpts.map(([k,l]) => `<button data-td="${k}" aria-pressed="${state.transitDay===k}">${esc(l)}</button>`).join('');
+  $('#transitDayFilters').querySelectorAll('button').forEach(b => b.onclick = () => { state.transitDay = b.dataset.td; renderTimetables(); });
+
+  const filtered = TIMETABLES.filter(t => {
+    if (state.transitCat !== 'all' && t.cat !== state.transitCat) return false;
+    if (state.transitDay !== 'all' && !t.days.includes(+state.transitDay)) return false;
+    if (q){
+      const hay = `#${t.id} ${t.id} ${t.cat} ${t.title} ${t.dayLabel} ${t.note} ${t.url}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  $('#transitGrid').innerHTML = filtered.map(t => {
+    const isPdf = /\.pdf($|\?)/i.test(t.url);
+    let domain = '';
+    try { domain = new URL(t.url).hostname; } catch(e) { domain = t.url; }
+    const bk = t.bkId ? BOOKINGS.find(b => b.id === t.bkId) : null;
+    const ic = TT_CAT_ICONS[t.cat] || '🚆';
+
+    return `<div class="box tt-card" id="tt-card-${t.id}" style="border-left:5px solid var(--c-transit)">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:.4rem;flex-wrap:wrap">
+        <div style="display:flex;gap:.35rem;align-items:center;flex-wrap:wrap">
+          <span class="pill area">#${t.id}</span>
+          <span class="pill">${ic} ${esc(t.cat)}</span>
+          ${isPdf ? '<span class="pill urgent">📄 PDF 時刻表</span>' : ''}
+        </div>
+        <span class="pill">📅 ${esc(t.dayLabel)}</span>
+      </div>
+
+      <h3 style="margin:.15rem 0 0;font-size:1.1rem">${esc(t.title)}</h3>
+      <div style="font-size:.94rem;color:var(--text)">${esc(t.note)}</div>
+      <div class="tt-domain">🌐 來源網址：${esc(domain)}</div>
+
+      <div style="display:flex;gap:.4rem;flex-wrap:wrap;align-items:center;margin-top:auto;padding-top:.4rem;border-top:1px dashed var(--line)">
+        <a class="btn primary btn-sm" href="${esc(t.url)}" target="_blank" rel="noopener">🕒 開啟官方時刻表／網站 ↗</a>
+        ${t.days.map(dNum => `<button type="button" class="btn btn-sm" onclick="go('day');selectDay(${dNum-1})">查看 Day ${dNum} 行程 →</button>`).join('')}
+        ${bk ? `<button type="button" class="btn btn-sm" onclick="jumpToBooking(${bk.id})">🎟️ 關聯訂票 #${bk.id}</button>` : ''}
+      </div>
+    </div>`;
+  }).join('') || '<div class="box">沒有符合篩選條件的交通時刻表，請嘗試切換天數、分類或清除搜尋關鍵字。</div>';
+}
+$('#tq').addEventListener('input', renderTimetables);
 
 /* =========================================================
    推薦餐廳指南 (v-food) & 點餐溝通卡
@@ -1207,16 +1959,16 @@ function renderFood(){
 $('#fq').addEventListener('input', renderFood);
 
 /* =========================================================
-   總覽 + 搜尋（涵蓋行程、提醒與推薦餐廳）
+   總覽 + 全站搜尋（涵蓋行程、訂票提醒、時刻表與推薦餐廳）
    ========================================================= */
 function renderOverview(){
   $('#grid').innerHTML = DAYS.map((d,i) => {
-    const hl = [...new Set(d.parsed.filter(p => p.type==='sight'||p.type==='event').flatMap(p => p.places))].slice(0,5);
+    const hl = [...new Set(d.parsed.filter(p => p.type==='sight'||p.type==='event').flatMap(p => p.places))].filter(s => !/^(午餐|晚餐|除夕晚宴|第\s*\d+\s*晚)/.test(s)).slice(0,5);
     return `<button class="dcard" style="--areac:${d.color}" data-i="${i}">
       <div class="h"><span class="n">Day ${i+1}・${fmtDate(d)}</span>${d.tag?`<span class="pill holiday">🧧 ${d.tag}</span>`:''}</div>
       <div class="ti">${esc(d.title)}</div>
       <div class="hl">${hl.length ? '✨ ' + hl.map(esc).join('、') : ''}</div>
-      <div class="ho">${d.hotel ? '🏨 ' + esc(d.hotel) : '🏠 返回台灣'}</div>
+      <div class="ho">${d.hotel ? '🏨 ' + esc(d.hotel) : '🏠 返抵國門'}</div>
     </button>`;
   }).join('');
   $('#grid').querySelectorAll('.dcard').forEach(b => b.onclick = () => { go('day'); selectDay(+b.dataset.i); });
@@ -1229,19 +1981,34 @@ $('#q').addEventListener('input', e => {
   DAYS.forEach((d,i) => {
     d.parsed.forEach(p => {
       const fullTxt = p.text + ' ' + p.tips.map(t=>t.text).join(' ');
-      if (re.test(fullTxt)) hits.push({d, i, time:p.time, icon:p.icon, txt:p.text.replace(/[【】]/g,'') + (p.tips.length ? '（' + p.tips.map(t=>t.text).join('；') + '）' : '')});
+      if (re.test(fullTxt)) hits.push({kind:'day', i, label:`Day ${i+1}・${fmtDate(d)}・${p.time}`, icon:p.icon, txt:p.text.replace(/[【】]/g,'') + (p.tips.length ? '（' + p.tips.map(t=>t.text).join('；') + '）' : '')});
       re.lastIndex=0;
     });
     (d.meals || []).forEach(m => m.tiers.forEach(tb => tb.list.forEach(r => {
       const rTxt = `${m.slot}｜${r.name}（${r.note}）`;
-      if (re.test(rTxt)) hits.push({d, i, time:'推薦餐廳', icon:'🍽️', txt:rTxt});
+      if (re.test(rTxt)) hits.push({kind:'day', i, label:`Day ${i+1}・${fmtDate(d)}・推薦餐廳`, icon:'🍽️', txt:rTxt});
       re.lastIndex=0;
     })));
   });
+  BOOKINGS.forEach(b => {
+    const bTxt = `訂票提醒 #${b.id}｜${b.title}（最早可訂：${b.openTwt}｜${b.note}）`;
+    if (re.test(bTxt)) hits.push({kind:'booking', id:b.id, label:`訂票與預訂清單 #${b.id}・${b.dayLabel}`, icon:'🎟️', txt:bTxt});
+    re.lastIndex=0;
+  });
+  TIMETABLES.forEach(t => {
+    const tTxt = `時刻表 #${t.id} [${t.cat}]｜${t.title}（${t.note}）`;
+    if (re.test(tTxt)) hits.push({kind:'transit', id:t.id, label:`交通時刻表 #${t.id}・${t.dayLabel}`, icon:'🚆', txt:tTxt});
+    re.lastIndex=0;
+  });
   $('#grid').style.display = 'none';
-  $('#results').innerHTML = `<p><b>找到 ${hits.length} 筆結果</b></p>` + hits.map(h =>
-    `<button class="r" data-i="${h.i}"><small>Day ${h.i+1}・${fmtDate(h.d)}・${esc(h.time)}</small><br>${h.icon} ${esc(h.txt).replace(re, m => `<mark>${m}</mark>`)}</button>`).join('');
-  $('#results').querySelectorAll('.r').forEach(b => b.onclick = () => { go('day'); selectDay(+b.dataset.i); });
+  $('#results').innerHTML = `<p><b>找到 ${hits.length} 筆結果</b></p>` + hits.map((h, idx) =>
+    `<button class="r" data-hit="${idx}"><small>${esc(h.label)}</small><br>${h.icon} ${esc(h.txt).replace(re, m => `<mark>${m}</mark>`)}</button>`).join('');
+  $('#results').querySelectorAll('.r').forEach(b => b.onclick = () => {
+    const h = hits[+b.dataset.hit];
+    if (h.kind === 'booking') jumpToBooking(h.id);
+    else if (h.kind === 'transit') jumpToTimetableId(h.id);
+    else { go('day'); selectDay(h.i); }
+  });
 });
 
 /* =========================================================
@@ -1257,13 +2024,13 @@ function renderHotels(){
 
   const luggageCard = `
     <div class="box" style="grid-column:1 / -1;border-left:5px solid var(--c-hotel)">
-      <h3>🧳 全程大行李寄送 ＆ 寄放關鍵動線總整理</h3>
+      <h3>🧳 全程大行李寄送 ＆ 寄放關鍵動線總整理（最新試算表同步版）</h3>
       <ul>
-        <li><b>Day 1（2/1）抵達上野：</b>京成上野站步行至 MIMARU 東京 上野 NORTH 約 15 分鐘，推大行李建議分搭 2 台計程車（車程 5 分，約 ¥800/台）。</li>
-        <li><b>Day 3（2/3）09:45 抵達輕井澤：</b>出北陸新幹線後，先至輕井澤站南口右側<b>【王子飯店 Smile Concierge (スマイルコンシェルジュ) 旅客服務中心】</b>辦理行李免費直送西館，即可空手去北口搭巴士往榆樹街小鎮！</li>
-        <li><b>Day 3（2/3）18:00【極重要！黑貓宅急便寄行李】：</b>逛完 Outlet 後，請於<b>第 3 晚下午／18:00 前</b>將要寄往河口湖 <b>Fuji View Hotel</b> 的大行李交給西館櫃檯辦理黑貓宅急便（指定 2/5 送達），避免 Day 4 早上超過當日集荷截單時間！隨身僅留 1 晚換洗衣物。</li>
-        <li><b>Day 5（2/5）東京站 48 分鐘轉乘：</b>因大行李已先寄往河口湖，全家輕裝由新幹線轉乘八重洲南口「高速巴士 119 便」更從容！</li>
-        <li><b>Day 8（2/8）08:15 河口湖還車動線：</b>先開車至<b>【河口湖站】</b>讓家人與大行李下車候車，再由駕駛單獨開去對面 ENEOS 加滿油並至 Toyota 還車，輕裝步行 7 分鐘回車站會合。</li>
+        <li><b>Day 1（2/1）抵達上野：</b>京成上野站步行至 MIMARU 東京 上野 NORTH 約 15 分鐘，推大行李可分搭 2 台計程車（車程約 5 分鐘，約 ¥800／台）。</li>
+        <li><b>Day 2（2/2）第 2 晚分裝行李：</b>提前整理大行李，分為<b>「輕井澤 2 晚使用」</b>及<b>「明日寄送至河口湖旅館」</b>2 類。</li>
+        <li><b>Day 3（2/3）10:00–10:35【極重要！西館寄放＋黑貓宅急便寄河口湖】：</b>09:43 抵輕井澤站後，於南口 (B-1) 搭 10:00 王子接駁車（棕線）至<b>【輕井澤王子大飯店 西館 (B-12M)】</b>，於櫃檯寄放當日行李，並順便交寄黑貓宅急便大行李往<b>【Fuji View Hotel】</b>（指定 2/5 送達），隨後 10:35 直接由西館搭計程車前往星野榆樹街！（若上午有未寄出之黑貓大行李，可於 15:30 回西館 Check-in 時補寄）。</li>
+        <li><b>Day 5（2/5）東京站八重洲南口轉乘：</b>因大行李已先寄往河口湖，全家輕裝由北陸新幹線（20–23 號月台）走<b>「八重洲南口改札」</b>出站，正前方即為 1F 屋外 JR 高速巴士總站（搭 11:10 富士急高速巴士 119 號）。</li>
+        <li><b>Day 8（2/8）08:15 河口湖還車動線：</b>先開車送家人與大行李至<b>【河口湖站】</b>候車，駕駛再開往「ENEOS セルフ富士河口湖SS」加滿油，08:45 於 Toyota 富士河口湖店還車後，輕裝步行約 7 分鐘回車站會合搭 09:30 高速巴士 8 號。</li>
       </ul>
     </div>`;
 
@@ -1271,7 +2038,7 @@ function renderHotels(){
 }
 
 /* =========================================================
-   清單（含每日準備、預約票券確認、攜帶物品、自訂新增項目）
+   清單（含訂票與預訂清單雙向同步、每日準備、攜帶物品、自訂項目）
    ========================================================= */
 function renderChecks(){
   const done = store.get('chk', {});
@@ -1285,8 +2052,12 @@ function renderChecks(){
     });
   }
   groups.push({
-    title:'🎟️ 事先預約 ＆ 交通門票確認清單',
-    items: BOOKING_CHECKS.map((t,j) => ({id:`b${j}`, t}))
+    title:'🎟️ 訂票與預訂確認清單（與「訂票提醒」分頁雙向同步）',
+    items: BOOKINGS.map(b => ({
+      id: b.chkKey,
+      t: `#${b.id} 【${b.dayLabel}】${b.title}（最早可訂：${b.openTwt}）`,
+      bkId: b.id
+    }))
   });
   DAYS.filter(d => d.prep.length).forEach(d => {
     groups.push({
@@ -1308,7 +2079,7 @@ function renderChecks(){
     return `<div class="box"><h3>${esc(g.title)}</h3>${visibleItems.map(it =>
       `<label class="check ${done[it.id]?'done':''}">
         <input type="checkbox" data-id="${it.id}" ${done[it.id]?'checked':''}>
-        <span>${esc(it.t)}</span>
+        <span>${esc(it.t)} ${it.bkId ? `<a href="#" onclick="event.preventDefault();jumpToBooking(${it.bkId})" style="font-size:.82rem;font-weight:700;margin-left:.25rem">[查看訂票詳情]</a>` : ''}</span>
         ${it.customIdx !== undefined ? `<button type="button" class="del-btn" data-del="${it.customIdx}" title="刪除此自訂項目">🗑️</button>` : ''}
       </label>`).join('')}</div>`;
   }).join('') || '<div class="box">🎉 太棒了！所有準備項目皆已完成！</div>';
@@ -1323,6 +2094,10 @@ function renderChecks(){
   };
   $('#checks').querySelectorAll('input[type=checkbox]').forEach(inp => inp.onchange = () => {
     const s = store.get('chk', {}); s[inp.dataset.id] = inp.checked; store.set('chk', s);
+    renderBookings();
+    renderBanner();
+    renderDay();
+    buildNav();
     if (state.onlyUnchecked) renderChecks();
     else { inp.closest('.check').classList.toggle('done', inp.checked); upd(); }
   });
@@ -1349,7 +2124,16 @@ $('#addCustomChkBtn').onclick = () => {
 };
 $('#customChkInput').addEventListener('keydown', e => { if (e.key === 'Enter') $('#addCustomChkBtn').click(); });
 $('#filterUncheckedBtn').onclick = () => { state.onlyUnchecked = !state.onlyUnchecked; renderChecks(); };
-$('#resetChk').onclick = () => { if (confirm('確定要清除所有勾選紀錄嗎？')){ store.set('chk', {}); renderChecks(); } };
+$('#resetChk').onclick = () => {
+  if (confirm('確定要清除所有勾選紀錄嗎？')){
+    store.set('chk', {});
+    renderChecks();
+    renderBookings();
+    renderBanner();
+    renderDay();
+    buildNav();
+  }
+};
 
 /* =========================================================
    實用資訊 ＆ 日幣換算工具
@@ -1359,8 +2143,8 @@ function renderInfo(){
   $('#info').innerHTML = `
   <div class="box"><h3>✈️ 航班資訊（長榮航空）</h3>
     <table class="info">
-      <tr><th>去程</th><td><b>BR198</b>　2/1（一）<br>08:50 桃園 T2 → 12:55 成田 T1<br><small>05:30 出發 → 06:30 抵達桃園 T2 長榮櫃檯報到</small></td></tr>
-      <tr><th>回程</th><td><b>BR197</b>　2/10（三）<br>14:00 成田 T1 → 17:05 桃園 T2<br><small>⚠️ 搭 Skyliner 127號於 10:53 停靠第2航廈請勿下車，終點站 10:57 成田第1航廈下車</small></td></tr>
+      <tr><th>去程</th><td><b>BR198</b>　2/1（一）<br>08:50 桃園 T2 → 12:55 成田 T1<br><small>05:30 出發 → 06:30 桃園 T2 長榮櫃檯報到</small></td></tr>
+      <tr><th>回程</th><td><b>BR197</b>　2/10（三）<br>14:00 成田 T1 → 17:05 桃園 T2<br><small>⚠️ 搭 Skyliner 127號於 10:53 停靠第 2 航廈請勿下車，終點站 10:57 成田第 1 航廈下車</small></td></tr>
     </table></div>
 
   <div class="box"><h3>💴 日幣 ⇄ 台幣即時換算小工具</h3>
@@ -1373,44 +2157,48 @@ function renderInfo(){
       <div><label style="font-size:.8rem;color:var(--muted)">台幣 (TWD $)</label><input id="twdInp" type="number" value="${Math.round(1000*rate)}" inputmode="decimal"></div>
     </div>
     <div class="preset-chips">
-      <button type="button" data-jpy="500">¥500 川越一日券</button>
-      <button type="button" data-jpy="520">¥520 西武巴士</button>
-      <button type="button" data-jpy="600">¥600 江之電3段</button>
       <button type="button" data-jpy="800">¥800 上野計程車</button>
-      <button type="button" data-jpy="3000">¥3,000 輕井澤計程車</button>
+      <button type="button" data-jpy="1200">¥1,200 富士山纜車</button>
+      <button type="button" data-jpy="1550">¥1,550 江之島夜間套票</button>
+      <button type="button" data-jpy="3500">¥3,500 輕井澤計程車</button>
       <button type="button" data-jpy="5000">¥5,000 Suica儲值</button>
     </div>
   </div>
 
   <div class="box"><h3>🚗 自駕租車與雪地安全（Day 5–8）</h3>
     <ul>
-      <li><b>取車：</b>2/5（五）14:00 <b>Toyota Rent-a-Car 富士河口湖店</b>（河口湖站步行 7 分鐘）</li>
-      <li><b>必備證件：</b><b>台灣駕照正本 + 日文譯本正本 + 護照</b>（⚠️不可使用國際駕照）</li>
-      <li><b>輪胎確認：</b>取車時務必確認配備<b>【冬季雪胎 スタッドレスタイヤ】</b></li>
-      <li><b>除霜與黑冰警告：</b>Day 6 清晨 06:15 前往大石公園約零下 -8°C，過河口湖大橋須防路面黑冰；提早 10 分鐘發動車子開暖氣除霜，<b>切勿潑熱水於擋風玻璃</b>！</li>
-      <li><b>冬花火保暖：</b>Day 6 19:30 自駕 5 分鐘至<b>八木崎公園免費停車場</b>，可在車內吹暖氣等到 19:50 再下車看 20:00 煙火</li>
-      <li><b>還車動線：</b>2/8（一）08:15 先開車至河口湖站讓乘客與大行李下車，駕駛再開去對面 ENEOS 加滿油，08:45 Toyota 還車後步行 7 分鐘回車站會合</li>
+      <li><b>取車：</b>2/5（五）14:00 <b>Toyota 富士河口湖店</b>（河口湖站步行約 7 分鐘；若巴士塞車晚於 14:00，致電 <a href="tel:0555-72-1100">0555-72-1100</a> 留車）</li>
+      <li><b>必備證件：</b><b>台灣駕照正本 ＋ 日文譯本正本 ＋ 護照</b>（⚠️不可使用國際駕照）</li>
+      <li><b>輪胎確認：</b>取車時務必確認配備<b>【冬季雪胎 スタッドレスタイヤ】</b>及兒童安全座椅</li>
+      <li><b>除霜與黑冰警告：</b>Day 6 清晨 06:15 前往大石公園約 -8°C，過河口湖大橋須防路面黑冰；提早 10 分鐘發動暖氣除霜</li>
+      <li><b>冬花火停車與防塞：</b>Day 6 18:30 自駕前往<b>平浜駐車場</b>（車程約 12 分鐘）或<b>船津浜駐車場</b>，19:00 前停妥避開車潮；19:30 施放確認舉辦信號煙火；20:20 結束後在車內休息 15–20 分鐘待車潮消退再返飯店</li>
+      <li><b>還車動線：</b>2/8（一）08:15 先送家人與行李至河口湖站，駕駛再開往「ENEOS セルフ富士河口湖SS」加滿油，08:45 Toyota 還車後輕裝步行約 7 分鐘回車站會合</li>
     </ul>
     <a class="btn" href="${mapUrl('Toyota Rent-a-Car 富士河口湖店')}" target="_blank" rel="noopener">🗺️ 租車店地圖</a>
-    <a class="btn" href="${mapUrl('ENEOS 河口湖')}" target="_blank" rel="noopener">⛽ ENEOS 加油站地圖</a></div>
+    <a class="btn" href="${mapUrl('ENEOS セルフ富士河口湖SS')}" target="_blank" rel="noopener">⛽ ENEOS 加油站地圖</a></div>
 
-  <div class="box"><h3>🎫 關鍵交通班次 ＆ 省錢轉乘攻略</h3>
+  <div class="box"><h3>🎫 關鍵交通班次 ＆ 轉乘攻略（最新更新）</h3>
     <ul>
-      <li><b>Suica / IC 卡：</b>建議第 1 晚每人儲值 ¥5,000；6–11 歲國小生可持護照辦理記名「小児 Suica」（車資半價）</li>
-      <li><b>Day 1 / Day 10 京成 Skyliner：</b>去程 14:18（136號，備案 14:38 的 36號）；回程 10:00（127號，⚠️10:53 停第2航廈勿下車，10:57 終點第1航廈下車）</li>
-      <li><b>Day 2 鎌倉 JR 綠車 & 江之電：</b>07:46 上野發東海道線→08:31 戶塚站 4 號月台，走對面 3 號月台轉 08:39 橫須賀線→08:51 鎌倉（上車前先用 Suica 買自由席 Green 券）；江之電若僅搭「鎌倉→長谷→江之島→藤澤」3 段共 ¥600，<b>直接刷 Suica 比買 ¥800 一日券更省錢且免排隊</b>；回程由「片瀬江ノ島駅」搭小田急線至藤澤站</li>
-      <li><b>Day 3 / Day 5 北陸新幹線：</b>去程 08:47 上野發「はくたか 555號」；回程 09:06 輕井澤發「はくたか 554號」至東京站</li>
-      <li><b>Day 3 / Day 4 輕井澤巴士：</b>北口 1 號站牌西武觀光巴士往星野溫泉（⚠️<b>不收 Suica，請備百元零錢與千元鈔</b>）；Day 4 14:10 北口 2 號站牌草輕巴士往舊輕井澤，回程 16:02 發車請於 15:55 前候車</li>
-      <li><b>Day 5 東京站 48 分鐘轉乘警告：</b>10:22 抵東京站 → 11:10 高速巴士 119 便！下新幹線請認明<b>【八重洲南口改札】</b>出站，先帶家人確認地面層 JR 高速巴士站牌，再於旁邊大丸 B1 或駅弁屋買便當，勿在地下街迷路</li>
-      <li><b>Day 9 川越交通：</b>08:42 上野搭 JR 至赤羽轉川越線（或御徒町搭山手線至池袋轉東武東上線急行 30 分直達），於川越站東口買「小江戸川越一日乗車券 (¥500)」</li>
-    </ul></div>
+      <li><b>Suica / IC 卡：</b>建議第 1 晚每人儲值 ¥5,000；<b>Day 2 鎌倉→長谷→江之島→藤澤</b> 及 <b>Day 9 川越（含西武巴士本52）</b> 全程直接刷 Suica 即可，無須購買一日券</li>
+      <li><b>Day 1 / Day 10 京成 Skyliner：</b>去程 14:18（136號，備案 14:38 的 38號，建議出關後現場購票／劃位或持兌換券換位）；回程 10:00（127號，⚠️10:53 停第 2 航廈勿下車，10:57 終點第 1 航廈下車）</li>
+      <li><b>Day 2 鎌倉 JR 綠車 & 江之電：</b>07:00 出門步行至上野站，排自由席綠車（選車廂兩端或下層較易有位），07:46 上野發東海道線 → 08:30 戶塚站 4 號月台，對面 3 號月台轉 08:40 橫須賀線 → 08:51 鎌倉；回程 19:01 片瀨江之島搭小田急至藤澤（19:07），轉 19:40 JR 東海道線直達上野（20:34，買便當車上吃）</li>
+      <li><b>Day 3 / Day 5 北陸新幹線：</b>去程 08:47 上野發「はくたか 555號」（09:43 抵輕井澤）；回程 <b>09:19</b> 輕井澤發「はくたか 554號」（10:22 抵東京站）</li>
+      <li><b>Day 3–5 輕井澤接駁車 & 巴士：</b>D3 10:00 南口(B-1) 搭棕線接駁車至西館寄行李，10:35 由西館搭計程車直達星野榆樹街（備案北口1號站牌 11:30 西武巴士）；D4 14:10 北口2號站牌搭草輕巴士往舊輕井澤（⚠️不支援 Suica，可付現／感應卡／PayPay），回程 16:15 西武巴士（16:08 前候車）；D5 08:20 西館(G-12M) 搭綠線接駁車往南口（備案 08:05 棕線）</li>
+      <li><b>Day 5 東京站八重洲南口轉乘：</b>北陸新幹線在 20–23 號月台，下月台走<b>【八重洲南口改札】</b>出站正前方即為 1F 屋外 JR 高速巴士總站（11:10 富士急高速巴士 119 號），旁有大丸東京店 B1 可買便當</li>
+      <li><b>Day 9 川越最新動線：</b>07:45 御徒町搭山手線 → 08:04 池袋轉 08:15 東武東上線急行(始發) → 08:49 川越（備案 07:28 山手線 → 08:00 急行 → 08:34 川越）；川越站搭 09:10 西武巴士「本52」至喜多院入口；10:08 喜多院前搭東武巡迴巴士「名03」平日首班至博物館前；回程 16:45 蓮馨寺前搭「川越01」回川越站，轉 17:21「川越特急」至池袋轉山手線回御徒町</li>
+    </ul>
+    <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.5rem">
+      <button class="btn primary" style="margin:0" onclick="go('transit')">🚆 開啟 36 項交通時刻表查詢 →</button>
+      <button class="btn" style="margin:0" onclick="go('booking')">🎟️ 開啟 12 項訂票提醒 →</button>
+    </div></div>
 
   <div class="box"><h3>❄️ 冬季穿搭 ＆ 景點貼心提醒</h3>
     <ul>
-      <li><b>洋蔥式穿法：</b>日本室內、百貨與電車暖氣極強（約 24°C），請採「發熱衣 + 薄長袖 + 防風羽絨外套」，避免給小孩穿難穿脫的高領厚毛衣</li>
-      <li><b>新倉山淺間公園無障礙緩坡：</b>登上忠靈塔觀景台有 398 階（冬季有殘雪結冰請穿防滑雪靴或冰爪）；若長輩膝蓋不適，<b>右側有無階梯的車道緩坡可走</b></li>
-      <li><b>江之島體力保留：</b>購買「江之島手扶梯 (江の島エスカー) + Sea Candle 套票」三段輕鬆上山；冬季岩屋 17:00 閉館且來回有數百階陡坡無手扶梯，建議停留在山頂花園看夕陽富士山與 17:30 點燈</li>
-      <li><b>晴空塔黃金時段：</b>2 月日落約 17:10，Day 8 提早於 16:30 入場觀景台，可一次看齊白日街景、夕陽富士山剪影與東京夜景</li>
+      <li><b>洋蔥式穿法：</b>日本室內、百貨與電車暖氣極強，請採「發熱衣 ＋ 薄長袖 ＋ 防風羽絨外套」，勿給孩童穿厚高領毛衣</li>
+      <li><b>Day 7 期間限定「2027 西湖樹冰祭」：</b>2027/2/6–2/14 於西湖野鳥之森公園舉辦，距西湖根場車程僅 5 分鐘（15:05–16:00 順遊），可欣賞 5–10 公尺高巨型冰雕群與富士山同框</li>
+      <li><b>新倉山淺間公園無障礙緩坡：</b>登上忠靈塔觀景台有 398 階（冬季有殘雪結冰請穿防滑雪靴或冰爪）；若長輩膝蓋不適，<b>右側有緩坡車道可走</b></li>
+      <li><b>江之島夜間套票與岩屋提醒：</b>17:00 後離苑須持「江の島シーキャンドルセット券 ＋ナイト」（大人 ¥1,550／小人 ¥750）；岩屋 17:00 閉館且坡道無手扶梯，建議由山頂往下走 10 分鐘看海蝕平台即可折返</li>
+      <li><b>晴空塔五級浮動票價與黃金時段：</b>2026/4/1 起採五級浮動票價（線上成人 ¥3,000–¥4,800），現場 4F 櫃檯購票每張加收 ¥500 手續費；Day 8 预约 16:30 入場可一次飽覽白日街景、17:10 夕陽富士山與夜景</li>
     </ul></div>
 
   <div class="box"><h3>🚨 日本緊急聯絡 ＆ 實用連結</h3>
@@ -1421,7 +2209,7 @@ function renderInfo(){
     </div>
     <ul>
       <li><a href="https://www.vjw.digital.go.jp/" target="_blank" rel="noopener">Visit Japan Web（入境手續官方網站）</a></li>
-      <li><a href="https://docs.google.com/spreadsheets/d/1vtYwFh8HCuyi-NK5nKBQ1AQyYui49a9xOxsQALGGbRw/edit" target="_blank" rel="noopener">原始行程表（Google 試算表）</a></li>
+      <li><a href="https://docs.google.com/spreadsheets/d/1vtYwFh8HCuyi-NK5nKBQ1AQyYui49a9xOxsQALGGbRw/edit" target="_blank" rel="noopener">原始行程表（Google 試算表：含每日行程、訂票清單、交通時刻表）</a></li>
     </ul>
     <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.5rem">
       <button class="btn" onclick="window.print()" style="margin:0">🖨️ 列印行程表</button>
@@ -1454,7 +2242,7 @@ function renderInfo(){
   $('#shareAppBtn').onclick = async () => {
     const shareData = {
       title: '2027 日本關東 10天9夜 家族旅行助理',
-      text: '2027/2/1–2/10 關東家族旅行每日行程、A/B/C三級推薦餐廳與準備清單',
+      text: '2027/2/1–2/10 關東家族旅行每日行程、訂票提醒、交通時刻表查詢、A/B/C三級推薦餐廳與準備清單',
       url: location.href.split('#')[0]
     };
     if (navigator.share) {
@@ -1527,7 +2315,6 @@ $('#triggerNativeInstallBtn').onclick = () => {
 $('#closePwaModalBtn').onclick = () => $('#pwaModal').classList.remove('open');
 $('#pwaModal').onclick = e => { if (e.target === $('#pwaModal')) $('#pwaModal').classList.remove('open'); };
 
-// 若已於獨立 App 模式執行，隱藏頂部安裝按鈕
 if (window.matchMedia('(display-mode: standalone)').matches || navigator.standalone) {
   $('#installBtn').style.display = 'none';
 }
@@ -1545,11 +2332,10 @@ window.addEventListener('appinstalled', () => {
   $('#pwaModal').classList.remove('open');
 });
 
-// 註冊 Service Worker (支援完整離線瀏覽)
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js').then(reg => {
-      updateSwUI('✅ 已完成全站離線快取（無網路時仍可完整瀏覽行程、餐廳與清單）');
+      updateSwUI('✅ 已完成全站離線快取（無網路時仍可完整瀏覽行程、訂票提醒、班次速查、餐廳與清單）');
       reg.addEventListener('updatefound', () => {
         const nw = reg.installing;
         if (nw) nw.addEventListener('statechange', () => {
@@ -1571,13 +2357,23 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
    ========================================================= */
 buildNav();
 buildPhrases();
+buildQuickScheduleTable();
 updateNetUI();
 const ti = todayIdx();
 state.day = ti >= 0 ? ti : store.get('day', 0);
 const hash = location.hash.slice(1);
 const hm = hash.match(/^day-(\d+)$/);
 if (hm) state.day = Math.min(9, Math.max(0, +hm[1]-1));
-buildPicker(); renderDay(); renderFood(); renderOverview(); renderHotels(); renderChecks(); renderInfo(); renderBanner();
+buildPicker();
+renderDay();
+renderBookings();
+renderTimetables();
+renderFood();
+renderOverview();
+renderHotels();
+renderChecks();
+renderInfo();
+renderBanner();
 go(VIEWS.some(v => v[0] === hash) ? hash : 'day', false);
 function centerChip(chip, smooth){
   const p = $('#daypicker');

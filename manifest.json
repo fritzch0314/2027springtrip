@@ -1,7 +1,7 @@
 {
   "name": "2027 日本關東 10天9夜 家族旅行助理",
   "short_name": "關東家族旅行",
-  "description": "2027/2/1–2/10 日本關東10天9夜家族旅行互動行程表、A/B/C三級推薦餐廳、準備清單與離線導覽助理",
+  "description": "2027/2/1–2/10 日本關東10天9夜家族旅行互動行程表、訂票提醒、交通時刻表查詢、A/B/C三級推薦餐廳、準備清單與離線導覽助理",
   "lang": "zh-Hant",
   "start_url": "./index.html",
   "scope": "./",
@@ -37,21 +37,21 @@
       "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
+      "name": "🎟️ 訂票提醒",
+      "short_name": "訂票提醒",
+      "url": "./index.html#booking",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "🚆 交通時刻表",
+      "short_name": "交通時刻表",
+      "url": "./index.html#transit",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
       "name": "🍽️ 推薦餐廳 (A/B/C)",
       "short_name": "推薦餐廳",
       "url": "./index.html#food",
-      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
-    },
-    {
-      "name": "📝 準備清單",
-      "short_name": "準備清單",
-      "url": "./index.html#check",
-      "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
-    },
-    {
-      "name": "ℹ️ 實用資訊＆匯率",
-      "short_name": "實用資訊",
-      "url": "./index.html#info",
       "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ]
