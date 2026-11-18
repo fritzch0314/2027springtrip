@@ -1231,10 +1231,13 @@ function parseItem([time, raw, meta]){
 DAYS.forEach((d,i) => { d.idx=i; d.parsed = d.items.map(parseItem); });
 
 function renderText(text, day){
-  return esc(text).replace(/【(.+?)】/g, (_, name) => {
+  return String(text).split(/(【.+?】)/g).map(part => {
+    const m = part.match(/^【(.+?)】$/);
+    if (!m) return esc(part);
+    const name = m[1];
     if (/^(午餐|晚餐|除夕晚宴|第\s*\d+\s*晚)/.test(name)) return `<b>【${esc(name)}】</b>`;
     return `<a class="place" href="${mapUrl(name + ' ' + day.map)}" target="_blank" rel="noopener" title="在 Google 地圖開啟：${esc(name)}">${esc(name)}</a>`;
-  });
+  }).join('');
 }
 function fmtDate(d){ const [y,m,dd] = d.date.split('-'); return `${+m}/${+dd}（${d.wd}）`; }
 
@@ -1968,9 +1971,19 @@ $('#q').addEventListener('input', e => {
     if (re.test(tTxt)) hits.push({kind:'transit', id:t.id, label:`交通時刻表 #${t.id}・${t.dayLabel}`, icon:'🚆', txt:tTxt});
     re.lastIndex=0;
   });
+  const highlight = txt => {
+    let out = '', last = 0, m;
+    re.lastIndex = 0;
+    while ((m = re.exec(txt)) !== null) {
+      out += esc(txt.slice(last, m.index)) + `<mark>${esc(m[0])}</mark>`;
+      last = m.index + m[0].length;
+      if (!m[0].length) re.lastIndex++;
+    }
+    return out + esc(txt.slice(last));
+  };
   $('#grid').style.display = 'none';
   $('#results').innerHTML = `<p><b>找到 ${hits.length} 筆結果</b></p>` + hits.map((h, idx) =>
-    `<button class="r" data-hit="${idx}"><small>${esc(h.label)}</small><br>${h.icon} ${esc(h.txt).replace(re, m => `<mark>${m}</mark>`)}</button>`).join('');
+    `<button class="r" data-hit="${idx}"><small>${esc(h.label)}</small><br>${h.icon} ${highlight(h.txt)}</button>`).join('');
   $('#results').querySelectorAll('.r').forEach(b => b.onclick = () => {
     const h = hits[+b.dataset.hit];
     if (h.kind === 'booking') jumpToBooking(h.id);
