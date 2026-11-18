@@ -2013,20 +2013,16 @@ function renderChecks(){
   const custom = store.get('custom_chk', []);
   const groups = [];
 
+  groups.push({
+    title:'🎒 冬季家族旅遊建議攜帶物品',
+    items: PACKING.map((t,j) => ({id:`p${j}`, t}))
+  });
   if (custom.length){
     groups.push({
       title:'⭐ 自訂待辦與準備事項',
       items: custom.map((t,j) => ({id:`c-${j}`, t, customIdx: j}))
     });
   }
-  groups.push({
-    title:'🎟️ 訂票與預訂確認清單（與「訂票提醒」分頁雙向同步）',
-    items: BOOKINGS.map(b => ({
-      id: b.chkKey,
-      t: `#${b.id} 【${b.dayLabel}】${b.title}（最早可訂：${b.openTwt}）`,
-      bkId: b.id
-    }))
-  });
   DAYS.filter(d => d.prep.length).forEach(d => {
     groups.push({
       title:`📅 Day ${d.idx+1}・${fmtDate(d)} 提醒與準備`,
@@ -2034,8 +2030,12 @@ function renderChecks(){
     });
   });
   groups.push({
-    title:'🎒 冬季家族旅遊建議攜帶物品',
-    items: PACKING.map((t,j) => ({id:`p${j}`, t}))
+    title:'🎟️ 訂票與預訂確認清單（與「訂票提醒」分頁雙向同步）',
+    items: BOOKINGS.map(b => ({
+      id: b.chkKey,
+      t: `#${b.id} 【${b.dayLabel}】${b.title}（最早可訂：${b.openTwt}）`,
+      bkId: b.id
+    }))
   });
 
   $('#filterUncheckedBtn').textContent = state.onlyUnchecked ? '顯示全部項目' : '僅看未完成';
