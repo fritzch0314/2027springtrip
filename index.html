@@ -1462,7 +1462,7 @@ function renderDay(){
   let side = '';
   if (d.hotel){
     side += `<div class="box"><h3>🏨 今晚住宿</h3>
-      <div class="hotelname">${esc(d.hotel)}</div><div style="color:var(--muted)">${esc(d.night)}</div>
+      <div class="hotelname">${esc(d.hotel)}</div>
       <a class="btn primary" href="${mapUrl(d.hotel)}" target="_blank" rel="noopener">🗺️ 開啟地圖導航</a></div>`;
   } else {
     side += `<div class="box"><h3>🏠 溫暖的家</h3><div>返抵國門，旅程圓滿結束！</div></div>`;
