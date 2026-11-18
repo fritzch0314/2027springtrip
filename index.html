@@ -1408,8 +1408,6 @@ function jumpToTimetableId(ttId){
 function renderDay(){
   const d = DAYS[state.day];
   const dayNum = state.day + 1;
-  const counts = {};
-  d.parsed.forEach(p => counts[p.type] = (counts[p.type]||0) + 1);
   $('#dayhead').innerHTML = `
     <div class="row1">
       <span class="pill area">Day ${dayNum}</span>
@@ -1417,8 +1415,6 @@ function renderDay(){
       ${d.tag ? `<span class="pill holiday">🧧 ${d.tag}</span>` : ''}
     </div>
     <h2>${esc(d.title)}</h2>
-    <div class="date">2027年${fmtDate(d)}</div>
-    <div class="stats">${Object.keys(TYPES).filter(k=>counts[k]).map(k => `<span class="pill">${TYPES[k].ic} ${TYPES[k].label} ${counts[k]}</span>`).join('')}</div>
     <div class="daynav">
       <button id="prevDay" ${state.day===0?'disabled':''} aria-label="前一天">◀ 前一天</button>
       <button id="nextDay" ${state.day===DAYS.length-1?'disabled':''} aria-label="後一天">後一天 ▶</button>
