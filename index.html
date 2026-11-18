@@ -1448,17 +1448,6 @@ function renderDay(){
   $('#timeline').innerHTML = list.map(({p,i}) => {
     const past = isToday && p.start !== null && i < nowIdx && nowIdx >= 0;
     const matchedMeal = findMatchingMeal(d, p);
-    const tts = (p.ttIds || []).map(id => TIMETABLES.find(t => t.id === id)).filter(Boolean);
-    const bk = p.bkId ? BOOKINGS.find(b => b.id === p.bkId) : null;
-    const bkSt = bk ? getBookingStatus(bk) : null;
-
-    let chipsHtml = '';
-    if (tts.length || bk){
-      chipsHtml = `<div class="ev-links">
-        ${tts.map(t => `<a class="ev-chip" href="${esc(t.url)}" target="_blank" rel="noopener" title="${esc(t.note)}">🕒 #${t.id} ${esc(t.title.replace(/（.+?）|【|】/g,''))} ↗</a>`).join('')}
-        ${bk ? `<button type="button" class="ev-chip bk-chip ${bkSt.isDone?'done':''}" onclick="jumpToBooking(${bk.id})">🎟️ 訂票提醒 #${bk.id}：${esc(bk.shortTitle)}（${bkSt.isDone?'✅ 已預訂':bkSt.isOpen?'🔥 已開放':'⏳ '+bk.openTwt.split('（')[0]}）</button>` : ''}
-      </div>`;
-    }
 
     return `<li class="ev ${p.type} ${i===nowIdx?'now':''} ${past?'past':''}">
       <span class="dot" aria-hidden="true">${p.icon}</span>
@@ -1466,7 +1455,6 @@ function renderDay(){
         <div class="time">${esc(p.time.replace(/-/g, ' – '))} <span class="cat">${TYPES[p.type].label}</span>${i===nowIdx?'<span class="nowtag">進行中</span>':''}</div>
         <div class="txt">${renderText(p.text, d)}</div>
         ${p.tips.map(t => `<div class="tip ${t.warn?'warn':''}">${t.warn?'⚠️ 注意：':'💡 小提醒：'}${esc(t.text)}</div>`).join('')}
-        ${chipsHtml}
         ${matchedMeal ? `<details class="meal-drawer">
           <summary><span>🍴 查看 ${esc(matchedMeal.slot)} 推薦清單（A/B/C三級）</span><span>▼</span></summary>
           <div class="meal-drawer-body">${renderMealTiersHTML(matchedMeal, d.map)}</div>
