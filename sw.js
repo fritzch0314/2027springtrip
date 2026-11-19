@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kanto-trip-2027-v14';
+const CACHE_NAME = 'kanto-trip-2027-v15';
 const CORE_ASSETS = [
   './',
   './index.html',
