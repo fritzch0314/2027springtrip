@@ -1794,8 +1794,7 @@ function renderExp(){
   el.innerHTML = `
     <div class="exp-sum"><b>總花費 ${f(total)}</b><span>≈ NT$${Math.round(total*rate).toLocaleString()}</span><span>每人約 ${f(total/m.length)}</span></div>
     <form id="expForm" class="exp-form">
-      <input id="expDesc" list="expDescList" placeholder="項目：下拉選擇或直接輸入" autocomplete="off" required>
-      <datalist id="expDescList"></datalist>
+      <input id="expDesc" placeholder="項目（點下方類別或直接輸入）" autocomplete="off" required>
       <div class="exp-chips" id="expChips">${EXP_CATS.map(c=>`<button type="button" data-v="${c}">${c}</button>`).join('')}</div>
       <input id="expJpy" type="number" inputmode="numeric" min="1" placeholder="日幣 ¥" required>
       <select id="expDay">${DAYS.map((d,i)=>`<option value="${i+1}" ${i===Math.max(todayIdx(),state.day)?'selected':''}>Day ${i+1}｜${fmtMD(d)}</option>`).join('')}</select>
@@ -1812,8 +1811,6 @@ function renderExp(){
       <button type="button" class="btn btn-sm" id="expNames">✏️ 修改成員名稱</button>
       <button type="button" class="btn btn-sm" id="expClear">🗑️ 清空</button>
     </div>`;
-  const fillDL = () => { $('#expDescList').innerHTML = expPresets(+$('#expDay').value).map(v => `<option value="${esc(v)}">`).join(''); };
-  fillDL(); $('#expDay').onchange = fillDL;
   el.querySelectorAll('#expChips button').forEach(b => b.onclick = () => { const i = $('#expDesc'); i.value = b.dataset.v; i.focus(); });
   $('#expForm').onsubmit = ev => {
     ev.preventDefault();
