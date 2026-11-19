@@ -405,29 +405,9 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
     <div class="grid-wide" id="transitGrid"></div>
   </section>
 
-  <!-- 美食指南 (A/B/C 三級推薦餐廳 + 點餐溝通卡) -->
+  <!-- 美食指南 (A/B/C 三級推薦餐廳) -->
   <section class="view" id="v-food" aria-label="推薦餐廳">
     <h2 class="sectitle">🍽️ 每日推薦餐廳清單（A / B / C 三級分級）</h2>
-    <div class="box" style="margin-bottom:1rem">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;flex-wrap:wrap">
-        <div>
-          <b>🗣️ 日本餐廳指差し溝通卡（候位 → 點餐 → 用餐 → 結帳）</b>
-          <div style="color:var(--muted);font-size:.88rem">依用餐流程分類，點擊任一卡片可放大給店員看並播放日語發音</div>
-        </div>
-        <button class="btn" id="togglePhraseBtn" style="margin:0">展開／收合溝通卡 ▼</button>
-      </div>
-      <div id="phrasePanel" style="display:none;margin-top:.75rem">
-        <div class="filters" id="phraseCats" role="group" aria-label="依用餐階段篩選溝通卡" style="margin-bottom:.55rem"></div>
-        <div id="partyBar" style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;padding:.45rem .65rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;font-size:.86rem;margin-bottom:.65rem">
-          <span>👨‍👩‍👦‍👦 <b>用餐人數：</b></span>
-          <span style="display:inline-flex;align-items:center;gap:.25rem">大人 <button type="button" class="btn" id="adultMinus" style="margin:0;padding:.1rem .45rem;min-height:0">−</button> <b id="adultCnt">4</b> <button type="button" class="btn" id="adultPlus" style="margin:0;padding:.1rem .45rem;min-height:0">＋</button></span>
-          <span style="display:inline-flex;align-items:center;gap:.25rem">小孩 <button type="button" class="btn" id="kidMinus" style="margin:0;padding:.1rem .45rem;min-height:0">−</button> <b id="kidCnt">2</b> <button type="button" class="btn" id="kidPlus" style="margin:0;padding:.1rem .45rem;min-height:0">＋</button></span>
-          <span style="color:var(--muted);font-size:.8rem" id="partySummary">（共 6 位，即時同步候位卡）</span>
-        </div>
-        <div id="phraseWrap" class="phrase-grid" style="margin-top:0"></div>
-      </div>
-    </div>
-
     <div class="searchbox">
       <label class="sr-only" for="fq">搜尋餐廳</label>
       <input id="fq" type="search" placeholder="🔍 搜尋餐廳、料理或點餐方式…（例：敘敘苑、鰻魚飯、壽司郎、中文平板、便當、傳米）" autocomplete="off">
@@ -495,7 +475,13 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
       <label class="sr-only" for="hubSearch">搜尋日語會話</label>
       <input id="hubSearch" type="search" placeholder="🔍 搜尋關鍵字…（例：免稅、置物櫃、雪胎、發燒、合照、刷卡、月台）" autocomplete="off">
     </div>
-    <div class="filters" id="hubCats" role="group" aria-label="依旅途情境篩選日語會話" style="margin-bottom:.65rem"></div>
+    <div class="filters" id="hubCats" role="group" aria-label="依旅途情境篩選日語會話" style="margin-bottom:.6rem"></div>
+    <div id="partyBar" style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;padding:.45rem .65rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;font-size:.86rem;margin-bottom:.65rem">
+      <span>👨‍👩‍👦‍👦 <b>用餐人數：</b></span>
+      <span style="display:inline-flex;align-items:center;gap:.25rem">大人 <button type="button" class="btn" id="adultMinus" style="margin:0;padding:.1rem .45rem;min-height:0">−</button> <b id="adultCnt">4</b> <button type="button" class="btn" id="adultPlus" style="margin:0;padding:.1rem .45rem;min-height:0">＋</button></span>
+      <span style="display:inline-flex;align-items:center;gap:.25rem">小孩 <button type="button" class="btn" id="kidMinus" style="margin:0;padding:.1rem .45rem;min-height:0">−</button> <b id="kidCnt">2</b> <button type="button" class="btn" id="kidPlus" style="margin:0;padding:.1rem .45rem;min-height:0">＋</button></span>
+      <span style="color:var(--muted);font-size:.8rem" id="partySummary">（共 6 位，即時同步候位卡）</span>
+    </div>
     <div id="hubWrap" class="phrase-grid" style="margin-top:0"></div>
   </div>
 </div>
@@ -1713,6 +1699,12 @@ function renderPhraseHub(){
   $('#hubCats').querySelectorAll('button').forEach(b => b.onclick = () => { hubState.scene = b.dataset.hs; renderPhraseHub(); });
 
   const q = hubState.q.trim().toLowerCase();
+  const total = phraseState.adults + phraseState.kids;
+  $('#adultCnt').textContent = phraseState.adults;
+  $('#kidCnt').textContent = phraseState.kids;
+  $('#partySummary').textContent = `（共 ${total} 位，即時同步候位卡）`;
+  $('#partyBar').style.display = (!q && (hubState.scene === 'all' || hubState.scene === 'food')) ? 'flex' : 'none';
+
   const list = ALL_PHRASES.map((p, idx) => ({p: getDynamicPhrase(p), idx})).filter(({p}) => {
     if (!q && hubState.scene !== 'all' && p.scene !== hubState.scene) return false;
     if (q && !(p.zh + ' ' + p.ja + ' ' + p.ro + ' ' + p.sceneLabel).toLowerCase().includes(q)) return false;
@@ -2335,44 +2327,10 @@ function speakJapanese(text){
   }
 }
 
-function buildPhrases(){
-  const catOpts = [
-    ['all','全部（17）'],
-    ['seat','🚪 候位入座'],
-    ['order','📋 點餐客製'],
-    ['dining','🍜 用餐中'],
-    ['pay','💳 結帳離開']
-  ];
-  $('#phraseCats').innerHTML = catOpts.map(([k,l]) => `<button type="button" data-pc="${k}" aria-pressed="${phraseState.cat===k}">${l}</button>`).join('');
-  $('#phraseCats').querySelectorAll('button').forEach(b => b.onclick = () => { phraseState.cat = b.dataset.pc; buildPhrases(); });
-
-  const total = phraseState.adults + phraseState.kids;
-  $('#adultCnt').textContent = phraseState.adults;
-  $('#kidCnt').textContent = phraseState.kids;
-  $('#partySummary').textContent = `（共 ${total} 位，即時同步候位卡）`;
-  $('#partyBar').style.display = (phraseState.cat === 'all' || phraseState.cat === 'seat') ? 'flex' : 'none';
-
-  const list = PHRASES.map((p,idx) => ({p: getDynamicPhrase(p), idx}))
-    .filter(({p}) => phraseState.cat === 'all' || p.cat === phraseState.cat);
-
-  $('#phraseWrap').innerHTML = list.map(({p, idx}) => `
-    <button type="button" class="phrase-card" data-p="${idx}" title="點擊放大顯示">
-      <div class="zh">${esc(p.zh)}</div>
-      <div class="ja">${esc(p.ja)}</div>
-      <div class="ro">${esc(p.ro)}</div>
-    </button>`).join('');
-  $('#phraseWrap').querySelectorAll('.phrase-card').forEach(b => b.onclick = () => openPhraseModal(PHRASES[+b.dataset.p]));
-}
-$('#adultMinus').onclick = () => { phraseState.adults = Math.max(1, phraseState.adults - 1); buildPhrases(); };
-$('#adultPlus').onclick = () => { phraseState.adults = Math.min(12, phraseState.adults + 1); buildPhrases(); };
-$('#kidMinus').onclick = () => { phraseState.kids = Math.max(0, phraseState.kids - 1); buildPhrases(); };
-$('#kidPlus').onclick = () => { phraseState.kids = Math.min(10, phraseState.kids + 1); buildPhrases(); };
-$('#togglePhraseBtn').onclick = () => {
-  const el = $('#phrasePanel');
-  const open = el.style.display === 'none';
-  el.style.display = open ? 'block' : 'none';
-  $('#togglePhraseBtn').textContent = open ? '收合溝通卡 ▲' : '展開／收合溝通卡 ▼';
-};
+$('#adultMinus').onclick = () => { phraseState.adults = Math.max(1, phraseState.adults - 1); renderPhraseHub(); };
+$('#adultPlus').onclick = () => { phraseState.adults = Math.min(12, phraseState.adults + 1); renderPhraseHub(); };
+$('#kidMinus').onclick = () => { phraseState.kids = Math.max(0, phraseState.kids - 1); renderPhraseHub(); };
+$('#kidPlus').onclick = () => { phraseState.kids = Math.min(10, phraseState.kids + 1); renderPhraseHub(); };
 $('#speakPhraseBtn').onclick = () => speakJapanese(phraseState.currentJa);
 $('#closeModalBtn').onclick = () => { if ('speechSynthesis' in window) window.speechSynthesis.cancel(); $('#phraseModal').classList.remove('open'); };
 $('#phraseModal').onclick = e => { if (e.target === $('#phraseModal')) { if ('speechSynthesis' in window) window.speechSynthesis.cancel(); $('#phraseModal').classList.remove('open'); } };
@@ -2516,21 +2474,7 @@ function renderHotels(){
       </ul>
     </div>`;
 
-  const hotelPhrasesCard = `
-    <div class="box" style="grid-column:1 / -1">
-      <h3>🗣️ 飯店櫃檯指差し溝通卡（入住／宅急便寄行李／接駁車／計程車）</h3>
-      <div style="color:var(--muted);font-size:.86rem;margin-bottom:.55rem">點擊任一卡片可放大給飯店人員看，並支援日語語音播放</div>
-      <div class="phrase-grid" style="margin-top:0">
-        ${HOTEL_PHRASES.map((p, idx) => `
-          <button type="button" class="phrase-card" onclick="openPhraseModal(HOTEL_PHRASES[${idx}])" title="點擊放大顯示">
-            <div class="zh">${esc(p.zh)}</div>
-            <div class="ja">${esc(p.ja)}</div>
-            <div class="ro">${esc(p.ro)}</div>
-          </button>`).join('')}
-      </div>
-    </div>`;
-
-  $('#hotels').innerHTML = hotelCards + luggageCard + hotelPhrasesCard;
+  $('#hotels').innerHTML = hotelCards + luggageCard;
 }
 
 /* =========================================================
@@ -2708,8 +2652,6 @@ function renderInfo(){
       <li><a href="https://docs.google.com/spreadsheets/d/1vtYwFh8HCuyi-NK5nKBQ1AQyYui49a9xOxsQALGGbRw/edit" target="_blank" rel="noopener">原始行程表（Google 試算表：含每日行程、訂票清單、交通時刻表）</a></li>
     </ul>
     <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.5rem">
-      <button type="button" class="btn" onclick="openPhraseModal(GAS_PHRASES[0])" style="margin:0">⛽ 加油溝通卡（加滿普通油）</button>
-      <button type="button" class="btn" onclick="openPhraseModal(GAS_PHRASES[1])" style="margin:0">🧾 索取加油收據</button>
       <button class="btn" onclick="window.print()" style="margin:0">🖨️ 列印行程表</button>
       <button class="btn" id="shareAppBtn" style="margin:0">📤 分享行程給家人</button>
     </div></div>
@@ -2854,7 +2796,6 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
    啟動
    ========================================================= */
 buildNav();
-buildPhrases();
 buildQuickScheduleTable();
 updateNetUI();
 const ti = todayIdx();
