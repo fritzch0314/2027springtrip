@@ -549,3 +549,9 @@ header.top{border-top:4px solid #ffd166}
 .exp-row-bot{display:flex;align-items:center;justify-content:space-between;gap:.4rem;margin-top:.12rem;padding-left:1.38rem}
 .exp-row-sub{margin-top:0;padding-left:0;flex:1 1 auto;min-width:0}
 .exp-row-ops button{width:1.65rem;height:1.65rem;font-size:.74rem}
+/* 手機版記帳類別晶片改為單列橫向捲動，節省垂直空間 */
+@media (max-width:599px){
+  #expChips{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:.15rem}
+  #expChips::-webkit-scrollbar{display:none}
+  #expChips button{flex:0 0 auto;white-space:nowrap}
+}
