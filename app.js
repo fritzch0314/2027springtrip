@@ -1659,7 +1659,7 @@ window.addEventListener('appinstalled', () => {
   $('#pwaModal').classList.remove('open');
 });
 
-if (false && 'serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js').then(reg => {
       updateSwUI('✅ 已完成全站離線快取（無網路時仍可完整瀏覽行程、訂票提醒、班次速查、餐廳與清單）');

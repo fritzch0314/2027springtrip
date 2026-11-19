@@ -1,7 +1,11 @@
-const CACHE_NAME = 'kanto-trip-2027-v28';
+const CACHE_NAME = 'kanto-trip-2027-v29';
 const CORE_ASSETS = [
   './',
   './index.html',
+  './style.css',
+  './app.js',
+  './data/trip-data.js',
+  './data/places.js',
   './manifest.json',
   './icon.svg',
   './icon-192.png',
@@ -40,21 +44,24 @@ self.addEventListener('fetch', event => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
 
-  // Navigation requests: Network-first with offline fallback to cached index.html
-  if (req.mode === 'navigate' || url.pathname.endsWith('/index.html') || url.pathname.endsWith('/')) {
+  // HTML / CSS / JS: Network-first with offline cache fallback so updates apply immediately
+  const isCode = req.mode === 'navigate' || /\.(html|css|js)$/i.test(url.pathname) || url.pathname.endsWith('/');
+  if (isCode) {
     event.respondWith(
       fetch(req)
         .then(res => {
-          const copy = res.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(req, copy));
+          if (res && res.status === 200) {
+            const copy = res.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(req, copy));
+          }
           return res;
         })
-        .catch(() => caches.match(req).then(r => r || caches.match('./index.html')))
+        .catch(() => caches.match(req).then(r => r || (req.mode === 'navigate' ? caches.match('./index.html') : undefined)))
     );
     return;
   }
 
-  // Static assets: Cache-first with network fallback
+  // Icons & manifest: Cache-first with network fallback
   event.respondWith(
     caches.match(req).then(cached => {
       if (cached) return cached;

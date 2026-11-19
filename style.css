@@ -325,7 +325,6 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
 
 /* ================= DEMO 優化 ================= */
 :root{--accent:#b8452f}
-.demo-badge{margin-left:.4rem;font-size:.68rem;font-weight:800;background:#ffd166;color:#1f2a44;border-radius:6px;padding:.05rem .4rem;letter-spacing:.06em;flex:0 0 auto}
 header.top{transition:transform .25s ease}
 header.top.hide{transform:translateY(-100%)}
 html{scroll-padding-top:5rem}
@@ -397,16 +396,13 @@ html{scroll-padding-top:5rem}
 @media (max-width:520px){
   .brand .logo{display:none}
   .brand span.t{overflow:visible}
-  .demo-badge{margin-left:0}
   .net-pill{font-size:0;padding:.35rem}.net-pill::before{content:"📴";font-size:.9rem}
   .iconbtn{width:2.4rem;min-width:2.4rem;height:2.4rem}
   .top-row{gap:.35rem}
 }
 .filters.hscroll{scrollbar-width:none}.filters.hscroll::-webkit-scrollbar{display:none}
-header.top{border-top:4px solid #ffd166}
 .tipfold>summary span{white-space:nowrap}
 @media (max-width:520px){
-  .demo-badge{display:none}
   .brand{min-width:0;flex:1 1 0}
   .brand span.t{overflow:hidden;font-size:.88rem}
 }
