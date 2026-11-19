@@ -1719,7 +1719,7 @@ function tipsHtml(p){
   return `<details class="tipfold"><summary>${warn ? '⚠️' : '💡'} 備案與注意事項（${p.tips.length}）<span>展開 ▼</span></summary>${all}</details>`;
 }
 const EXP = {
-  members(){ return store.get('exp_members', ['爸爸','媽媽','大人3','大人4','小孩1','小孩2']); },
+  members(){ return store.get('exp_members', ['全','言','甫','君']); },
   list(){ return store.get('exp_list', []); },
   save(l){ store.set('exp_list', l); },
   settle(){
