@@ -410,12 +410,21 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
     <div class="box" style="margin-bottom:1rem">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;flex-wrap:wrap">
         <div>
-          <b>🗣️ 日本餐廳指差し點餐溝通卡</b>
-          <div style="color:var(--muted);font-size:.88rem">點擊任一卡片可放大全螢幕顯示給日本店員看</div>
+          <b>🗣️ 日本餐廳指差し溝通卡（候位 → 點餐 → 用餐 → 結帳）</b>
+          <div style="color:var(--muted);font-size:.88rem">依用餐流程分類，點擊任一卡片可放大給店員看並播放日語發音</div>
         </div>
         <button class="btn" id="togglePhraseBtn" style="margin:0">展開／收合溝通卡 ▼</button>
       </div>
-      <div id="phraseWrap" class="phrase-grid" style="display:none"></div>
+      <div id="phrasePanel" style="display:none;margin-top:.75rem">
+        <div class="filters" id="phraseCats" role="group" aria-label="依用餐階段篩選溝通卡" style="margin-bottom:.55rem"></div>
+        <div id="partyBar" style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;padding:.45rem .65rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;font-size:.86rem;margin-bottom:.65rem">
+          <span>👨‍👩‍👦‍👦 <b>用餐人數：</b></span>
+          <span style="display:inline-flex;align-items:center;gap:.25rem">大人 <button type="button" class="btn" id="adultMinus" style="margin:0;padding:.1rem .45rem;min-height:0">−</button> <b id="adultCnt">4</b> <button type="button" class="btn" id="adultPlus" style="margin:0;padding:.1rem .45rem;min-height:0">＋</button></span>
+          <span style="display:inline-flex;align-items:center;gap:.25rem">小孩 <button type="button" class="btn" id="kidMinus" style="margin:0;padding:.1rem .45rem;min-height:0">−</button> <b id="kidCnt">2</b> <button type="button" class="btn" id="kidPlus" style="margin:0;padding:.1rem .45rem;min-height:0">＋</button></span>
+          <span style="color:var(--muted);font-size:.8rem" id="partySummary">（共 6 位，即時同步候位卡）</span>
+        </div>
+        <div id="phraseWrap" class="phrase-grid" style="margin-top:0"></div>
+      </div>
     </div>
 
     <div class="searchbox">
@@ -480,7 +489,10 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
     <div class="m-zh" id="mZh"></div>
     <div class="m-ja" id="mJa"></div>
     <div class="phrase-card ro" id="mRo" style="margin-bottom:1rem;font-size:.9rem"></div>
-    <button class="btn primary" id="closeModalBtn">✕ 關閉畫面</button>
+    <div style="display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap">
+      <button type="button" class="btn" id="speakPhraseBtn" style="margin:0">🔊 播放日語發音</button>
+      <button type="button" class="btn primary" id="closeModalBtn" style="margin:0">✕ 關閉畫面</button>
+    </div>
   </div>
 </div>
 
@@ -1283,13 +1295,39 @@ const PACKING = [
 ];
 
 const PHRASES = [
-  {zh:'請問有中文或英文菜單嗎？', ja:'中国語（繁体字）か英語のメニューはありますか？', ro:'Chuugokugo ka Eigo no menyuu wa arimasu ka?'},
-  {zh:'請給我們兒童座椅與兒童餐具', ja:'子ども用のイスと取り皿をお願いします。', ro:'Kodomo-you no isu to torizara wo onegaishimasu.'},
+  // 🚪 候位入座
+  {cat:'seat', id:'party', zh:'我們共 6 位（大人 4 位、小孩 2 位），請問可以安排座位嗎？', ja:'全部で6名です（大人4名、子ども2名）。座れますか？', ro:'Zenbu de 6-mei desu (otona 4-mei, kodomo 2-mei). Suwaremasu ka?'},
+  {cat:'seat', zh:'請問大約需要等多久？', ja:'どのくらい待ちますか？', ro:'Dono kurai machimasu ka?'},
+  {cat:'seat', zh:'我們有預約，這是預約畫面', ja:'予約しています。こちらが予約画面です。', ro:'Yoyaku shite imasu. Kochira ga yoyaku gamen desu.'},
+  {cat:'seat', id:'together', zh:'我們有 6 位，請問可以安排相鄰座位或併桌嗎？', ja:'6名なのですが、近くの席かテーブルをくっつけることはできますか？', ro:'6-mei nano desu ga, chikaku no seki ka teeburu wo kuttsukeru koto wa dekimasu ka?'},
+  // 📋 點餐客製
+  {cat:'order', zh:'請問有繁體中文或英文菜單嗎？', ja:'中国語（繁体字）か英語のメニューはありますか？', ro:'Chuugokugo (hantaiji) ka Eigo no menyuu wa arimasu ka?'},
+  {cat:'order', zh:'我要點這個（指著菜單／圖片）', ja:'これをお願いします。', ro:'Kore wo onegaishimasu.'},
+  {cat:'order', zh:'請問有推薦的招牌菜嗎？', ja:'おすすめはどれですか？', ro:'Osusume wa dore desu ka?'},
+  {cat:'order', zh:'這道給小朋友吃的，請不要加辣／不要芥末', ja:'子ども用なので、辛くしないでください（わさび抜きでお願いします）。', ro:'Kodomo-you nanode, karaku shinaide kudasai (wasabi nuki de onegaishimasu).'},
+  {cat:'order', zh:'請給我們分食小盤與兒童餐具（叉子／湯匙）', ja:'取り皿と子ども用の食器（フォーク・スプーン）をお願いします。', ro:'Torizara to kodomo-you no shokki (fooku / supuun) wo onegaishimasu.'},
+  // 🍜 用餐中
+  {cat:'dining', zh:'不好意思，請給我們開水（或熱茶）', ja:'すみません、お水（お茶）をいただけますか？', ro:'Sumimasen, omizu (ocha) wo itadakemasu ka?'},
+  {cat:'dining', zh:'不好意思，我們想再加點', ja:'すみません、追加注文をお願いします。', ro:'Sumimasen, tsuika chuumon wo onegaishimasu.'},
+  {cat:'dining', zh:'請問洗手間在哪裡？', ja:'お手洗いはどこですか？', ro:'Otearai wa doko desu ka?'},
+  {cat:'dining', zh:'不好意思打翻了，可以請給我們紙巾或抹布嗎？', ja:'すみません、こぼしてしまいました。ペーパーか布巾をいただけますか？', ro:'Sumimasen, koboshite shimaimashita. Peepaa ka fukin wo itadakemasu ka?'},
+  // 💳 結帳離開
+  {cat:'pay', zh:'請幫我們結帳（全部一起結）', ja:'お会計をお願いします（一緒で）。', ro:'Okaikei wo onegaishimasu (issho de).'},
+  {cat:'pay', zh:'請問可以刷信用卡或交通卡（Suica）嗎？', ja:'クレジットカードかSuicaは使えますか？', ro:'Kurejitto kaado ka Suica wa tsukaemasu ka?'},
+  {cat:'pay', zh:'不好意思，請問這個可以打包外帶嗎？', ja:'すみません、これは持ち帰りできますか？', ro:'Sumimasen, kore wa mochikaeri dekimasu ka?'},
+  {cat:'pay', zh:'非常好吃，謝謝款待！', ja:'とても美味しかったです。ごちそうさまでした！', ro:'Totemo oishikatta desu. Gochisousama deshita!'}
+];
+
+const HOTEL_PHRASES = [
+  {zh:'我們要辦理入住／寄放行李，共 6 位（大人 4 位、小學生 2 位）', ja:'チェックイン（または荷物預け）をお願いします。大人4名、小学生2名です。', ro:'Chekku-in (mata wa nimotsu azuke) wo onegaishimasu. Otona 4-mei, shougakusei 2-mei desu.'},
   {zh:'我想寄放今天入住的行李，並把這件大行李用宅急便寄到河口湖的飯店（指定 2/5 送達）', ja:'本日宿泊の荷物を預けて、こちらの荷物を宅急便で河口湖のホテルへ送りたいです（2月5日着希望）。', ro:'Honjitsu shukuhaku no nimotsu wo azukete, kochira no nimotsu wo takkyuubin de Kawaguchiko no hoteru e okuritai desu (2-gatsu 5-ka chaku kibou).'},
   {zh:'請問明後兩晚的「河口湖冬花火」飯店有免費接駁車可以預約嗎？', ja:'明日と明後日の「河口湖冬花火」について、ホテルの無料送迎バスの予約はありますか？', ro:'Ashita to asatte no Kawaguchiko Fuyu Hanabi ni tsuite, hoteru no muryou sougei basu no yoyaku wa arimasu ka?'},
-  {zh:'請幫我們叫計程車到星野榆樹街小鎮（ハルニレテラス）', ja:'ハルニレテラスまでタクシーを呼んでいただけますか？', ro:'Harunire Terasu made takushii wo yonde itadakemasu ka?'},
+  {zh:'請幫我們叫計程車到星野榆樹街小鎮（ハルニレテラス）', ja:'ハルニレテラスまでタクシーを呼んでいただけますか？', ro:'Harunire Terasu made takushii wo yonde itadakemasu ka?'}
+];
+
+const GAS_PHRASES = [
   {zh:'請加滿普通汽油（Regular）', ja:'レギュラー満タンでお願いします。', ro:'Regyuraa mantan de onegaishimasu.'},
-  {zh:'請幫我們結帳（一起結）', ja:'お会計をお願いします（一緒で）。', ro:'Okaikei wo onegaishimasu (issho de).'}
+  {zh:'還車確認用，請給我加油收據', ja:'レンタカー返却用なので、領収書をお願いします。', ro:'Rentakaa henkyaku-you nanode, ryoushuusho wo onegaishimasu.'}
 ];
 
 /* =========================================================
@@ -1719,6 +1757,7 @@ function renderDay(){
     if (dayNum === 3 && p.text.includes('星野榆樹街小鎮')) pills.push(`<button type="button" class="quick-pill" onclick="openTaxiModal('hoshino')">🚖 秀給司機看（星野）</button>`);
     if (dayNum === 5 && p.text.includes('119號')) pills.push(`<button type="button" class="quick-pill" onclick="openGuideModal('tokyoStation')">🗺️ 東京站轉 8 號站牌動線圖</button>`);
     if (dayNum === 5 && p.text.includes('Toyota')) pills.push(`<button type="button" class="quick-pill" onclick="openTaxiModal('toyota')">🚖 秀給司機看（租車站）</button>`);
+    if (dayNum === 8 && p.text.includes('ENEOS')) pills.push(`<button type="button" class="quick-pill" onclick="openPhraseModal(GAS_PHRASES[0])">⛽ 加油溝通卡（加滿普通油）</button>`);
     if (dayNum === 8 && p.text.includes('東京晴空塔觀景台')) pills.push(`<button type="button" class="quick-pill" onclick="openGuideModal('solamachi')">🏢 Solamachi 晴空塔樓層圖</button>`);
     if (dayNum === 9 && p.text.includes('本52')) pills.push(`<button type="button" class="quick-pill" onclick="openGuideModal('kawagoeLoop')">🗺️ 川越無回頭路環線圖</button>`);
 
@@ -2117,27 +2156,97 @@ $('#tq').addEventListener('input', renderTimetables);
 /* =========================================================
    推薦餐廳指南 (v-food) & 點餐溝通卡
    ========================================================= */
+const phraseState = { cat: 'all', adults: 4, kids: 2, currentJa: '' };
+
+function getDynamicPhrase(p){
+  const a = phraseState.adults, k = phraseState.kids, total = a + k;
+  if (p.id === 'party') {
+    const zhSub = k > 0 ? `大人 ${a} 位、小孩 ${k} 位` : `大人 ${a} 位`;
+    const jaSub = k > 0 ? `大人${a}名、子ども${k}名` : `大人${a}名`;
+    const roSub = k > 0 ? `otona ${a}-mei, kodomo ${k}-mei` : `otona ${a}-mei`;
+    return {
+      ...p,
+      zh: `我們共 ${total} 位（${zhSub}），請問可以安排座位嗎？`,
+      ja: `全部で${total}名です（${jaSub}）。座れますか？`,
+      ro: `Zenbu de ${total}-mei desu (${roSub}). Suwaremasu ka?`
+    };
+  }
+  if (p.id === 'together') {
+    return {
+      ...p,
+      zh: `我們有 ${total} 位，請問可以安排相鄰座位或併桌嗎？`,
+      ja: `${total}名なのですが、近くの席かテーブルをくっつけることはできますか？`,
+      ro: `${total}-mei nano desu ga, chikaku no seki ka teeburu wo kuttsukeru koto wa dekimasu ka?`
+    };
+  }
+  return p;
+}
+
+function openPhraseModal(p){
+  if (!p) return;
+  const item = getDynamicPhrase(p);
+  phraseState.currentJa = item.ja;
+  $('#mZh').textContent = item.zh;
+  $('#mJa').textContent = item.ja;
+  $('#mRo').textContent = item.ro || '';
+  $('#phraseModal').classList.add('open');
+}
+
+function speakJapanese(text){
+  if (!text) return;
+  if (!('speechSynthesis' in window)) { showToast('此瀏覽器不支援語音朗讀'); return; }
+  try {
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'ja-JP';
+    u.rate = 0.9;
+    window.speechSynthesis.speak(u);
+  } catch (e) {
+    showToast('語音播放失敗，可直接出示畫面給店員看');
+  }
+}
+
 function buildPhrases(){
-  $('#phraseWrap').innerHTML = PHRASES.map((p,idx) => `
-    <button class="phrase-card" data-p="${idx}" title="點擊放大顯示">
+  const catOpts = [
+    ['all','全部（17）'],
+    ['seat','🚪 候位入座'],
+    ['order','📋 點餐客製'],
+    ['dining','🍜 用餐中'],
+    ['pay','💳 結帳離開']
+  ];
+  $('#phraseCats').innerHTML = catOpts.map(([k,l]) => `<button type="button" data-pc="${k}" aria-pressed="${phraseState.cat===k}">${l}</button>`).join('');
+  $('#phraseCats').querySelectorAll('button').forEach(b => b.onclick = () => { phraseState.cat = b.dataset.pc; buildPhrases(); });
+
+  const total = phraseState.adults + phraseState.kids;
+  $('#adultCnt').textContent = phraseState.adults;
+  $('#kidCnt').textContent = phraseState.kids;
+  $('#partySummary').textContent = `（共 ${total} 位，即時同步候位卡）`;
+  $('#partyBar').style.display = (phraseState.cat === 'all' || phraseState.cat === 'seat') ? 'flex' : 'none';
+
+  const list = PHRASES.map((p,idx) => ({p: getDynamicPhrase(p), idx}))
+    .filter(({p}) => phraseState.cat === 'all' || p.cat === phraseState.cat);
+
+  $('#phraseWrap').innerHTML = list.map(({p, idx}) => `
+    <button type="button" class="phrase-card" data-p="${idx}" title="點擊放大顯示">
       <div class="zh">${esc(p.zh)}</div>
       <div class="ja">${esc(p.ja)}</div>
       <div class="ro">${esc(p.ro)}</div>
     </button>`).join('');
-  $('#phraseWrap').querySelectorAll('.phrase-card').forEach(b => b.onclick = () => {
-    const p = PHRASES[+b.dataset.p];
-    $('#mZh').textContent = p.zh;
-    $('#mJa').textContent = p.ja;
-    $('#mRo').textContent = p.ro;
-    $('#phraseModal').classList.add('open');
-  });
+  $('#phraseWrap').querySelectorAll('.phrase-card').forEach(b => b.onclick = () => openPhraseModal(PHRASES[+b.dataset.p]));
 }
+$('#adultMinus').onclick = () => { phraseState.adults = Math.max(1, phraseState.adults - 1); buildPhrases(); };
+$('#adultPlus').onclick = () => { phraseState.adults = Math.min(12, phraseState.adults + 1); buildPhrases(); };
+$('#kidMinus').onclick = () => { phraseState.kids = Math.max(0, phraseState.kids - 1); buildPhrases(); };
+$('#kidPlus').onclick = () => { phraseState.kids = Math.min(10, phraseState.kids + 1); buildPhrases(); };
 $('#togglePhraseBtn').onclick = () => {
-  const el = $('#phraseWrap');
-  el.style.display = el.style.display === 'none' ? 'grid' : 'none';
+  const el = $('#phrasePanel');
+  const open = el.style.display === 'none';
+  el.style.display = open ? 'block' : 'none';
+  $('#togglePhraseBtn').textContent = open ? '收合溝通卡 ▲' : '展開／收合溝通卡 ▼';
 };
-$('#closeModalBtn').onclick = () => $('#phraseModal').classList.remove('open');
-$('#phraseModal').onclick = e => { if (e.target === $('#phraseModal')) $('#phraseModal').classList.remove('open'); };
+$('#speakPhraseBtn').onclick = () => speakJapanese(phraseState.currentJa);
+$('#closeModalBtn').onclick = () => { if ('speechSynthesis' in window) window.speechSynthesis.cancel(); $('#phraseModal').classList.remove('open'); };
+$('#phraseModal').onclick = e => { if (e.target === $('#phraseModal')) { if ('speechSynthesis' in window) window.speechSynthesis.cancel(); $('#phraseModal').classList.remove('open'); } };
 
 function renderFood(){
   const q = ($('#fq')?.value || '').trim().toLowerCase();
@@ -2278,7 +2387,21 @@ function renderHotels(){
       </ul>
     </div>`;
 
-  $('#hotels').innerHTML = hotelCards + luggageCard;
+  const hotelPhrasesCard = `
+    <div class="box" style="grid-column:1 / -1">
+      <h3>🗣️ 飯店櫃檯指差し溝通卡（入住／宅急便寄行李／接駁車／計程車）</h3>
+      <div style="color:var(--muted);font-size:.86rem;margin-bottom:.55rem">點擊任一卡片可放大給飯店人員看，並支援日語語音播放</div>
+      <div class="phrase-grid" style="margin-top:0">
+        ${HOTEL_PHRASES.map((p, idx) => `
+          <button type="button" class="phrase-card" onclick="openPhraseModal(HOTEL_PHRASES[${idx}])" title="點擊放大顯示">
+            <div class="zh">${esc(p.zh)}</div>
+            <div class="ja">${esc(p.ja)}</div>
+            <div class="ro">${esc(p.ro)}</div>
+          </button>`).join('')}
+      </div>
+    </div>`;
+
+  $('#hotels').innerHTML = hotelCards + luggageCard + hotelPhrasesCard;
 }
 
 /* =========================================================
@@ -2456,6 +2579,8 @@ function renderInfo(){
       <li><a href="https://docs.google.com/spreadsheets/d/1vtYwFh8HCuyi-NK5nKBQ1AQyYui49a9xOxsQALGGbRw/edit" target="_blank" rel="noopener">原始行程表（Google 試算表：含每日行程、訂票清單、交通時刻表）</a></li>
     </ul>
     <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.5rem">
+      <button type="button" class="btn" onclick="openPhraseModal(GAS_PHRASES[0])" style="margin:0">⛽ 加油溝通卡（加滿普通油）</button>
+      <button type="button" class="btn" onclick="openPhraseModal(GAS_PHRASES[1])" style="margin:0">🧾 索取加油收據</button>
       <button class="btn" onclick="window.print()" style="margin:0">🖨️ 列印行程表</button>
       <button class="btn" id="shareAppBtn" style="margin:0">📤 分享行程給家人</button>
     </div></div>
