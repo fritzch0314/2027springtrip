@@ -306,12 +306,13 @@ $('#calcBtn').addEventListener('click', openCalcModal);
 $('#closeCalcBtn').addEventListener('click', () => $('#calcModal').classList.remove('open'));
 $('#calcModal').addEventListener('click', e => { if (e.target === $('#calcModal')) $('#calcModal').classList.remove('open'); });
 const syncModalCalc = src => {
+  const prevR = store.get('rate', 0.215);
   const r = Math.max(0.01, +$('#mRateInp').value || 0.215);
   store.set('rate', r);
   if ($('#rateInp')) $('#rateInp').value = r;
   if (src === 'twd') $('#mJpyInp').value = Math.round((+$('#mTwdInp').value || 0) / r);
   else $('#mTwdInp').value = Math.round((+$('#mJpyInp').value || 0) * r);
-  if ($('#v-expense')?.classList.contains('active')) renderExp();
+  if (r !== prevR && $('#v-expense')?.classList.contains('active')) renderExp(true);
 };
 $('#mRateInp').addEventListener('input', () => syncModalCalc('jpy'));
 $('#mJpyInp').addEventListener('input', () => syncModalCalc('jpy'));
@@ -334,7 +335,7 @@ async function fetchLiveRate(force){
     store.set('rate_live', {rate, ts: Date.now(), date: String(j.time_last_update_utc||'').slice(5,16) || new Date().toLocaleDateString()});
     if (force || !store.get('rate_manual', false)){
       store.set('rate_manual', false); $('#mRateInp').value = rate; syncModalCalc('jpy');
-      if ($('#v-expense')?.classList.contains('active')) renderExp();
+      if ($('#v-expense')?.classList.contains('active')) renderExp(true);
     }
   }catch(e){ showRateNote('⚠️ 無法取得即時匯率，沿用上次設定的匯率'); return; }
   showRateNote();
@@ -1797,9 +1798,14 @@ function expDetectCat(e){
   return hit || '📦 其他';
 }
 
-function renderExp(){
+function renderExp(preserveForm = false){
   const el = $('#expPage'); if (!el) return;
   const prevDayScroll = $('#expDayFilters')?.scrollLeft ?? null;
+  const savedForm = preserveForm && $('#expForm') ? {
+    desc: $('#expDesc')?.value ?? '',
+    amt: $('#expJpy')?.value ?? '',
+    note: $('#expNote')?.value ?? ''
+  } : null;
   const m = EXP.members();
   const list = EXP.list();
   const rate = store.get('rate', 0.215);
@@ -1818,13 +1824,13 @@ function renderExp(){
   // Defaults for form
   const formDay = editing ? editing.day : (expState.day !== 'all' ? +expState.day : (todayIdx() >= 0 ? todayIdx() + 1 : state.day + 1));
   const formCur = editing ? (editing.origCur || 'JPY') : expState.cur;
-  const formAmt = editing ? (editing.origAmt ?? editing.jpy) : (expState.prefillJpy ?? '');
+  const formAmt = editing ? (editing.origAmt ?? editing.jpy) : (expState.prefillJpy ?? savedForm?.amt ?? '');
   const formCat = editing ? expDetectCat(editing) : expState.selectedCat;
   const formMethod = editing ? (editing.method || '💵 現金') : expState.method;
   const formPayer = editing && m.includes(editing.payer) ? editing.payer : m[0];
   const formSplit = editing ? editing.split : m;
-  const formDesc = editing ? editing.desc : '';
-  const formNote = editing ? (editing.note || '') : '';
+  const formDesc = editing ? editing.desc : (savedForm?.desc ?? '');
+  const formNote = editing ? (editing.note || '') : (savedForm?.note ?? '');
 
   // Day counts for filter chips
   const dayCounts = {};
