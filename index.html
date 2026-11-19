@@ -344,12 +344,9 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
 <main>
   <div id="banner"></div>
 
-  <div class="subtabs" id="subtabsPlan" role="tablist" aria-label="行前清單子分頁">
-    <button type="button" role="tab" data-sub="check" aria-selected="true">📝 準備清單</button>
-    <button type="button" role="tab" data-sub="booking" aria-selected="false">🎟️ 訂票提醒</button>
-  </div>
   <div class="subtabs" id="subtabsMore" role="tablist" aria-label="旅途資訊子分頁">
     <button type="button" role="tab" data-sub="hotel" aria-selected="true">🏨 住宿行李</button>
+    <button type="button" role="tab" data-sub="packing" aria-selected="false">🎒 攜帶物品</button>
     <button type="button" role="tab" data-sub="info" aria-selected="false">ℹ️ 實用資訊</button>
   </div>
 
@@ -379,6 +376,7 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
     </div>
     <div class="filters" id="bookingStatusFilters" role="group" aria-label="依預訂狀態篩選" style="margin-bottom:.5rem"></div>
     <div class="filters" id="bookingCatFilters" role="group" aria-label="依類別篩選" style="margin-bottom:1rem"></div>
+    <div id="bookingDayBar"></div>
     <div class="grid-wide" id="bookingGrid"></div>
   </section>
 
@@ -423,9 +421,9 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
     <div class="grid" id="hotels"></div>
   </section>
 
-  <!-- 清單 -->
-  <section class="view" id="v-check" aria-label="準備清單">
-    <h2 class="sectitle">📝 準備事項 ＆ 打包清單</h2>
+  <!-- 攜帶物品 -->
+  <section class="view" id="v-packing" aria-label="攜帶物品">
+    <h2 class="sectitle">🎒 冬季家族旅遊建議攜帶物品 ＆ 自訂清單</h2>
     <div class="box" style="margin-bottom:1rem">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;flex-wrap:wrap">
         <b id="progtxt">完成 0 / 0</b>
@@ -1625,34 +1623,39 @@ const VIEWS = [
   ['day','📅','每日行程','行程'],
   ['transit','🚆','交通時刻表','交通'],
   ['food','🍽️','推薦餐廳','美食'],
-  ['plan','🎟️','訂票＆清單','清單'],
+  ['booking','🎟️','訂票提醒','訂票'],
   ['more','ℹ️','住宿＆資訊','資訊']
 ];
-const ALL_VIEWS = ['day','transit','food','booking','check','hotel','info','plan','more'];
-const SUB_PARENT = {booking:'plan', check:'plan', hotel:'more', info:'more'};
-const lastSub = {plan:'check', more:'hotel'};
+const ALL_VIEWS = ['day','transit','food','booking','hotel','packing','info','more'];
+const SUB_PARENT = {hotel:'more', packing:'more', info:'more'};
+const lastSub = {more:'hotel'};
 
 function buildNav(){
   const openUnbookedCount = BOOKINGS.filter(b => { const s = getBookingStatus(b); return s.isOpen && !s.isDone; }).length;
   const badgeHtml = openUnbookedCount > 0 ? `<span class="nav-badge" title="${openUnbookedCount} 項已開放待預訂">${openUnbookedCount}</span>` : '';
   document.querySelector('nav.bottom').innerHTML = VIEWS.map(([id,ic,lb,shortLb]) =>
-    `<button data-view="${id}"><span class="ic" aria-hidden="true">${ic}</span><span>${shortLb}</span>${id==='plan'?badgeHtml:''}</button>`).join('');
+    `<button data-view="${id}"><span class="ic" aria-hidden="true">${ic}</span><span>${shortLb}</span>${id==='booking'?badgeHtml:''}</button>`).join('');
   document.querySelector('nav.tabs').innerHTML = VIEWS.map(([id,ic,lb]) =>
-    `<button data-view="${id}">${ic} ${lb}${id==='plan'?badgeHtml:''}</button>`).join('');
-  document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => go(b.dataset.view)));
+    `<button data-view="${id}">${ic} ${lb}${id==='booking'?badgeHtml:''}</button>`).join('');
+  document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => {
+    if (b.dataset.view === 'booking' && state.bookingDay !== 'all') {
+      state.bookingDay = 'all';
+      renderBookings();
+    }
+    go(b.dataset.view);
+  }));
 }
 document.querySelectorAll('.subtabs button').forEach(b => b.addEventListener('click', () => go(b.dataset.sub)));
 
 function go(view, push=true){
   if (view === 'overview') view = 'hotel';
-  if (view === 'plan') view = lastSub.plan;
+  if (view === 'plan') view = 'booking';
+  if (view === 'check') view = 'packing';
   if (view === 'more') view = lastSub.more;
   const parent = SUB_PARENT[view] || view;
-  if (parent === 'plan') lastSub.plan = view;
   if (parent === 'more') lastSub.more = view;
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'v-'+view));
   document.querySelectorAll('[data-view]').forEach(b => b.dataset.view === parent ? b.setAttribute('aria-current','page') : b.removeAttribute('aria-current'));
-  $('#subtabsPlan').classList.toggle('show', parent === 'plan');
   $('#subtabsMore').classList.toggle('show', parent === 'more');
   document.querySelectorAll('.subtabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.sub === view));
   if (push) history.replaceState(null, '', '#' + view + (view==='day' ? '-' + (state.day+1) : ''));
@@ -1875,7 +1878,7 @@ document.addEventListener('keydown', e => {
 const state = {
   day: 0, filter: 'all',
   foodDay: '0', foodTier: 'all',
-  bookingStatus: 'all', bookingCat: 'all',
+  bookingStatus: 'all', bookingCat: 'all', bookingDay: 'all',
   transitCat: 'all', transitDay: '1',
   onlyUnchecked: false
 };
@@ -1931,6 +1934,15 @@ function jumpToBooking(id){
     const el = document.getElementById('bk-card-'+id);
     if (el){ el.scrollIntoView({behavior:'smooth', block:'center'}); el.style.outline='3px solid var(--accent)'; setTimeout(()=>el.style.outline='', 2200); }
   }, 80);
+}
+
+function jumpToBookingDay(dayNum){
+  state.bookingDay = String(dayNum);
+  state.bookingStatus = 'all';
+  state.bookingCat = 'all';
+  if ($('#bq')) $('#bq').value = '';
+  renderBookings();
+  go('booking');
 }
 
 function jumpToTimetableDay(dayNum){
@@ -2019,7 +2031,7 @@ function renderDay(){
   $('#prevDay').onclick = () => { selectDay(state.day-1); window.scrollTo({top:0,behavior:'smooth'}); };
   $('#nextDay').onclick = () => { selectDay(state.day+1); window.scrollTo({top:0,behavior:'smooth'}); };
 
-  // 側欄（精簡無重複）
+  // 側欄（住宿＋可勾選當日行前提醒＋當日跳轉列）
   let side = '';
   if (d.hotel){
     const hObj = HOTELS.find(h => d.hotel.includes(h.name.split(' ')[0]));
@@ -2034,11 +2046,22 @@ function renderDay(){
   }
 
   if (d.prep.length){
-    side += `<div class="box"><details>
-      <summary style="cursor:pointer;font-weight:800;font-size:.98rem;color:var(--primary)">📝 提前準備事項（${d.prep.length} 項）</summary>
-      <ul style="margin-top:.5rem">${d.prep.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
-      <button class="btn" onclick="go('check')">前往清單勾選 →</button>
-    </details></div>`;
+    const done = store.get('chk', {});
+    const prepDone = d.prep.filter((_, j) => done[`d${d.idx}-${j}`]).length;
+    side += `<div class="box">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:.4rem;margin-bottom:.45rem">
+        <h3 style="margin:0">📝 當日行前提醒與準備</h3>
+        <span class="pill ${prepDone===d.prep.length?'done':''}" id="dayPrepProg">${prepDone} / ${d.prep.length}</span>
+      </div>
+      <div>${d.prep.map((x, j) => {
+        const id = `d${d.idx}-${j}`;
+        const checked = !!done[id];
+        return `<label class="check ${checked?'done':''}">
+          <input type="checkbox" data-prep-id="${id}" ${checked?'checked':''}>
+          <span>${esc(x)}</span>
+        </label>`;
+      }).join('')}</div>
+    </div>`;
   }
 
   const dayBookings = BOOKINGS.filter(b => b.days.includes(dayNum));
@@ -2046,10 +2069,26 @@ function renderDay(){
   if (dayBookings.length || dayTimetables.length){
     side += `<div class="box" style="display:flex;gap:.45rem;flex-wrap:wrap;align-items:center">
       ${dayTimetables.length ? `<button type="button" class="btn" style="margin:0" onclick="jumpToTimetableDay(${dayNum})">🚆 Day ${dayNum} 交通時刻表（${dayTimetables.length}）→</button>` : ''}
-      ${dayBookings.length ? `<button type="button" class="btn" style="margin:0" onclick="go('booking')">🎟️ 今日相關預訂（${dayBookings.length}）→</button>` : ''}
+      ${dayBookings.length ? `<button type="button" class="btn" style="margin:0" onclick="jumpToBookingDay(${dayNum})">🎟️ 今日相關預訂（${dayBookings.length}）→</button>` : ''}
     </div>`;
   }
   $('#side').innerHTML = side;
+
+  if (d.prep.length){
+    $('#side').querySelectorAll('input[data-prep-id]').forEach(inp => inp.onchange = () => {
+      const s = store.get('chk', {});
+      s[inp.dataset.prepId] = inp.checked;
+      store.set('chk', s);
+      const lbl = inp.closest('.check');
+      if (lbl) lbl.classList.toggle('done', inp.checked);
+      const cnt = d.prep.filter((_, j) => s[`d${d.idx}-${j}`]).length;
+      const prog = $('#dayPrepProg');
+      if (prog){
+        prog.textContent = `${cnt} / ${d.prep.length}`;
+        prog.classList.toggle('done', cnt === d.prep.length);
+      }
+    });
+  }
 }
 
 // 滑動切換日期
@@ -2189,6 +2228,7 @@ function renderBookings(){
   $('#bookingCatFilters').querySelectorAll('button').forEach(b => b.onclick = () => { state.bookingCat = b.dataset.bc; renderBookings(); });
 
   const filtered = BOOKINGS.filter(b => {
+    if (state.bookingDay !== 'all' && !b.days.includes(+state.bookingDay)) return false;
     const st = getBookingStatus(b);
     if (state.bookingStatus === 'open' && (st.isDone || !st.isOpen)) return false;
     if (state.bookingStatus === 'upcoming' && (st.isDone || st.isOpen)) return false;
@@ -2200,6 +2240,16 @@ function renderBookings(){
     }
     return true;
   });
+
+  if (state.bookingDay !== 'all'){
+    $('#bookingDayBar').innerHTML = `<div class="box" style="margin-bottom:.75rem;display:flex;justify-content:space-between;align-items:center;gap:.5rem;flex-wrap:wrap;border-left:4px solid var(--primary)">
+      <span>📅 目前僅顯示 <b>Day ${esc(state.bookingDay)}</b> 相關預訂（共 ${filtered.length} 項）</span>
+      <button type="button" class="btn primary" id="clearBookingDayBtn" style="margin:0">顯示全部 ${BOOKINGS.length} 項預訂</button>
+    </div>`;
+    $('#clearBookingDayBtn').onclick = () => { state.bookingDay = 'all'; renderBookings(); };
+  } else {
+    $('#bookingDayBar').innerHTML = '';
+  }
 
   $('#bookingGrid').innerHTML = filtered.map(b => {
     const st = getBookingStatus(b);
@@ -2559,7 +2609,7 @@ function renderHotels(){
 }
 
 /* =========================================================
-   清單（含訂票與預訂清單雙向同步、每日準備、攜帶物品、自訂項目）
+   旅遊建議攜帶物品 ＆ 自訂清單（住宿＆資訊子分頁）
    ========================================================= */
 function renderChecks(){
   const done = store.get('chk', {});
@@ -2573,18 +2623,11 @@ function renderChecks(){
   });
   if (custom.length){
     groups.push({
-      title:'⭐ 自訂待辦與準備事項',
+      title:'⭐ 自訂攜帶與待辦項目',
       open: true,
       items: custom.map((t,j) => ({id:`c-${j}`, t, customIdx: j}))
     });
   }
-  DAYS.filter(d => d.prep.length).forEach(d => {
-    groups.push({
-      title:`📅 Day ${d.idx+1}・${fmtDate(d)} 提醒與準備`,
-      open: false,
-      items: d.prep.map((t,j) => ({id:`d${d.idx}-${j}`, t}))
-    });
-  });
 
   $('#filterUncheckedBtn').textContent = state.onlyUnchecked ? '顯示全部項目' : '僅看未完成';
   $('#filterUncheckedBtn').classList.toggle('primary', state.onlyUnchecked);
@@ -2606,7 +2649,7 @@ function renderChecks(){
           ${it.customIdx !== undefined ? `<button type="button" class="del-btn" data-del="${it.customIdx}" title="刪除此自訂項目">🗑️</button>` : ''}
         </label>`).join('')}</div>
     </details></div>`;
-  }).join('') || '<div class="box">🎉 太棒了！所有準備項目皆已完成！</div>';
+  }).join('') || '<div class="box">🎉 太棒了！所有攜帶物品皆已打包完成！</div>';
 
   const allIds = groups.flatMap(g => g.items.map(it => it.id));
   const total = allIds.length;
@@ -2618,10 +2661,6 @@ function renderChecks(){
   };
   $('#checks').querySelectorAll('input[type=checkbox]').forEach(inp => inp.onchange = () => {
     const s = store.get('chk', {}); s[inp.dataset.id] = inp.checked; store.set('chk', s);
-    renderBookings();
-    renderBanner();
-    renderDay();
-    buildNav();
     if (state.onlyUnchecked) renderChecks();
     else { inp.closest('.check').classList.toggle('done', inp.checked); upd(); }
   });
@@ -2649,13 +2688,11 @@ $('#addCustomChkBtn').onclick = () => {
 $('#customChkInput').addEventListener('keydown', e => { if (e.key === 'Enter') $('#addCustomChkBtn').click(); });
 $('#filterUncheckedBtn').onclick = () => { state.onlyUnchecked = !state.onlyUnchecked; renderChecks(); };
 $('#resetChk').onclick = () => {
-  if (confirm('確定要清除所有勾選紀錄嗎？')){
-    store.set('chk', {});
+  if (confirm('確定要清除所有攜帶物品的勾選紀錄嗎？')){
+    const s = store.get('chk', {});
+    Object.keys(s).forEach(k => { if (/^(p\d+|c-\d+)$/.test(k)) delete s[k]; });
+    store.set('chk', s);
     renderChecks();
-    renderBookings();
-    renderBanner();
-    renderDay();
-    buildNav();
   }
 };
 
