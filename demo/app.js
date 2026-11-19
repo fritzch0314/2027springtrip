@@ -2003,29 +2003,27 @@ function renderExp(preserveForm = false){
               <ul class="exp-list-v2">
                 ${items.map(e => {
                   const cat = expDetectCat(e);
-                  const splitTxt = (e.split || []).length === m.length ? '全員分攤' : (e.split || []).map(esc).join('、');
-                  const origTag = e.origCur === 'TWD' ? `<span class="exp-mini-tag">原 NT$${Math.round(e.origAmt).toLocaleString()}</span>` : '';
-                  const methodTag = e.method ? `<span class="exp-mini-tag">${esc(e.method)}</span>` : '';
+                  const catIcon = cat.split(' ')[0];
+                  const splitTxt = (e.split || []).length === m.length ? '全員' : (e.split || []).map(esc).join('、');
+                  const metaParts = [
+                    `<b>${esc(e.payer)}</b>付`,
+                    `分攤:${splitTxt}`,
+                    e.method ? esc(e.method.replace(/^\S+\s*/, '')) : '',
+                    e.origCur === 'TWD' ? `原NT$${Math.round(e.origAmt).toLocaleString()}` : '',
+                    e.note ? `📝${esc(e.note)}` : ''
+                  ].filter(Boolean);
                   return `<li class="${expState.editId === e.id ? 'is-editing' : ''}">
-                    <div class="exp-item-main">
-                      <div class="exp-item-title">
-                        <span class="exp-cat-tag">${esc(cat)}</span>
-                        <b>${esc(e.desc)}</b>
-                      </div>
-                      <div class="exp-item-meta">
-                        <span><b>${esc(e.payer)}</b> 付</span>
-                        <span>分攤：${splitTxt}</span>
-                        ${methodTag}${origTag}
-                      </div>
-                      ${e.note ? `<div class="exp-item-note">📝 ${esc(e.note)}</div>` : ''}
+                    <div class="exp-row-top">
+                      <span class="exp-row-ic" title="${esc(cat)}">${esc(catIcon)}</span>
+                      <span class="exp-row-desc">${esc(e.desc)}</span>
+                      <span class="exp-row-amt"><b>${fJpy(e.jpy)}</b><small>${fTwd(e.jpy)}</small></span>
                     </div>
-                    <div class="exp-item-right">
-                      <div class="exp-item-amt">${fJpy(e.jpy)}</div>
-                      <div class="exp-item-twd">≈ ${fTwd(e.jpy)}</div>
-                      <div class="exp-item-ops">
+                    <div class="exp-row-bot">
+                      <span class="exp-row-sub">${metaParts.join(' · ')}</span>
+                      <span class="exp-row-ops">
                         <button type="button" data-edit="${e.id}" title="編輯" aria-label="編輯">✏️</button>
                         <button type="button" data-del="${e.id}" title="刪除" aria-label="刪除">✕</button>
-                      </div>
+                      </span>
                     </div>
                   </li>`;
                 }).join('')}
@@ -2044,7 +2042,7 @@ function renderExp(preserveForm = false){
             return `<label class="exp-tx-row ${done ? 'done' : ''}">
               <input type="checkbox" data-settle="${esc(t.key)}" ${done ? 'checked' : ''}>
               <span class="exp-tx-who"><b>${esc(t.from)}</b> → <b>${esc(t.to)}</b></span>
-              <span class="exp-tx-amt"><b>${fJpy(t.jpy)}</b><small>約 ${fTwd(t.jpy)}</small></span>
+              <span class="exp-tx-amt"><b>${fTwd(t.jpy)}</b></span>
             </label>`;
           }).join('')}</div>` : '<div class="wxnote">目前帳目已平衡，不需要互相轉帳。</div>'}
         </div>
@@ -2053,13 +2051,13 @@ function renderExp(preserveForm = false){
           <h3 style="margin:0 0 .5rem">👥 每人收支明細</h3>
           <div class="exp-bal-grid">
             ${m.map(n => {
-              const b = Math.round(bal[n] || 0);
-              const cls = b > 0 ? 'pos' : b < 0 ? 'neg' : '';
-              const sign = b > 0 ? '+' : b < 0 ? '-' : '';
+              const bTwd = Math.round((bal[n] || 0) * rate);
+              const cls = bTwd > 0 ? 'pos' : bTwd < 0 ? 'neg' : '';
+              const sign = bTwd > 0 ? '+' : bTwd < 0 ? '-' : '';
               return `<div class="exp-bal-card">
                 <div class="exp-bal-name">${esc(n)}</div>
-                <div class="exp-bal-net ${cls}">${sign}${fJpy(Math.abs(b))}</div>
-                <div class="exp-bal-sub">已付 ${fJpy(paid[n] || 0)}<br>應攤 ${fJpy(share[n] || 0)}</div>
+                <div class="exp-bal-net ${cls}">${sign}NT$${Math.abs(bTwd).toLocaleString()}</div>
+                <div class="exp-bal-sub">付 ${fTwd(paid[n] || 0)}<br>攤 ${fTwd(share[n] || 0)}</div>
               </div>`;
             }).join('')}
           </div>
@@ -2244,7 +2242,7 @@ function renderExp(preserveForm = false){
       `共 ${list.length} 筆｜每人平均 ${fJpy(m.length ? total / m.length : 0)}`,
       '',
       '【🤝 轉帳結算】',
-      ...(tx.length ? tx.map(t => `${settledMap[t.key] ? '✅' : '▫️'} ${t.from} → ${t.to}：${fJpy(t.jpy)}（約 ${fTwd(t.jpy)}）`) : ['已平衡，無需轉帳']),
+      ...(tx.length ? tx.map(t => `${settledMap[t.key] ? '✅' : '▫️'} ${t.from} → ${t.to}：${fTwd(t.jpy)}`) : ['已平衡，無需轉帳']),
       '',
       '【📒 花費明細】',
       ...EXP.list().map(e => `• ${expDayShort(e.day)} ${e.desc} ${fJpy(e.jpy)}（${e.payer}付）`)
