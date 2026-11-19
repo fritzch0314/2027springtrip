@@ -1754,19 +1754,6 @@ function tipsHtml(p){
 
 const EXP_CATS = ['🍜 餐飲','🚆 交通','🚖 計程車','🎟️ 門票','🛍️ 購物','🎁 伴手禮','🏨 住宿','⛽ 油資/ETC','🅿️ 停車','☕ 飲料零食','💊 藥妝'];
 function fmtMD(d){ return d ? `${+d.date.slice(5,7)}/${+d.date.slice(8,10)}（${d.wd}）` : ''; }
-function expPresets(dayNum){
-  const d = DAYS[dayNum-1], out = [];
-  if (d) d.items.forEach(it => {
-    const t = String(it[1]), m = t.match(/【([^】]+)】/), name = m ? m[1] : '';
-    if (/🍽️/.test(t)){ const slot = (t.match(/(早餐|午餐|晚餐|宵夜|下午茶)/)||[])[1] || '用餐'; out.push(`🍜 ${slot}${name && name!==slot ? '：'+name : ''}`); }
-    else if (/[🚆🚄🚌🚃🚇🚝]/u.test(t) && name) out.push(`🚆 ${name}`);
-    else if (/🚗|🚕|🚖/.test(t) && name) out.push(`🚖 ${name}`);
-    else if (/🛍|🛒/.test(t) && name) out.push(`🛍️ ${name}`);
-    else if (/📍/.test(t) && name && !/機場|入住|辦理/.test(t)) out.push(`🎟️ ${name}`);
-  });
-  const generic = EXP_CATS.map(c => c);
-  return [...new Set([...out, ...generic])];
-}
 const EXP = {
   members(){ return store.get('exp_members', ['全','言','甫','君','睿','曄']); },
   list(){ return store.get('exp_list', []); },
