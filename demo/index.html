@@ -18,7 +18,7 @@
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <link rel="icon" type="image/svg+xml" href="../icon.svg">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗻</text></svg>">
-<link rel="stylesheet" href="style.css?v=20261119-11">
+<link rel="stylesheet" href="style.css?v=20261119-12">
 </head>
 <body>
 
@@ -42,7 +42,7 @@
   <div class="subtabs" id="subtabsMore" role="tablist" aria-label="實用資訊子分頁">
     <button type="button" role="tab" data-sub="packing" aria-selected="true">🎒 攜帶物品</button>
     <button type="button" role="tab" data-sub="hotel" aria-selected="false">🏨 住宿行李</button>
-    <button type="button" role="tab" data-sub="info" aria-selected="false">🚨 緊急＆設定</button>
+    <button type="button" role="tab" data-sub="info" aria-selected="false">🚨 緊急設定</button>
   </div>
 
   <!-- 每日行程 -->
@@ -64,14 +64,17 @@
 
   <!-- 訂票與預訂提醒 -->
   <section class="view" id="v-booking" aria-label="訂票提醒">
-    <h2 class="sectitle">🎟️ 訂票與預訂清單 ＆ 搶票時程提醒</h2>
-    <div class="box" style="margin-bottom:1rem" id="bookingDash"></div>
-    <div class="searchbox">
-      <label class="sr-only" for="bq">搜尋訂票與預訂項目</label>
-      <input id="bq" type="search" placeholder="🔍 搜尋預訂項目、日期、注意事項…（例：晴空塔、新幹線、富士急、12/01、今半、Toyota）" autocomplete="off">
+    <div class="sec-hd">
+      <h2 class="sectitle">🎟️ 訂票提醒 (12)</h2>
+      <button type="button" class="exp-ghost-btn" id="toggleBqBtn">🔍 搜尋</button>
     </div>
-    <div class="filters" id="bookingStatusFilters" role="group" aria-label="依預訂狀態篩選" style="margin-bottom:.5rem"></div>
-    <div class="filters" id="bookingCatFilters" role="group" aria-label="依類別篩選" style="margin-bottom:1rem"></div>
+    <div id="bookingDash"></div>
+    <div class="searchbox" id="bqWrap" hidden>
+      <label class="sr-only" for="bq">搜尋訂票與預訂項目</label>
+      <input id="bq" type="search" placeholder="🔍 搜尋預訂項目、日期、注意事項…（例：晴空塔、新幹線、12/01）" autocomplete="off">
+    </div>
+    <div class="filters hscroll" id="bookingStatusFilters" role="group" aria-label="依預訂狀態篩選" style="margin-bottom:.38rem"></div>
+    <div class="filters hscroll" id="bookingCatFilters" role="group" aria-label="依類別篩選" style="margin-bottom:.65rem"></div>
     <div id="bookingDayBar"></div>
     <div class="grid-wide" id="bookingGrid"></div>
   </section>
@@ -83,69 +86,71 @@
 
   <!-- 交通時刻表與常用連結查詢 -->
   <section class="view" id="v-transit" aria-label="交通時刻表查詢">
-    <h2 class="sectitle">🚆 交通時刻表 ＆ 常用連結查詢（共 35 項）</h2>
-    <div class="box" style="margin-bottom:1rem">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;flex-wrap:wrap">
-        <div>
-          <b>⚡ 10 天核心交通班次 ＆ 轉乘備案速查表（100% 離線可查）</b>
-          <div style="color:var(--muted);font-size:.88rem">彙整每日主班次、備案班次、乘車月台與 Suica／購票注意事項</div>
-        </div>
-        <button class="btn" id="toggleQuickTtBtn" style="margin:0">展開／收合班次速查表 ▼</button>
+    <div class="sec-hd">
+      <h2 class="sectitle">🚆 交通時刻表 (35)</h2>
+      <button type="button" class="exp-ghost-btn" id="toggleTqBtn">🔍 搜尋</button>
+    </div>
+    <div class="tt-quick-bar">
+      <div class="tt-quick-hd">
+        <span><b>⚡ 10 天離線班次速查表</b><small>主班次・備案・月台</small></span>
+        <button type="button" class="exp-ghost-btn" id="toggleQuickTtBtn">展開 ▼</button>
       </div>
-      <div id="quickTtWrap" style="display:none;margin-top:.75rem;overflow-x:auto"></div>
+      <div id="quickTtWrap" style="display:none;margin-top:.6rem;overflow-x:auto"></div>
     </div>
-
-    <div class="searchbox">
+    <div class="searchbox" id="tqWrap" hidden>
       <label class="sr-only" for="tq">搜尋交通時刻表與連結</label>
-      <input id="tq" type="search" placeholder="🔍 搜尋路線、車站、車次、編號或說明…（例：Skyliner、はくたか、江之電、接駁車、富士急、川越、#24）" autocomplete="off">
+      <input id="tq" type="search" placeholder="🔍 搜尋路線、車站、車次、編號…（例：Skyliner、江之電、#24）" autocomplete="off">
     </div>
-    <div class="filters" id="transitCatFilters" role="group" aria-label="依交通分類篩選" style="margin-bottom:.5rem"></div>
-    <div class="filters hscroll" id="transitDayFilters" role="group" aria-label="依行程日篩選" style="margin-bottom:.85rem"></div>
+    <div class="filters hscroll" id="transitCatFilters" role="group" aria-label="依交通分類篩選" style="margin-bottom:.38rem"></div>
+    <div class="filters hscroll" id="transitDayFilters" role="group" aria-label="依行程日篩選" style="margin-bottom:.65rem"></div>
     <div class="grid-wide" id="transitGrid"></div>
   </section>
 
   <!-- 美食指南 (A/B/C 推薦餐廳) -->
   <section class="view" id="v-food" aria-label="推薦餐廳">
-    <h2 class="sectitle">🍽️ 每日推薦餐廳清單</h2>
-    <div class="searchbox">
-      <label class="sr-only" for="fq">搜尋餐廳</label>
-      <input id="fq" type="search" placeholder="🔍 搜尋餐廳、料理或點餐方式…（例：敘敘苑、鰻魚飯、壽司郎、中文平板、便當、傳米）" autocomplete="off">
+    <div class="sec-hd">
+      <h2 class="sectitle">🍽️ 推薦餐廳</h2>
+      <button type="button" class="exp-ghost-btn" id="toggleFqBtn">🔍 搜尋</button>
     </div>
-    <div class="filters hscroll" id="foodDayFilters" role="group" aria-label="依天數篩選餐廳" style="margin-bottom:.45rem"></div>
-    <div class="filters" id="foodTierFilters" role="group" aria-label="依等級篩選餐廳" style="margin-bottom:.9rem"></div>
+    <div class="searchbox" id="fqWrap" hidden>
+      <label class="sr-only" for="fq">搜尋餐廳</label>
+      <input id="fq" type="search" placeholder="🔍 搜尋餐廳、料理或點餐方式…（例：敘敘苑、鰻魚飯、壽司郎、中文平板）" autocomplete="off">
+    </div>
+    <div class="filters hscroll" id="foodDayFilters" role="group" aria-label="依天數篩選餐廳" style="margin-bottom:.38rem"></div>
+    <div class="filters hscroll" id="foodTierFilters" role="group" aria-label="依等級篩選餐廳" style="margin-bottom:.65rem"></div>
     <div class="grid-wide" id="foodGrid"></div>
   </section>
 
   <!-- 住宿 -->
   <section class="view" id="v-hotel" aria-label="住宿">
-    <h2 class="sectitle">🏨 住宿安排（共 9 晚）＆ 大行李寄送動線</h2>
-    <div class="grid" id="hotels"></div>
+    <h2 class="sectitle">🏨 住宿安排 (9晚)</h2>
+    <div class="hotel-grid" id="hotels"></div>
   </section>
 
   <!-- 攜帶物品 -->
   <section class="view" id="v-packing" aria-label="攜帶物品">
-    <h2 class="sectitle">🎒 建議攜帶物品 ＆ 自訂清單</h2>
-    <div class="box" style="margin-bottom:1rem">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;flex-wrap:wrap">
+    <h2 class="sectitle">🎒 攜帶物品與清單</h2>
+    <div class="box pack-dash">
+      <div class="pack-dash-top">
         <b id="progtxt">完成 0 / 0</b>
-        <div style="display:flex;gap:.4rem;flex-wrap:wrap">
-          <button class="btn" id="filterUncheckedBtn" style="margin:0">僅看未完成</button>
-          <button class="btn" id="resetChk" style="margin:0">🔄 全部重設</button>
+        <div style="display:flex;gap:.35rem">
+          <button class="exp-ghost-btn" id="filterUncheckedBtn">僅看未完成</button>
+          <button class="exp-ghost-btn" id="resetChk">🔄 重設</button>
         </div>
       </div>
-      <div class="progress" style="margin-top:.5rem" aria-hidden="true"><div id="progbar"></div></div>
+      <div class="progress" style="margin:.45rem 0 .5rem" aria-hidden="true"><div id="progbar"></div></div>
       <div class="add-chk-row">
-        <input id="customChkInput" type="text" placeholder="➕ 新增個人或家族待辦事項（例：預約成田機場接送、買兒童雪鏡）">
-        <button class="btn primary" id="addCustomChkBtn" style="margin:0">新增項目</button>
+        <input id="customChkInput" type="text" placeholder="➕ 新增個人或家族待辦（例：買兒童雪鏡）">
+        <button class="btn primary btn-sm" id="addCustomChkBtn" style="margin:0;white-space:nowrap">＋ 新增</button>
       </div>
     </div>
-    <div class="grid-wide" id="checks"></div>
+    <div class="pack-wrap" id="checks"></div>
   </section>
 
   <!-- 緊急與設定 -->
   <section class="view" id="v-info" aria-label="緊急聯絡與設定">
-    <h2 class="sectitle">🚨 緊急聯絡、工具 ＆ 離線設定</h2>
-    <div class="grid-wide" id="info"></div>
+    <h2 class="sectitle">🚨 緊急聯絡與設定</h2>
+    <div class="info-grid" id="infoGrid"></div>
   </section>
 
   <p class="foot">行程時間皆為日本當地時間（桃園出發／返台降落為台灣時間）</p>
@@ -304,8 +309,8 @@
 <button type="button" id="backTopBtn" class="back-top" aria-label="回到頁面頂端" title="回到頂端">↑</button>
 <nav class="bottom" aria-label="主選單"></nav>
 
-<script src="data/trip-data.js?v=20261119-11"></script>
-<script src="data/places.js?v=20261119-11"></script>
-<script src="app.js?v=20261119-11"></script>
+<script src="data/trip-data.js?v=20261119-12"></script>
+<script src="data/places.js?v=20261119-12"></script>
+<script src="app.js?v=20261119-12"></script>
 </body>
 </html>

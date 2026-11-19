@@ -576,3 +576,118 @@ header.top{border-top:4px solid #ffd166}
 .exp-tools-bar{display:flex;gap:.35rem;flex-wrap:wrap;justify-content:center;padding:.15rem 0 .4rem}
 .exp-tools-bar button{border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:999px;padding:.28rem .7rem;font-size:.8rem;font-weight:700;min-height:2.05rem}
 .exp-tools-bar button:hover{background:var(--surface2)}
+
+
+/* ===== 全站 UI 優化、版面美化與空間精簡（v20261119-12） ===== */
+.view.active{animation:fade .12s ease}
+.wx:empty{display:none}
+
+/* 標題列＋折疊搜尋鈕 */
+.sec-hd{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-bottom:.65rem}
+.sec-hd .sectitle{margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sectitle{font-size:1.18rem;margin:0 0 .65rem;line-height:1.3}
+.searchbox{margin-bottom:.55rem}
+
+/* 實用資訊子分頁：手機單行絕不換行斷字 */
+.subtabs button{white-space:nowrap;font-size:.86rem;padding:.45rem .35rem}
+
+/* 全站篩選列：手機單列橫向捲動（隱藏捲軸），桌機自然換行不裁切 */
+.filters.hscroll{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:.1rem}
+.filters.hscroll::-webkit-scrollbar{display:none}
+.filters.hscroll button{flex:0 0 auto;white-space:nowrap;padding:.24rem .62rem;font-size:.84rem;min-height:2.05rem}
+@media (min-width:720px){
+  #bookingStatusFilters.hscroll,#bookingCatFilters.hscroll,
+  #transitCatFilters.hscroll,#transitDayFilters.hscroll,
+  #foodDayFilters.hscroll,#foodTierFilters.hscroll{flex-wrap:wrap;overflow-x:visible}
+}
+
+/* 每日行程：地名提示條精簡＆時間軸內距收緊 */
+.place-tip{padding:.34rem .62rem;font-size:.82rem;margin-bottom:.45rem}
+.ev{padding-bottom:.55rem}
+.ev .card{padding:.52rem .78rem}
+
+/* 訂票提醒：記帳同款精簡 Hero 進度條 */
+.bk-hero{background:linear-gradient(135deg,var(--primary),#2b517f);color:#fff;border-radius:var(--radius);padding:.65rem .9rem;margin-bottom:.65rem;box-shadow:var(--shadow)}
+[data-theme="dark"] .bk-hero{background:linear-gradient(135deg,#1f3454,#2c4972);color:#eef1f6}
+.bk-hero-top{display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap}
+.bk-hero-title{font-size:1.05rem;font-weight:700}
+.bk-hero-title b{font-size:1.2rem;font-weight:900}
+.bk-hero-sub{font-size:.8rem;opacity:.88;margin-top:.08rem}
+.bk-hero-prog{height:6px;border-radius:3px;background:rgba(255,255,255,.22);margin-top:.5rem;overflow:hidden}
+.bk-hero-prog i{display:block;height:100%;background:#4ade80;border-radius:3px;transition:width .3s}
+
+/* 交通時刻表：精簡單行速查表橫幅＋卡片精簡底部 */
+.tt-quick-bar{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:.5rem .78rem;margin-bottom:.6rem;box-shadow:var(--shadow)}
+.tt-quick-hd{display:flex;align-items:center;justify-content:space-between;gap:.5rem}
+.tt-quick-hd span{display:flex;align-items:baseline;gap:.45rem;flex-wrap:wrap;min-width:0;font-size:.94rem}
+.tt-quick-hd small{font-size:.78rem;color:var(--muted)}
+.tt-card-foot{display:flex;align-items:center;justify-content:space-between;gap:.4rem;flex-wrap:wrap;margin-top:auto;padding-top:.45rem;border-top:1px dashed var(--line)}
+.tt-card-links{display:flex;gap:.3rem;flex-wrap:wrap}
+.tt-link-chip{border:1px solid var(--line);background:var(--surface2);color:var(--primary);border-radius:999px;padding:.15rem .55rem;font-size:.78rem;font-weight:700;min-height:1.85rem}
+.tt-link-chip:hover{background:var(--primary);color:var(--primary-ink);border-color:var(--primary)}
+
+/* 推薦餐廳：結構化雙欄餐廳列（地圖鈕固定靠右）＋ 電腦版單餐 A/B/C 三欄並排 */
+.meal-list{list-style:none;padding:0;margin:0}
+.meal-item{display:flex;align-items:center;justify-content:space-between;gap:.55rem;padding:.38rem 0;border-bottom:1px dashed color-mix(in srgb,var(--line) 75%,transparent)}
+.meal-item:last-child{border-bottom:0;padding-bottom:.1rem}
+.meal-item-txt{flex:1 1 auto;min-width:0}
+.meal-item-txt b{display:block;font-size:.93rem;line-height:1.3}
+.meal-item-txt small{display:block;font-size:.8rem;color:var(--muted);line-height:1.35;margin-top:.06rem}
+.meal-item .map-mini{flex:0 0 auto;margin-left:0;padding:.24rem .55rem;font-size:.8rem;min-height:1.95rem;white-space:nowrap}
+@media (min-width:900px){
+  #foodGrid.food-single{grid-template-columns:1fr}
+  #foodGrid.food-single .tier-wrap{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;align-items:start}
+  #foodGrid.food-single .tier-block{margin:0;padding:.65rem .75rem;background:var(--surface2);border-radius:11px;border:1px solid var(--line)}
+}
+
+/* 住宿安排：電腦版 2x2 對稱卡片＋全寬備註 */
+.hotel-grid{display:grid;gap:.85rem;grid-template-columns:minmax(0,1fr)}
+@media (min-width:860px){
+  .hotel-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+.hotel-card{display:flex;flex-direction:column;gap:.45rem}
+.hotel-top{display:flex;align-items:center;justify-content:space-between;gap:.4rem;flex-wrap:wrap}
+.hotel-dates{font-size:.82rem;font-weight:700;color:var(--muted)}
+.hotel-meta{display:flex;flex-direction:column;gap:.2rem;font-size:.86rem}
+.hotel-meta-row{display:flex;align-items:center;justify-content:space-between;gap:.4rem}
+.hotel-copy{border:1px solid var(--line);background:var(--surface2);border-radius:7px;padding:.1rem .4rem;font-size:.78rem;flex:0 0 auto}
+.hotel-note{background:var(--surface2);border-left:3px solid var(--c-hotel);border-radius:8px;padding:.45rem .62rem;font-size:.85rem;line-height:1.48;color:var(--text);flex:1}
+.hotel-btns{display:grid;grid-template-columns:1fr 1fr;gap:.45rem;margin-top:.15rem}
+.hotel-btns .btn{justify-content:center;margin:0}
+
+/* 攜帶物品：並排新增列＋電腦版全寬 2 欄勾選清單 */
+.pack-dash{padding:.75rem .9rem;margin-bottom:.75rem}
+.pack-dash-top{display:flex;justify-content:space-between;align-items:center;gap:.45rem;flex-wrap:wrap}
+.pack-dash .add-chk-row{display:flex;gap:.4rem;flex-wrap:nowrap;margin-top:0}
+.pack-dash .add-chk-row input{min-width:0;flex:1 1 auto;padding:.4rem .6rem;font-size:.9rem}
+.pack-wrap{display:flex;flex-direction:column;gap:.75rem}
+.pack-list{margin-top:.55rem;display:grid;grid-template-columns:minmax(0,1fr);gap:.1rem .9rem}
+@media (min-width:760px){
+  .pack-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+
+/* 緊急聯絡與設定：對稱 2x2 四宮格＋一鍵撥號膠囊 */
+.info-grid{display:grid;gap:.85rem;grid-template-columns:minmax(0,1fr)}
+@media (min-width:860px){
+  .info-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+.sos-pills{display:grid;grid-template-columns:1fr 1fr;gap:.45rem;margin-bottom:.55rem}
+.sos-pill{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.45rem .5rem;border-radius:10px;background:var(--warn-bg);border:1.5px solid color-mix(in srgb,var(--warn-line) 55%,transparent);text-decoration:none;color:var(--text)}
+.sos-pill.wide{grid-column:1 / -1;flex-direction:row;justify-content:space-between;padding:.48rem .85rem}
+.sos-pill span{font-size:.78rem;font-weight:700;color:var(--muted)}
+.sos-pill b{font-size:1.18rem;font-weight:900;color:var(--urgent);letter-spacing:.03em}
+.pwa-mini-list{display:flex;flex-direction:column;gap:.24rem;font-size:.83rem;background:var(--surface2);border-radius:9px;padding:.45rem .65rem;border:1px solid var(--line)}
+.pwa-mini-list>div{display:flex;gap:.55rem;align-items:baseline}
+.pwa-mini-list>div>span:first-child{color:var(--muted);font-weight:700;flex:0 0 2.4rem}
+
+/* 記帳頁工具列：5 顆按鈕於電腦版穩穩單行 */
+.exp-tools-bar{gap:.28rem}
+.exp-tools-bar button{padding:.26rem .56rem;font-size:.78rem}
+/* 微調收尾：消除分頁切換淡入閃爍、避免住宿與緊急電話按鈕斷行 */
+.view.active{animation:none}
+.hotel-btns .btn{white-space:nowrap;font-size:.88rem;padding:.45rem .35rem}
+.sos-pill b{white-space:nowrap}
+@media (max-width:520px){
+  .sos-pill.wide{gap:.4rem;padding:.45rem .65rem}
+  .sos-pill.wide b{font-size:1.05rem}
+}

@@ -154,16 +154,20 @@ function renderText(text, day){
 function fmtDate(d){ const [y,m,dd] = d.date.split('-'); return `${+m}/${+dd}（${d.wd}）`; }
 
 function renderMealTiersHTML(meal, mapArea){
-  return meal.tiers.map(tb => {
+  return `<div class="tier-wrap">${meal.tiers.map(tb => {
     const cls = tb.tier==='A' ? 'ta' : tb.tier==='B' ? 'tb' : 'tc';
     return `<div class="tier-block">
       <div class="tier-badge ${cls}">${esc(tb.label)}</div>
-      <ul class="tier-list">${tb.list.map(r => `
-        <li><b>${esc(r.name)}</b>${r.note ? ` <span style="color:var(--muted)">（${esc(r.note)}）</span>` : ''}
+      <ul class="meal-list">${tb.list.map(r => `
+        <li class="meal-item">
+          <div class="meal-item-txt">
+            <b>${esc(r.name)}</b>
+            ${r.note ? `<small>${esc(r.note)}</small>` : ''}
+          </div>
           <a class="map-mini" href="${mapUrl(r.name.split(/[／/（(]/)[0].trim() + ' ' + mapArea)}" target="_blank" rel="noopener">🗺️ 地圖</a>
         </li>`).join('')}</ul>
     </div>`;
-  }).join('');
+  }).join('')}</div>`;
 }
 
 /* ---------- 日本時間 & 日期計算 ---------- */
@@ -668,7 +672,7 @@ function renderDay(){
   if (tipBar){
     if (!store.get('place_tip_seen', false)){
       tipBar.innerHTML = `<div class="place-tip">
-        <span>💡 點擊有虛線底線的地名，即可看<b>日文、聽發音與開 Google 地圖</b></span>
+        <span>💡 點虛線地名看<b>日文、發音與地圖</b></span>
         <button type="button" id="dismissPlaceTipBtn">知道了</button>
       </div>`;
       $('#dismissPlaceTipBtn').onclick = () => {
@@ -915,29 +919,24 @@ function renderBookings(){
   const pct = Math.round(doneCnt / BOOKINGS.length * 100);
 
   $('#bookingDash').innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:.6rem;flex-wrap:wrap">
-      <div>
-        <b style="font-size:1.08rem">預訂完成度：${doneCnt} / ${BOOKINGS.length} 項（${pct}%）</b>
-        <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.35rem">
-          <span class="pill urgent">🔥 已開放待訂：${openWaitCnt} 項</span>
-          <span class="pill upcoming">⏳ 即將開放：${upcomingCnt} 項</span>
-          <span class="pill done">✅ 已完成預訂：${doneCnt} 項</span>
+    <div class="bk-hero">
+      <div class="bk-hero-top">
+        <div>
+          <div class="bk-hero-title">已訂 <b>${doneCnt} / ${BOOKINGS.length}</b> 項（${pct}%）</div>
+          <div class="bk-hero-sub">🔥 待訂 ${openWaitCnt} · ⏳ 即將 ${upcomingCnt} · ⏰ 皆對照台／日時間</div>
         </div>
+        <button type="button" class="exp-rate-pill" id="exportIcsBtn">📥 匯出 .ics</button>
       </div>
-      <div style="display:flex;gap:.4rem;flex-wrap:wrap">
-        <button class="btn primary" id="exportIcsBtn" style="margin:0">📥 匯出全部搶票提醒至手機行事曆 (.ics)</button>
-      </div>
-    </div>
-    <div class="progress" style="margin-top:.65rem" aria-hidden="true"><div style="width:${pct}%"></div></div>
-    <small style="color:var(--muted);display:block;margin-top:.4rem">💡 提示：所有開放時間皆已換算對照<b>台灣時間</b>與<b>日本時間 (JST)</b>；您可點擊各卡片的「📅 加入 Google 行事曆」或匯出 .ics 檔案設定手機鬧鐘提醒，並於預訂後填寫預約代號。</small>`;
+      <div class="bk-hero-prog" aria-hidden="true"><i style="width:${pct}%"></i></div>
+    </div>`;
 
   $('#exportIcsBtn').onclick = downloadAllBookingICS;
 
   const stOpts = [
     ['all', `全部 (${BOOKINGS.length})`],
-    ['open', `🔥 已開放待訂 (${openWaitCnt})`],
-    ['upcoming', `⏳ 即將開放 (${upcomingCnt})`],
-    ['done', `✅ 已完成預訂 (${doneCnt})`]
+    ['open', `🔥 待訂 (${openWaitCnt})`],
+    ['upcoming', `⏳ 即將 (${upcomingCnt})`],
+    ['done', `✅ 已訂 (${doneCnt})`]
   ];
   $('#bookingStatusFilters').innerHTML = stOpts.map(([k,l]) => `<button data-bs="${k}" aria-pressed="${state.bookingStatus===k}">${esc(l)}</button>`).join('');
   $('#bookingStatusFilters').querySelectorAll('button').forEach(b => b.onclick = () => { state.bookingStatus = b.dataset.bs; renderBookings(); });
@@ -1067,7 +1066,9 @@ function buildQuickScheduleTable(){
 }
 $('#toggleQuickTtBtn').onclick = () => {
   const el = $('#quickTtWrap');
-  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  const opening = el.style.display === 'none';
+  el.style.display = opening ? 'block' : 'none';
+  $('#toggleQuickTtBtn').textContent = opening ? '收合 ▲' : '展開 ▼';
 };
 
 const TT_CAT_ICONS = {
@@ -1098,7 +1099,7 @@ function renderTimetables(){
   $('#transitCatFilters').innerHTML = catOpts.map(([k,l]) => `<button data-tc="${k}" aria-pressed="${state.transitCat===k}">${esc(l)}</button>`).join('');
   $('#transitCatFilters').querySelectorAll('button').forEach(b => b.onclick = () => { state.transitCat = b.dataset.tc; renderTimetables(); });
 
-  const dayOpts = [['all','全部天數'], ...DAYS.map((d,i) => [String(i+1), `Day ${i+1} (${+d.date.slice(5,7)}/${+d.date.slice(8,10)})`])];
+  const dayOpts = [['all','全部'], ...DAYS.map((d,i) => [String(i+1), `${+d.date.slice(5,7)}/${+d.date.slice(8,10)}`])];
   $('#transitDayFilters').innerHTML = dayOpts.map(([k,l]) => `<button data-td="${k}" aria-pressed="${state.transitDay===k}">${esc(l)}</button>`).join('');
   $('#transitDayFilters').querySelectorAll('button').forEach(b => b.onclick = () => { state.transitDay = b.dataset.td; renderTimetables(); });
   scrollActiveFilter('#transitDayFilters');
@@ -1133,10 +1134,12 @@ function renderTimetables(){
       <h3 style="margin:.15rem 0 0;font-size:1.05rem">${esc(t.title)}</h3>
       <div style="font-size:.9rem;color:var(--muted)">${esc(t.note)}</div>
 
-      <div style="display:flex;gap:.4rem;flex-wrap:wrap;align-items:center;margin-top:auto;padding-top:.4rem;border-top:1px dashed var(--line)">
-        <a class="btn primary btn-sm" href="${esc(t.url)}" target="_blank" rel="noopener">🕒 開啟官方時刻表／網站 ↗</a>
-        ${t.days.map(dNum => `<button type="button" class="btn btn-sm" onclick="go('day');selectDay(${dNum-1})">查看 Day ${dNum} 行程 →</button>`).join('')}
-        ${bk ? `<button type="button" class="btn btn-sm" onclick="jumpToBooking(${bk.id})">🎟️ 關聯訂票 #${bk.id}</button>` : ''}
+      <div class="tt-card-foot">
+        <a class="btn primary btn-sm" href="${esc(t.url)}" target="_blank" rel="noopener">🕒 時刻表／官網 ↗</a>
+        <div class="tt-card-links">
+          ${t.days.map(dNum => `<button type="button" class="tt-link-chip" onclick="go('day');selectDay(${dNum-1})">Day ${dNum} →</button>`).join('')}
+          ${bk ? `<button type="button" class="tt-link-chip" onclick="jumpToBooking(${bk.id})">🎟️ #${bk.id}</button>` : ''}
+        </div>
       </div>
     </div>`;
   }).join('') || '<div class="box">沒有符合篩選條件的交通時刻表，請嘗試切換天數、分類或清除搜尋關鍵字。</div>';
@@ -1206,12 +1209,12 @@ $('#phraseModal').onclick = e => { if (e.target === $('#phraseModal')) { if ('sp
 
 function renderFood(){
   const q = ($('#fq')?.value || '').trim().toLowerCase();
-  const dayOpts = [['all','全部天數'], ...DAYS.map((d,i) => [String(i), `Day ${i+1} (${+d.date.slice(5,7)}/${+d.date.slice(8,10)})`])];
+  const dayOpts = [['all','全部'], ...DAYS.map((d,i) => [String(i), `${+d.date.slice(5,7)}/${+d.date.slice(8,10)}`])];
   $('#foodDayFilters').innerHTML = dayOpts.map(([k,l]) => `<button data-fd="${k}" aria-pressed="${state.foodDay===k}">${esc(l)}</button>`).join('');
   $('#foodDayFilters').querySelectorAll('button').forEach(b => b.onclick = () => { state.foodDay = b.dataset.fd; renderFood(); });
   scrollActiveFilter('#foodDayFilters');
 
-  const tierOpts = [['all','全部等級'], ['A','【A 級】特色名店/可訂位'], ['B','【B 級】平價家庭/壽司連鎖'], ['C','【C 級】快速牛丼/簡餐'], ['tablet','📱 中文平板/多語點餐']];
+  const tierOpts = [['all','全部'], ['A','A 級名店'], ['B','B 級連鎖'], ['C','C 級快餐'], ['tablet','📱 中文點餐']];
   $('#foodTierFilters').innerHTML = tierOpts.map(([k,l]) => `<button data-ft="${k}" aria-pressed="${state.foodTier===k}">${esc(l)}</button>`).join('');
   $('#foodTierFilters').querySelectorAll('button').forEach(b => b.onclick = () => { state.foodTier = b.dataset.ft; renderFood(); });
 
@@ -1245,6 +1248,7 @@ function renderFood(){
     });
   });
 
+  $('#foodGrid').classList.toggle('food-single', cards.length === 1);
   $('#foodGrid').innerHTML = cards.join('') || '<div class="box">沒有符合篩選條件的推薦餐廳，請嘗試切換篩選或清除關鍵字。</div>';
 }
 $('#fq').addEventListener('input', renderFood);
@@ -1306,16 +1310,18 @@ $('#q').addEventListener('input', e => {
    ========================================================= */
 function renderHotels(){
   const hotelCards = HOTELS.map(h => `
-    <div class="box"><h3>🏨 ${esc(h.nights)}</h3>
-      <div class="hotelname">${esc(h.name)}</div>
-      <table class="info">
-        <tr><th>日期</th><td>${esc(h.dates)}</td></tr>
-        <tr><th>地區</th><td>${esc(h.area)}</td></tr>
-        ${h.address ? `<tr><th>地址</th><td>${esc(h.address)}</td></tr>` : ''}
-        ${h.tel ? `<tr><th>電話</th><td><a href="tel:${esc(h.tel.replace(/[^+\d]/g,''))}">${esc(h.tel)}</a></td></tr>` : ''}
-        <tr><th>重要備註</th><td>${esc(h.note)}</td></tr>
-      </table>
-      <div style="display:flex;gap:.45rem;flex-wrap:wrap">
+    <div class="box hotel-card">
+      <div class="hotel-top">
+        <span class="pill area">🏨 ${esc(h.nights)}</span>
+        <span class="hotel-dates">${esc(h.dates)} · ${esc(h.area)}</span>
+      </div>
+      <div class="hotelname" style="margin:.35rem 0 .45rem">${esc(h.name)}</div>
+      <div class="hotel-meta">
+        ${h.address ? `<div class="hotel-meta-row"><span>📍 ${esc(h.address)}</span><button type="button" class="hotel-copy" data-copy="${esc(h.address)}" title="複製地址">📋</button></div>` : ''}
+        ${h.tel ? `<div class="hotel-meta-row"><a href="tel:${esc(h.tel.replace(/[^+\d]/g,''))}">📞 ${esc(h.tel)}</a></div>` : ''}
+      </div>
+      <div class="hotel-note">💡 ${esc(h.note)}</div>
+      <div class="hotel-btns">
         <a class="btn primary" href="${mapUrl(h.name)}" target="_blank" rel="noopener">🗺️ Google 地圖</a>
         <button type="button" class="btn" onclick="openTaxiModal('${h.key}')">🚖 秀給司機看</button>
       </div>
@@ -1334,6 +1340,9 @@ function renderHotels(){
     </div>`;
 
   $('#hotels').innerHTML = hotelCards + luggageCard;
+  $('#hotels').querySelectorAll('[data-copy]').forEach(b => b.onclick = () => {
+    navigator.clipboard?.writeText(b.dataset.copy).then(() => showToast('📋 已複製飯店地址'), () => showToast('複製失敗'));
+  });
 }
 
 /* =========================================================
@@ -1370,7 +1379,7 @@ function renderChecks(){
         <span>${esc(g.title)}</span>
         <span class="pill ${doneCnt===g.items.length?'done':''}">${doneCnt} / ${g.items.length}</span>
       </summary>
-      <div style="margin-top:.55rem">${visibleItems.map(it =>
+      <div class="pack-list">${visibleItems.map(it =>
         `<label class="check ${done[it.id]?'done':''}">
           <input type="checkbox" data-id="${it.id}" ${done[it.id]?'checked':''}>
           <span>${esc(it.t)}</span>
@@ -1471,62 +1480,60 @@ function applySyncCode(raw){
    ========================================================= */
 function renderInfo(){
   const isDark = document.documentElement.dataset.theme === 'dark';
-  $('#info').innerHTML = `
+  $('#infoGrid').innerHTML = `
   <div class="box"><h3>🚨 日本緊急聯絡 ＆ 實用連結</h3>
-    <div style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-bottom:.6rem">
-      <div>👮 警察局<br><a class="tel" href="tel:110">110</a></div>
-      <div>🚑 救護車／消防<br><a class="tel" href="tel:119">119</a></div>
-      <div>🆘 駐日代表處緊急電話<br><a class="tel" href="tel:+81-3-3280-7811" style="font-size:1.15rem">03-3280-7811</a></div>
+    <div class="sos-pills">
+      <a class="sos-pill" href="tel:110"><span>👮 警察局</span><b>110</b></a>
+      <a class="sos-pill" href="tel:119"><span>🚑 救護／消防</span><b>119</b></a>
+      <a class="sos-pill wide" href="tel:+81-3-3280-7811"><span>🆘 駐日代表處緊急電話</span><b>03-3280-7811</b></a>
     </div>
-    <ul>
-      <li><a href="https://www.vjw.digital.go.jp/" target="_blank" rel="noopener">Visit Japan Web（入境手續官方網站）</a></li>
-      <li><a href="https://docs.google.com/spreadsheets/d/1vtYwFh8HCuyi-NK5nKBQ1AQyYui49a9xOxsQALGGbRw/edit" target="_blank" rel="noopener">原始行程表（Google 試算表：含每日行程、訂票清單、交通時刻表）</a></li>
+    <ul style="margin:.5rem 0 .6rem;padding-left:1.15rem;font-size:.9rem">
+      <li><a href="https://www.vjw.digital.go.jp/" target="_blank" rel="noopener">Visit Japan Web（入境手續官網）</a></li>
+      <li><a href="https://docs.google.com/spreadsheets/d/1vtYwFh8HCuyi-NK5nKBQ1AQyYui49a9xOxsQALGGbRw/edit" target="_blank" rel="noopener">原始行程表（Google 試算表）</a></li>
     </ul>
-    <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.5rem">
-      <button class="btn" onclick="window.print()" style="margin:0">🖨️ 列印行程表</button>
-      <button class="btn" id="shareAppBtn" style="margin:0">📤 分享行程給家人</button>
+    <div style="display:flex;gap:.45rem;flex-wrap:wrap">
+      <button class="btn btn-sm" onclick="window.print()">🖨️ 列印行程表</button>
+      <button class="btn btn-sm" id="shareAppBtn">📤 分享給家人</button>
     </div></div>
 
   <div class="box"><h3>⛅ 當地即時天氣 ＆ 富士山影像</h3>
-    <div style="font-size:.86rem;color:var(--muted);margin-bottom:.5rem">出發前與河口湖自駕清晨可快速確認氣溫、降雪與富士山能見度：</div>
-    <div style="display:flex;gap:.45rem;flex-wrap:wrap">
-      <a class="btn" style="margin:0" href="https://tenki.jp/forecast/3/16/4410/13106/" target="_blank" rel="noopener">🌤️ 東京（上野）天氣 ↗</a>
-      <a class="btn" style="margin:0" href="https://tenki.jp/forecast/3/23/4820/20321/" target="_blank" rel="noopener">❄️ 輕井澤天氣 ↗</a>
-      <a class="btn" style="margin:0" href="https://tenki.jp/forecast/3/22/4920/19430/" target="_blank" rel="noopener">🗻 富士河口湖天氣 ↗</a>
-      <a class="btn primary" style="margin:0" href="https://fujisantotomoni.jp/livecamera/" target="_blank" rel="noopener">📹 河口湖・富士山即時影像 ↗</a>
-      <a class="btn" style="margin:0" href="https://fujisan.ne.jp/" target="_blank" rel="noopener">🗻 富士河口湖官方觀光網 ↗</a>
+    <div style="font-size:.85rem;color:var(--muted);margin-bottom:.5rem">出發前與河口湖自駕清晨快速確認氣溫、降雪與能見度：</div>
+    <div style="display:flex;gap:.4rem;flex-wrap:wrap">
+      <a class="btn btn-sm" href="https://tenki.jp/forecast/3/16/4410/13106/" target="_blank" rel="noopener">🌤️ 東京（上野）↗</a>
+      <a class="btn btn-sm" href="https://tenki.jp/forecast/3/23/4820/20321/" target="_blank" rel="noopener">❄️ 輕井澤 ↗</a>
+      <a class="btn btn-sm" href="https://tenki.jp/forecast/3/22/4920/19430/" target="_blank" rel="noopener">🗻 富士河口湖 ↗</a>
+      <a class="btn primary btn-sm" href="https://fujisantotomoni.jp/livecamera/" target="_blank" rel="noopener">📹 富士山即時影像 ↗</a>
+      <a class="btn btn-sm" href="https://fujisan.ne.jp/" target="_blank" rel="noopener">🗻 河口湖觀光網 ↗</a>
     </div></div>
 
   <div class="box"><h3>👨‍👩‍👦‍👦 家族進度同步（離線免帳號）</h3>
-    <div style="font-size:.86rem;color:var(--muted);margin-bottom:.5rem">將本機的「訂票完成、預約代號備註、攜帶物品與每日準備勾選」打包成代碼，貼到 LINE 群組即可讓家人一鍵同步。</div>
-    <div style="display:flex;gap:.5rem;flex-wrap:wrap">
-      <button type="button" class="btn primary" id="exportSyncBtn" style="margin:0">📤 複製進度代碼給家人</button>
-      <button type="button" class="btn" id="toggleImportSyncBtn" style="margin:0">📥 匯入家人進度代碼</button>
+    <div style="font-size:.85rem;color:var(--muted);margin-bottom:.5rem">將本機的「訂票完成、預約備註、攜帶物品與每日準備」打包成代碼，貼到 LINE 群組即可一鍵同步。</div>
+    <div style="display:flex;gap:.45rem;flex-wrap:wrap">
+      <button type="button" class="btn primary btn-sm" id="exportSyncBtn">📤 複製進度代碼</button>
+      <button type="button" class="btn btn-sm" id="toggleImportSyncBtn">📥 匯入家人代碼</button>
     </div>
-    <div id="syncImportWrap" style="display:none;margin-top:.65rem;padding-top:.6rem;border-top:1px dashed var(--line)">
-      <textarea id="syncCodeInp" rows="3" placeholder="貼上家人分享的 KANTO2027:... 代碼（整段 LINE 訊息一起貼上也可以）" style="width:100%;font:inherit;font-size:.84rem;padding:.5rem .65rem;border-radius:10px;border:1px solid var(--line);background:var(--surface2);color:var(--text);resize:vertical"></textarea>
-      <div style="display:flex;gap:.45rem;margin-top:.45rem;flex-wrap:wrap">
-        <button type="button" class="btn primary btn-sm" id="applySyncBtn">✅ 確認匯入並套用</button>
+    <div id="syncImportWrap" style="display:none;margin-top:.55rem;padding-top:.55rem;border-top:1px dashed var(--line)">
+      <textarea id="syncCodeInp" rows="3" placeholder="貼上家人分享的 KANTO2027:... 代碼" style="width:100%;font:inherit;font-size:.84rem;padding:.45rem .6rem;border-radius:9px;border:1px solid var(--line);background:var(--surface2);color:var(--text);resize:vertical"></textarea>
+      <div style="display:flex;gap:.4rem;margin-top:.4rem;flex-wrap:wrap">
+        <button type="button" class="btn primary btn-sm" id="applySyncBtn">✅ 確認套用</button>
         <button type="button" class="btn btn-sm" id="cancelSyncBtn">取消</button>
       </div>
     </div></div>
 
-  <div class="box"><h3>🔧 工具與顯示設定</h3>
-    <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.2rem">
-      <button class="btn primary" id="searchBtn" style="margin:0">🔍 全站綜合搜尋</button>
-      <button class="btn" id="themeBtn" style="margin:0">${isDark ? '☀️ 切換為淺色模式' : '🌙 切換為深色模式'}</button>
-      <button class="btn" id="openCarNaviFromInfoBtn" style="margin:0">🚗 河口湖車機導航速查</button>
-    </div></div>
-
-  <div class="box"><h3>📲 PWA 離線模式 ＆ App 安裝狀態</h3>
-    <table class="info">
-      <tr><th>網路狀態</th><td id="infoNetStatus">${navigator.onLine ? '✅ 目前在線（自動同步最新快取）' : '📴 目前為離線模式（使用本機快取）'}</td></tr>
-      <tr><th>執行模式</th><td>${(window.matchMedia('(display-mode: standalone)').matches || navigator.standalone) ? '✅ 已以獨立 App 模式開啟' : '🌐 瀏覽器分頁模式（可安裝至主畫面）'}</td></tr>
-      <tr><th>離線快取</th><td id="infoSwStatus">${esc(pwaState.swText)}</td></tr>
-    </table>
-    <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.55rem">
-      <button class="btn primary" id="infoInstallBtn" style="margin:0">📲 安裝 App／加入主畫面</button>
-      <button class="btn" id="refreshCacheBtn" style="margin:0">🔄 檢查更新並重新快取</button>
+  <div class="box"><h3>🔧 顯示設定 ＆ 離線狀態</h3>
+    <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.6rem">
+      <button class="btn primary btn-sm" id="searchBtn">🔍 全站搜尋</button>
+      <button class="btn btn-sm" id="themeBtn">${isDark ? '☀️ 淺色模式' : '🌙 深色模式'}</button>
+      <button class="btn btn-sm" id="openCarNaviFromInfoBtn">🚗 河口湖車機導航</button>
+    </div>
+    <div class="pwa-mini-list">
+      <div><span>網路</span><b id="infoNetStatus">${navigator.onLine ? '✅ 在線' : '📴 離線模式'}</b></div>
+      <div><span>模式</span><b>${(window.matchMedia('(display-mode: standalone)').matches || navigator.standalone) ? '✅ 獨立 App' : '🌐 瀏覽器分頁'}</b></div>
+      <div><span>快取</span><span id="infoSwStatus">${esc(pwaState.swText)}</span></div>
+    </div>
+    <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.55rem">
+      <button class="btn primary btn-sm" id="infoInstallBtn">📲 安裝 App</button>
+      <button class="btn btn-sm" id="refreshCacheBtn">🔄 檢查更新</button>
     </div></div>`;
 
   $('#searchBtn').onclick = openSearchModal;
@@ -1697,7 +1704,7 @@ async function loadWeather(d){
   const el = document.getElementById('wx'); if (!el) return;
   const diff = (Date.parse(d.date) - Date.now()) / 864e5;
   if (diff < -1 || diff > 14){
-    el.innerHTML = '<span class="wxnote">🌤️ 出發前 14 天內自動顯示當日天氣預報</span>'; return;
+    el.innerHTML = ''; return;
   }
   const hit = WX_PLACES.find(p => (d.area + d.title + d.map).includes(p[0]));
   const [lat,lon] = hit ? [hit[1],hit[2]] : [35.68,139.77];
@@ -2176,9 +2183,9 @@ function renderExp(preserveForm = false){
 
         <!-- 去卡片化的輕量匯出與管理工具列 -->
         <div class="exp-tools-bar">
-          <button type="button" id="expCopy">📋 複製結算</button>
-          <button type="button" id="expCsv">📥 匯出 CSV</button>
-          <button type="button" id="expImportCsv">📤 匯入 CSV</button>
+          <button type="button" id="expCopy">📋 結算</button>
+          <button type="button" id="expCsv">📥 匯出</button>
+          <button type="button" id="expImportCsv">📤 匯入</button>
           <input type="file" id="expCsvFile" accept=".csv,text/csv" hidden>
           <button type="button" id="expNames">👥 成員</button>
           <button type="button" id="expClear">🗑️ 清空</button>
@@ -2465,6 +2472,21 @@ $('#calcToExpBtn')?.addEventListener('click', () => {
   setTimeout(() => $('#expDesc')?.focus(), 80);
 });
 
+
+
+[['#toggleBqBtn','#bqWrap','#bq'], ['#toggleTqBtn','#tqWrap','#tq'], ['#toggleFqBtn','#fqWrap','#fq']].forEach(([btnSel, wrapSel, inpSel]) => {
+  const btn = $(btnSel), wrap = $(wrapSel), inp = $(inpSel);
+  if (!btn || !wrap || !inp) return;
+  btn.onclick = () => {
+    const opening = wrap.hidden;
+    wrap.hidden = !opening;
+    btn.classList.toggle('active', opening || !!inp.value.trim());
+    if (opening) setTimeout(() => inp.focus(), 30);
+  };
+  inp.addEventListener('input', () => {
+    btn.classList.toggle('active', !wrap.hidden || !!inp.value.trim());
+  });
+});
 
 buildNav();
 buildQuickScheduleTable();
