@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="關東家族旅行">
-<meta name="description" content="2027/2/1–2/10 日本關東10天9夜家族旅行互動行程表、訂票提醒、交通時刻表查詢、A/B/C三級推薦餐廳、準備清單與離線導覽助理">
+<meta name="description" content="2027/2/1–2/10 日本關東10天9夜家族旅行互動行程表、訂票提醒、交通時刻表查詢、推薦餐廳、準備清單與離線導覽助理">
 <title>2027 日本關東 10天9夜 家族旅行助理</title>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -400,9 +400,9 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
     <div class="grid-wide" id="transitGrid"></div>
   </section>
 
-  <!-- 美食指南 (A/B/C 三級推薦餐廳) -->
+  <!-- 美食指南 (A/B/C 推薦餐廳) -->
   <section class="view" id="v-food" aria-label="推薦餐廳">
-    <h2 class="sectitle">🍽️ 每日推薦餐廳清單（A / B / C 三級分級）</h2>
+    <h2 class="sectitle">🍽️ 每日推薦餐廳清單</h2>
     <div class="searchbox">
       <label class="sr-only" for="fq">搜尋餐廳</label>
       <input id="fq" type="search" placeholder="🔍 搜尋餐廳、料理或點餐方式…（例：敘敘苑、鰻魚飯、壽司郎、中文平板、便當、傳米）" autocomplete="off">
@@ -420,7 +420,7 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
 
   <!-- 攜帶物品 -->
   <section class="view" id="v-packing" aria-label="攜帶物品">
-    <h2 class="sectitle">🎒 冬季家族旅遊建議攜帶物品 ＆ 自訂清單</h2>
+    <h2 class="sectitle">🎒 建議攜帶物品 ＆ 自訂清單</h2>
     <div class="box" style="margin-bottom:1rem">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;flex-wrap:wrap">
         <b id="progtxt">完成 0 / 0</b>
@@ -2013,7 +2013,7 @@ function renderDay(){
         ${p.tips.map(t => `<div class="tip ${t.warn?'warn':''}">${t.warn?'⚠️ 注意：':'💡 小提醒：'}${esc(t.text)}</div>`).join('')}
         ${pills.length ? `<div class="quick-actions">${pills.join('')}</div>` : ''}
         ${matchedMeal ? `<details class="meal-drawer">
-          <summary><span>🍴 查看 ${esc(matchedMeal.slot)} 推薦清單（A/B/C三級）</span><span>▼</span></summary>
+          <summary><span>🍴 查看 ${esc(matchedMeal.slot)} 推薦清單</span><span>▼</span></summary>
           <div class="meal-drawer-body">${renderMealTiersHTML(matchedMeal, d.map)}</div>
         </details>` : ''}
       </div></li>`;
@@ -2611,7 +2611,7 @@ function renderChecks(){
   const groups = [];
 
   groups.push({
-    title:'🎒 冬季家族旅遊建議攜帶物品',
+    title:'🎒 建議攜帶物品',
     open: true,
     items: PACKING.map((t,j) => ({id:`p${j}`, t}))
   });
@@ -2741,7 +2741,7 @@ function renderInfo(){
   $('#shareAppBtn').onclick = async () => {
     const shareData = {
       title: '2027 日本關東 10天9夜 家族旅行助理',
-      text: '2027/2/1–2/10 關東家族旅行每日行程、訂票提醒、交通時刻表查詢、A/B/C三級推薦餐廳與攜帶清單',
+      text: '2027/2/1–2/10 關東家族旅行每日行程、訂票提醒、交通時刻表查詢、推薦餐廳與攜帶清單',
       url: location.href.split('#')[0]
     };
     if (navigator.share) {
