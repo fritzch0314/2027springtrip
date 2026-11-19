@@ -86,12 +86,12 @@ main{max-width:1200px;margin:0 auto;padding:1rem}
 @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 
 /* ---------- Banner ---------- */
-.banner{background:linear-gradient(135deg,var(--accent),#e09f3e);color:#fff;border-radius:var(--radius);
-  padding:.85rem 1.1rem;margin-bottom:.65rem;display:flex;align-items:center;justify-content:space-between;gap:.8rem;box-shadow:var(--shadow);flex-wrap:wrap}
+.banner{background:linear-gradient(135deg,var(--accent),#e09f3e);color:#fff;border-radius:12px;
+  padding:.48rem .85rem;margin-bottom:.55rem;display:flex;align-items:center;gap:.5rem;box-shadow:var(--shadow);font-size:.9rem;line-height:1.35}
 [data-theme="dark"] .banner{background:linear-gradient(135deg,#7a2f22,#7a5a1f)}
-.banner-main{display:flex;align-items:center;gap:.8rem;flex:1 1 18rem}
-.banner .big{font-size:2rem}
-.banner b{font-size:1.12rem}
+.banner .big{font-size:1.15rem;flex:0 0 auto}
+.banner .btxt{min-width:0;flex:1}
+.banner b{font-size:.95rem}
 
 /* ---------- Day picker ---------- */
 .daywrap{display:grid;gap:1rem;grid-template-columns:minmax(0,1fr)}
@@ -125,6 +125,15 @@ main{max-width:1200px;margin:0 auto;padding:1rem}
 .filters{display:flex;gap:.4rem;flex-wrap:wrap;margin:.2rem 0 .1rem}
 .filters button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:.25rem .8rem;font-size:.88rem}
 .filters button[aria-pressed="true"]{background:var(--text);color:var(--bg);border-color:var(--text)}
+.filters.hscroll{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:.25rem;scrollbar-width:thin}
+.filters.hscroll button{flex:0 0 auto;white-space:nowrap}
+.filters.hscroll::-webkit-scrollbar{height:4px}
+.filters.hscroll::-webkit-scrollbar-thumb{background:var(--line);border-radius:2px}
+
+/* ---------- Place Tip Bar ---------- */
+.place-tip{display:flex;align-items:center;justify-content:space-between;gap:.55rem;background:color-mix(in srgb,var(--primary) 7%,var(--surface));
+  border:1px solid color-mix(in srgb,var(--primary) 28%,var(--line));border-radius:10px;padding:.42rem .7rem;margin:0 0 .6rem;font-size:.84rem;color:var(--text)}
+.place-tip button{flex:0 0 auto;border:1px solid var(--line);background:var(--surface);color:var(--primary);border-radius:999px;padding:.15rem .6rem;font-size:.8rem;font-weight:800;white-space:nowrap}
 
 /* ---------- Timeline ---------- */
 .timeline{list-style:none;margin:0;padding:0;position:relative}
@@ -143,9 +152,10 @@ main{max-width:1200px;margin:0 auto;padding:1rem}
 .ev.past .card{opacity:.6}
 .ev.now .card{outline:3px solid var(--now);outline-offset:1px}
 .ev .nowtag{background:var(--now);color:#fff;border-radius:6px;padding:0 .4rem;font-size:.75rem}
-a.place{display:inline-flex;align-items:center;gap:.1rem;font-weight:700;color:var(--cat);text-decoration:none;border-bottom:2px dotted currentColor;padding:0 .05rem}
+a.place{display:inline-flex;align-items:center;gap:.1rem;font-weight:700;color:var(--cat);text-decoration:none;border-bottom:2px dotted currentColor;
+  background:color-mix(in srgb,var(--cat) 8%,transparent);border-radius:5px;padding:0 .22rem}
 .ev.transit a.place{color:var(--c-transit)}
-a.place:hover{background:var(--surface2)}
+a.place:hover{background:color-mix(in srgb,var(--cat) 16%,transparent)}
 .tip{margin-top:.45rem;background:var(--tip-bg);border-left:4px solid var(--tip-line);border-radius:8px;padding:.4rem .6rem;font-size:.95rem}
 .tip.warn{background:var(--warn-bg);border-color:var(--warn-line)}
 .ev-links{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.5rem}
@@ -296,10 +306,19 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
 .vg-note{margin-top:.55rem;padding:.5rem .65rem;border-radius:8px;font-size:.84rem;background:color-mix(in srgb,var(--tip-line) 12%,var(--surface2));border-left:3px solid var(--tip-line)}
 .vg-note.warn{background:color-mix(in srgb,var(--warn-line) 12%,var(--surface2));border-left-color:var(--warn-line)}
 
+/* ---------- Back to Top ---------- */
+.back-top{position:fixed;right:1rem;bottom:calc(min(5.2rem,98px) + env(safe-area-inset-bottom));z-index:25;
+  width:2.65rem;height:2.65rem;border-radius:50%;border:1px solid var(--line);background:var(--primary);color:var(--primary-ink);
+  font-size:1.15rem;font-weight:900;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.22);
+  opacity:0;pointer-events:none;transform:translateY(10px);transition:opacity .2s,transform .2s}
+.back-top.show{opacity:.92;pointer-events:auto;transform:none}
+.back-top:hover{opacity:1}
+
 /* ---------- Desktop ---------- */
 @media (min-width:900px){
   body{padding-bottom:0}
   nav.bottom{display:none}
+  .back-top{bottom:1.5rem;right:1.5rem}
   nav.tabs{display:flex;gap:.2rem;max-width:1200px;margin:.45rem auto 0;flex-wrap:wrap}
   nav.tabs button{border:0;background:transparent;color:inherit;padding:.4rem .8rem;border-radius:10px 10px 0 0;font-weight:700;opacity:.85;font-size:.92rem}
   nav.tabs button[aria-current="page"]{background:var(--bg);color:var(--text);opacity:1}
@@ -314,7 +333,7 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
   .tools{width:100%;justify-content:space-between}
 }
 @media print{
-  header.top,nav,.daynav,.filters,.daypicker,.banner,.booking-strip,.searchbox{display:none!important}
+  header.top,nav,.daynav,.filters,.daypicker,.banner,.booking-strip,.searchbox,.back-top,.place-tip{display:none!important}
   body{background:#fff;padding:0}
   .view{display:block!important}
   .ev .card,.box,.dayhead{box-shadow:none}
@@ -355,7 +374,8 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
       </div>
       <div>
         <div class="dayhead" id="dayhead"></div>
-        <div class="filters" id="filters" role="group" aria-label="篩選類別" style="margin:.75rem 0 .7rem"></div>
+        <div class="filters hscroll" id="filters" role="group" aria-label="篩選類別" style="margin:.55rem 0 .5rem"></div>
+        <div id="placeTipBar"></div>
         <ol class="timeline" id="timeline"></ol>
         <div class="daynav-bottom" id="daynavBottom"></div>
       </div>
@@ -396,7 +416,7 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
       <input id="tq" type="search" placeholder="🔍 搜尋路線、車站、車次、編號或說明…（例：Skyliner、はくたか、江之電、接駁車、富士急、川越、#24）" autocomplete="off">
     </div>
     <div class="filters" id="transitCatFilters" role="group" aria-label="依交通分類篩選" style="margin-bottom:.5rem"></div>
-    <div class="filters" id="transitDayFilters" role="group" aria-label="依行程日篩選" style="margin-bottom:1rem"></div>
+    <div class="filters hscroll" id="transitDayFilters" role="group" aria-label="依行程日篩選" style="margin-bottom:.85rem"></div>
     <div class="grid-wide" id="transitGrid"></div>
   </section>
 
@@ -407,8 +427,8 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
       <label class="sr-only" for="fq">搜尋餐廳</label>
       <input id="fq" type="search" placeholder="🔍 搜尋餐廳、料理或點餐方式…（例：敘敘苑、鰻魚飯、壽司郎、中文平板、便當、傳米）" autocomplete="off">
     </div>
-    <div class="filters" id="foodDayFilters" role="group" aria-label="依天數篩選餐廳" style="margin-bottom:.5rem"></div>
-    <div class="filters" id="foodTierFilters" role="group" aria-label="依等級篩選餐廳" style="margin-bottom:1rem"></div>
+    <div class="filters hscroll" id="foodDayFilters" role="group" aria-label="依天數篩選餐廳" style="margin-bottom:.45rem"></div>
+    <div class="filters" id="foodTierFilters" role="group" aria-label="依等級篩選餐廳" style="margin-bottom:.9rem"></div>
     <div class="grid-wide" id="foodGrid"></div>
   </section>
 
@@ -592,6 +612,7 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
   </div>
 </div>
 
+<button type="button" id="backTopBtn" class="back-top" aria-label="回到頁面頂端" title="回到頂端">↑</button>
 <nav class="bottom" aria-label="主選單"></nav>
 
 <script>
@@ -1655,6 +1676,7 @@ function go(view, push=true){
   document.querySelectorAll('[data-view]').forEach(b => b.dataset.view === parent ? b.setAttribute('aria-current','page') : b.removeAttribute('aria-current'));
   $('#subtabsMore').classList.toggle('show', parent === 'more');
   document.querySelectorAll('.subtabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.sub === view));
+  if ($('#banner')) $('#banner').style.display = view === 'day' ? '' : 'none';
   if (push) history.replaceState(null, '', '#' + view + (view==='day' ? '-' + (state.day+1) : ''));
   window.scrollTo({top:0});
 }
@@ -1791,6 +1813,39 @@ const GUIDE_MODALS = {
         1. 西武下車「喜多院入口」在西側，東武名03「<b>T2 喜多院前</b>」在東側近成田山。<br>
         2. 認明「<b>東武バス（橙藍標誌）</b>」，勿搭錯橘白色 Eagle Bus；全程刷 Suica 最省錢。
       </div>`
+  },
+  carNavi: {
+    title: '🚗 河口湖自駕車機導航速查（電話／MapCode）',
+    html: () => {
+      const spots = [
+        ['Day 5・8', 'Toyota 富士河口湖店（取／還車）', '0555-72-1100', '船津4059-1｜營業 08:00–19:00', 'トヨタレンタカー 富士河口湖店'],
+        ['Day 5–8', 'Fuji View Hotel（連住 3 晚）', '0555-83-2211', '勝山511｜免費停車場', '富士ビューホテル 河口湖'],
+        ['Day 6', '大石公園（河口湖自然生活館）', '0555-76-8230', 'MapCode：59 089 357｜免費停車', '大石公園 河口湖'],
+        ['Day 6', '富士山景觀纜車（天上山公園）', '0555-72-0363', '停縣營免費船津浜停車場（遊覽船 0555-72-0029）', '富士山パノラマロープウェイ'],
+        ['Day 6', '旅之站 kawaguchiko base', '0555-72-9955', '河口521-4｜大型免費停車場', '旅の駅 kawaguchiko base'],
+        ['Day 6', '河口湖音樂盒之森美術館', '0555-20-4111', '河口3077-20｜免費停車場 300 席', '河口湖音楽と森の美術館'],
+        ['Day 7', '新倉山淺間公園（忠靈塔）', '0555-21-1000', '富士吉田市浅間2-4-1｜早到車位多', '新倉山浅間公園 駐車場'],
+        ['Day 7', '忍野八海（大林／オサダ停車場）', '0555-84-2535', '大林大型停車 100 席（備用：オサダ 0555-84-2297）', '忍野八海 駐車場'],
+        ['Day 7', '西湖療癒之里根場', '0555-20-4677', '西湖根場2710｜免費停車場', '西湖いやしの里根場'],
+        ['Day 7', '西湖野鳥之森公園（樹冰祭）', '0555-82-2160', '西湖2068｜冬季留意結冰路面', '西湖野鳥の森公園'],
+        ['Day 8', 'ENEOS セルフ富士河口湖SS（加油）', '0555-72-2071', '06:00–24:00（備用：セルフRESO 0555-72-0084）', 'ENEOS セルフ富士河口湖SS']
+      ];
+      return `
+        <div class="vg-note" style="margin-top:0;margin-bottom:.6rem">💡 <b>日本車機導航秘訣：</b>在車機選「<b>電話番号検索</b>」直接輸入下方電話最準確！冬季清晨河口湖大橋與山區易結黑冰，請確認已加選雪胎（スタッドレスタイヤ）。</div>
+        <div style="overflow-x:auto">
+          <table class="quick-tt-table">
+            <thead><tr><th>日別</th><th>目的地</th><th>車機輸入電話</th><th>停車／導航備註</th></tr></thead>
+            <tbody>
+              ${spots.map(([dy, name, tel, note, q]) => `<tr>
+                <td style="white-space:nowrap;font-weight:800;font-size:.8rem">${esc(dy)}</td>
+                <td><b>${esc(name)}</b><br><a class="map-mini" style="margin-left:0;margin-top:.2rem" href="${mapUrl(q)}" target="_blank" rel="noopener">🗺️ Google 地圖</a></td>
+                <td style="white-space:nowrap"><a href="tel:${esc(tel)}" style="font-weight:900;font-size:.96rem;text-decoration:none">${esc(tel)}</a></td>
+                <td style="font-size:.82rem;color:var(--muted)">${esc(note)}</td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>`;
+    }
   }
 };
 
@@ -1978,6 +2033,23 @@ function renderDay(){
   $('#filters').innerHTML = fl.map(([k,l]) => `<button data-f="${k}" aria-pressed="${state.filter===k}">${l}</button>`).join('');
   $('#filters').querySelectorAll('button').forEach(b => b.onclick = () => { state.filter = b.dataset.f; renderDay(); });
 
+  // 一次性可點擊地名小提示（長輩防迷路）
+  const tipBar = $('#placeTipBar');
+  if (tipBar){
+    if (!store.get('place_tip_seen', false)){
+      tipBar.innerHTML = `<div class="place-tip">
+        <span>💡 點擊有虛線底線的地名，即可看<b>日文、聽發音與開 Google 地圖</b></span>
+        <button type="button" id="dismissPlaceTipBtn">知道了</button>
+      </div>`;
+      $('#dismissPlaceTipBtn').onclick = () => {
+        store.set('place_tip_seen', true);
+        tipBar.innerHTML = '';
+      };
+    } else {
+      tipBar.innerHTML = '';
+    }
+  }
+
   // 時間軸
   const isToday = jstNow().date === d.date, nowMin = jstNow().min;
   let nowIdx = -1;
@@ -2000,8 +2072,16 @@ function renderDay(){
     if (dayNum === 1 && p.text.includes('MIMARU 東京 上野 NORTH')) pills.push(`<button type="button" class="quick-pill" onclick="openTaxiModal('mimaru')">🚖 秀給司機看（飯店）</button>`);
     if (dayNum === 3 && p.text.includes('星野榆樹街小鎮')) pills.push(`<button type="button" class="quick-pill" onclick="openTaxiModal('hoshino')">🚖 秀給司機看（星野）</button>`);
     if (dayNum === 5 && p.text.includes('119號')) pills.push(`<button type="button" class="quick-pill" onclick="openGuideModal('tokyoStation')">🗺️ 東京站轉 8 號站牌動線圖</button>`);
-    if (dayNum === 5 && p.text.includes('Toyota 富士河口湖店')) pills.push(`<button type="button" class="quick-pill" onclick="openTaxiModal('toyota')">🚖 秀給司機看（租車站）</button>`);
-    if (dayNum === 8 && p.text.includes('ENEOS')) pills.push(`<button type="button" class="quick-pill" onclick="openPhraseModal(GAS_PHRASES[0])">⛽ 加油溝通卡（加滿普通油）</button>`);
+    if (dayNum === 5 && p.text.includes('Toyota 富士河口湖店')) {
+      pills.push(`<button type="button" class="quick-pill" onclick="openTaxiModal('toyota')">🚖 秀給司機看（租車站）</button>`);
+      pills.push(`<button type="button" class="quick-pill" onclick="openGuideModal('carNavi')">🚗 河口湖車機導航速查</button>`);
+    }
+    if (dayNum === 6 && p.text.includes('大石公園')) pills.push(`<button type="button" class="quick-pill" onclick="openGuideModal('carNavi')">🚗 河口湖車機導航速查</button>`);
+    if (dayNum === 7 && p.text.includes('新倉山淺間公園') && p.time.includes('08:30')) pills.push(`<button type="button" class="quick-pill" onclick="openGuideModal('carNavi')">🚗 河口湖車機導航速查</button>`);
+    if (dayNum === 8 && p.text.includes('ENEOS')) {
+      pills.push(`<button type="button" class="quick-pill" onclick="openPhraseModal(GAS_PHRASES[0])">⛽ 加油溝通卡（加滿普通油）</button>`);
+      pills.push(`<button type="button" class="quick-pill" onclick="openGuideModal('carNavi')">🚗 河口湖車機導航速查</button>`);
+    }
     if (dayNum === 8 && p.text.includes('東京晴空塔') && p.time.includes('16:30')) pills.push(`<button type="button" class="quick-pill" onclick="openGuideModal('solamachi')">🏢 Solamachi 晴空塔樓層圖</button>`);
     if (dayNum === 9 && p.text.includes('本52')) pills.push(`<button type="button" class="quick-pill" onclick="openGuideModal('kawagoeLoop')">🗺️ 川越無回頭路環線圖</button>`);
 
@@ -2025,7 +2105,7 @@ function renderDay(){
   $('#prevDay').onclick = () => { selectDay(state.day-1); window.scrollTo({top:0,behavior:'smooth'}); };
   $('#nextDay').onclick = () => { selectDay(state.day+1); window.scrollTo({top:0,behavior:'smooth'}); };
 
-  // 側欄（住宿＋可勾選當日行前提醒＋當日跳轉列）
+  // 側欄（住宿＋可勾選當日行前提醒＋當日跳轉列與即時天氣）
   let side = '';
   if (d.hotel){
     const hObj = HOTELS.find(h => d.hotel.includes(h.name.split(' ')[0]));
@@ -2060,12 +2140,18 @@ function renderDay(){
 
   const dayBookings = BOOKINGS.filter(b => b.days.includes(dayNum));
   const dayTimetables = TIMETABLES.filter(t => t.days.includes(dayNum));
-  if (dayBookings.length || dayTimetables.length){
-    side += `<div class="box" style="display:flex;gap:.45rem;flex-wrap:wrap;align-items:center">
-      ${dayTimetables.length ? `<button type="button" class="btn" style="margin:0" onclick="jumpToTimetableDay(${dayNum})">🚆 Day ${dayNum} 交通時刻表（${dayTimetables.length}）→</button>` : ''}
-      ${dayBookings.length ? `<button type="button" class="btn" style="margin:0" onclick="jumpToBookingDay(${dayNum})">🎟️ 今日相關預訂（${dayBookings.length}）→</button>` : ''}
-    </div>`;
-  }
+  const wxLink = (dayNum === 3 || dayNum === 4)
+    ? `<a class="btn" style="margin:0" href="https://tenki.jp/forecast/3/23/4820/20321/" target="_blank" rel="noopener">❄️ 輕井澤天氣 ↗</a>`
+    : (dayNum >= 5 && dayNum <= 7)
+      ? `<a class="btn" style="margin:0" href="https://tenki.jp/forecast/3/22/4920/19430/" target="_blank" rel="noopener">🗻 河口湖天氣 ↗</a>
+         <a class="btn" style="margin:0" href="https://fujisantotomoni.jp/livecamera/" target="_blank" rel="noopener">📹 富士山即時影像 ↗</a>`
+      : `<a class="btn" style="margin:0" href="https://tenki.jp/forecast/3/16/4410/13106/" target="_blank" rel="noopener">🌤️ 東京天氣 ↗</a>`;
+
+  side += `<div class="box" style="display:flex;gap:.45rem;flex-wrap:wrap;align-items:center">
+    ${dayTimetables.length ? `<button type="button" class="btn" style="margin:0" onclick="jumpToTimetableDay(${dayNum})">🚆 Day ${dayNum} 交通時刻表（${dayTimetables.length}）→</button>` : ''}
+    ${dayBookings.length ? `<button type="button" class="btn" style="margin:0" onclick="jumpToBookingDay(${dayNum})">🎟️ 今日相關預訂（${dayBookings.length}）→</button>` : ''}
+    ${wxLink}
+  </div>`;
   $('#side').innerHTML = side;
 
   if (d.prep.length){
@@ -2097,7 +2183,7 @@ function renderDay(){
 })();
 
 /* =========================================================
-   橫幅（倒數 / 今日進行中）
+   橫幅（精簡單行：倒數 / 今日進行中，僅顯示於每日行程頁）
    ========================================================= */
 function renderBanner(){
   const now = jstNow(), ti = todayIdx();
@@ -2106,12 +2192,16 @@ function renderBanner(){
   if (today < start){
     const days = Math.round((start - today) / 864e5);
     html += `<div class="banner">
-      <div class="banner-main"><span class="big">🧳</span><div><b>距離出發還有 ${days} 天！</b><br>2027/2/1（一）05:30 出發前往桃園機場 T2（BR198 08:50 起飛）</div></div>
+      <span class="big" aria-hidden="true">🧳</span>
+      <div class="btxt"><b>倒數 ${days} 天</b>｜2/1（一）05:30 桃園 T2（BR198 08:50 起飛）</div>
     </div>`;
   } else if (ti >= 0){
     const d = DAYS[ti];
     const next = d.parsed.find(p => p.start !== null && p.start > now.min);
-    html += `<div class="banner"><div class="banner-main"><span class="big">📍</span><div><b>今天是 Day ${ti+1}：${esc(d.title)}</b><br>${next ? `下一站 ${esc(next.time.split(/[-或／]/)[0].trim())}：${esc(next.text.replace(/[【】「」]/g,''))}` : '今天的行程已完成，好好休息！'}</div></div></div>`;
+    html += `<div class="banner">
+      <span class="big" aria-hidden="true">📍</span>
+      <div class="btxt"><b>Day ${ti+1}</b>｜${next ? `下一站 ${esc(next.time.split(/[-或／]/)[0].trim())} ${esc(next.text.replace(/[【】「」]/g,''))}` : '今日行程已完成，好好休息！'}</div>
+    </div>`;
   }
   $('#banner').innerHTML = html;
 }
@@ -2354,6 +2444,13 @@ const TT_CAT_ICONS = {
   '自駕／景點設施':'🚗'
 };
 
+function scrollActiveFilter(sel){
+  const box = $(sel);
+  if (!box || typeof box.scrollTo !== 'function') return;
+  const active = box.querySelector('[aria-pressed="true"]');
+  if (active) box.scrollTo({left: Math.max(0, active.offsetLeft - box.offsetLeft - (box.clientWidth - active.offsetWidth)/2), behavior: 'smooth'});
+}
+
 function renderTimetables(){
   const q = ($('#tq')?.value || '').trim().toLowerCase();
 
@@ -2369,6 +2466,7 @@ function renderTimetables(){
   const dayOpts = [['all','全部天數'], ...DAYS.map((d,i) => [String(i+1), `Day ${i+1} (${+d.date.slice(5,7)}/${+d.date.slice(8,10)})`])];
   $('#transitDayFilters').innerHTML = dayOpts.map(([k,l]) => `<button data-td="${k}" aria-pressed="${state.transitDay===k}">${esc(l)}</button>`).join('');
   $('#transitDayFilters').querySelectorAll('button').forEach(b => b.onclick = () => { state.transitDay = b.dataset.td; renderTimetables(); });
+  scrollActiveFilter('#transitDayFilters');
 
   const filtered = TIMETABLES.filter(t => {
     if (state.transitCat !== 'all' && t.cat !== state.transitCat) return false;
@@ -2476,6 +2574,7 @@ function renderFood(){
   const dayOpts = [['all','全部天數'], ...DAYS.map((d,i) => [String(i), `Day ${i+1} (${+d.date.slice(5,7)}/${+d.date.slice(8,10)})`])];
   $('#foodDayFilters').innerHTML = dayOpts.map(([k,l]) => `<button data-fd="${k}" aria-pressed="${state.foodDay===k}">${esc(l)}</button>`).join('');
   $('#foodDayFilters').querySelectorAll('button').forEach(b => b.onclick = () => { state.foodDay = b.dataset.fd; renderFood(); });
+  scrollActiveFilter('#foodDayFilters');
 
   const tierOpts = [['all','全部等級'], ['A','【A 級】特色名店/可訂位'], ['B','【B 級】平價家庭/壽司連鎖'], ['C','【C 級】快速牛丼/簡餐'], ['tablet','📱 中文平板/多語點餐']];
   $('#foodTierFilters').innerHTML = tierOpts.map(([k,l]) => `<button data-ft="${k}" aria-pressed="${state.foodTier===k}">${esc(l)}</button>`).join('');
@@ -2691,6 +2790,48 @@ $('#resetChk').onclick = () => {
 };
 
 /* =========================================================
+   家族進度離線同步（免帳號／LINE 群組貼上同步）
+   ========================================================= */
+function encodeSyncCode(){
+  const payload = {
+    v: 1,
+    chk: store.get('chk', {}),
+    bk_notes: store.get('bk_notes', {}),
+    bk_sub: store.get('bk_sub', {}),
+    custom_chk: store.get('custom_chk', [])
+  };
+  const bytes = new TextEncoder().encode(JSON.stringify(payload));
+  let bin = '';
+  bytes.forEach(b => bin += String.fromCharCode(b));
+  return 'KANTO2027:' + btoa(bin);
+}
+
+function applySyncCode(raw){
+  const s = (raw || '').trim();
+  const m = s.match(/KANTO2027:([A-Za-z0-9+/=]+)/);
+  if (!m) return {ok:false, msg:'代碼格式不正確，請確認有完整貼上「KANTO2027:...」代碼'};
+  try {
+    const bin = atob(m[1]);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    const data = JSON.parse(new TextDecoder().decode(bytes));
+    if (!data || typeof data !== 'object') throw new Error('invalid');
+    if (data.chk && typeof data.chk === 'object') store.set('chk', data.chk);
+    if (data.bk_notes && typeof data.bk_notes === 'object') store.set('bk_notes', data.bk_notes);
+    if (data.bk_sub && typeof data.bk_sub === 'object') store.set('bk_sub', data.bk_sub);
+    if (Array.isArray(data.custom_chk)) store.set('custom_chk', data.custom_chk);
+    renderBookings();
+    renderChecks();
+    renderDay();
+    renderBanner();
+    buildNav();
+    return {ok:true, msg:'✅ 已成功匯入家人進度並同步全部頁面！'};
+  } catch (e) {
+    return {ok:false, msg:'代碼解析失敗，請確認未遺漏任何字元'};
+  }
+}
+
+/* =========================================================
    緊急聯絡、工具與離線設定（v-info）
    ========================================================= */
 function renderInfo(){
@@ -2711,10 +2852,35 @@ function renderInfo(){
       <button class="btn" id="shareAppBtn" style="margin:0">📤 分享行程給家人</button>
     </div></div>
 
+  <div class="box"><h3>⛅ 當地即時天氣 ＆ 富士山影像</h3>
+    <div style="font-size:.86rem;color:var(--muted);margin-bottom:.5rem">出發前與河口湖自駕清晨可快速確認氣溫、降雪與富士山能見度：</div>
+    <div style="display:flex;gap:.45rem;flex-wrap:wrap">
+      <a class="btn" style="margin:0" href="https://tenki.jp/forecast/3/16/4410/13106/" target="_blank" rel="noopener">🌤️ 東京（上野）天氣 ↗</a>
+      <a class="btn" style="margin:0" href="https://tenki.jp/forecast/3/23/4820/20321/" target="_blank" rel="noopener">❄️ 輕井澤天氣 ↗</a>
+      <a class="btn" style="margin:0" href="https://tenki.jp/forecast/3/22/4920/19430/" target="_blank" rel="noopener">🗻 富士河口湖天氣 ↗</a>
+      <a class="btn primary" style="margin:0" href="https://fujisantotomoni.jp/livecamera/" target="_blank" rel="noopener">📹 河口湖・富士山即時影像 ↗</a>
+      <a class="btn" style="margin:0" href="https://fujisan.ne.jp/" target="_blank" rel="noopener">🗻 富士河口湖官方觀光網 ↗</a>
+    </div></div>
+
+  <div class="box"><h3>👨‍👩‍👦‍👦 家族進度同步（離線免帳號）</h3>
+    <div style="font-size:.86rem;color:var(--muted);margin-bottom:.5rem">將本機的「訂票完成、預約代號備註、攜帶物品與每日準備勾選」打包成代碼，貼到 LINE 群組即可讓家人一鍵同步。</div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+      <button type="button" class="btn primary" id="exportSyncBtn" style="margin:0">📤 複製進度代碼給家人</button>
+      <button type="button" class="btn" id="toggleImportSyncBtn" style="margin:0">📥 匯入家人進度代碼</button>
+    </div>
+    <div id="syncImportWrap" style="display:none;margin-top:.65rem;padding-top:.6rem;border-top:1px dashed var(--line)">
+      <textarea id="syncCodeInp" rows="3" placeholder="貼上家人分享的 KANTO2027:... 代碼（整段 LINE 訊息一起貼上也可以）" style="width:100%;font:inherit;font-size:.84rem;padding:.5rem .65rem;border-radius:10px;border:1px solid var(--line);background:var(--surface2);color:var(--text);resize:vertical"></textarea>
+      <div style="display:flex;gap:.45rem;margin-top:.45rem;flex-wrap:wrap">
+        <button type="button" class="btn primary btn-sm" id="applySyncBtn">✅ 確認匯入並套用</button>
+        <button type="button" class="btn btn-sm" id="cancelSyncBtn">取消</button>
+      </div>
+    </div></div>
+
   <div class="box"><h3>🔧 工具與顯示設定</h3>
     <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.2rem">
       <button class="btn primary" id="searchBtn" style="margin:0">🔍 全站綜合搜尋</button>
       <button class="btn" id="themeBtn" style="margin:0">${isDark ? '☀️ 切換為淺色模式' : '🌙 切換為深色模式'}</button>
+      <button class="btn" id="openCarNaviFromInfoBtn" style="margin:0">🚗 河口湖車機導航速查</button>
     </div></div>
 
   <div class="box"><h3>📲 PWA 離線模式 ＆ App 安裝狀態</h3>
@@ -2730,6 +2896,40 @@ function renderInfo(){
 
   $('#searchBtn').onclick = openSearchModal;
   $('#themeBtn').onclick = () => setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+  $('#openCarNaviFromInfoBtn').onclick = () => openGuideModal('carNavi');
+  $('#exportSyncBtn').onclick = async () => {
+    const code = encodeSyncCode();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      try {
+        await navigator.clipboard.writeText(code);
+        showToast('✅ 已複製進度代碼！請貼到 LINE 群組給家人');
+        return;
+      } catch (e) {}
+    }
+    const wrap = $('#syncImportWrap');
+    if (wrap) {
+      wrap.style.display = 'block';
+      $('#syncCodeInp').value = code;
+      $('#syncCodeInp').focus();
+      $('#syncCodeInp').select();
+      showToast('已產生進度代碼，請長按全選複製');
+    }
+  };
+  $('#toggleImportSyncBtn').onclick = () => {
+    const wrap = $('#syncImportWrap');
+    const open = wrap.style.display !== 'none';
+    wrap.style.display = open ? 'none' : 'block';
+    if (!open) { $('#syncCodeInp').value = ''; $('#syncCodeInp').focus(); }
+  };
+  $('#cancelSyncBtn').onclick = () => { $('#syncImportWrap').style.display = 'none'; };
+  $('#applySyncBtn').onclick = () => {
+    const res = applySyncCode($('#syncCodeInp').value);
+    showToast(res.msg);
+    if (res.ok) {
+      $('#syncCodeInp').value = '';
+      $('#syncImportWrap').style.display = 'none';
+    }
+  };
   $('#infoInstallBtn').onclick = () => {
     if (pwaState.deferredPrompt) {
       pwaState.deferredPrompt.prompt();
@@ -2835,6 +3035,17 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
   });
 } else if (location.protocol === 'file:') {
   updateSwUI('💡 目前為本機單檔直接開啟（本身即可離線使用；若部署至 GitHub Pages / Netlify 等 HTTPS 網址即可啟用手機 PWA 主畫面安裝與自動離線快取）');
+}
+
+/* =========================================================
+   浮動回到頂端按鈕
+   ========================================================= */
+const backTopBtn = $('#backTopBtn');
+if (backTopBtn){
+  const syncBackTop = () => backTopBtn.classList.toggle('show', window.scrollY > 400);
+  window.addEventListener('scroll', syncBackTop, {passive:true});
+  backTopBtn.addEventListener('click', () => window.scrollTo({top:0, behavior:'smooth'}));
+  syncBackTop();
 }
 
 /* =========================================================
