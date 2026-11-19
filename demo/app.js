@@ -1745,15 +1745,21 @@ function expDayShort(dayNum){
 }
 
 const expState = {
+  tab: 'ledger',
   editId: null,
+  activeRowId: null,
   day: 'all',
   cat: 'all',
   payer: 'all',
   q: '',
   formOpen: true,
+  filterOpen: false,
+  optOpen: false,
   cur: 'JPY',
   method: '💵 現金',
   selectedCat: '🍜 餐飲',
+  selectedPayer: null,
+  selectedSplit: null,
   prefillJpy: null
 };
 
@@ -1801,16 +1807,17 @@ function expDetectCat(e){
 function renderExp(preserveForm = false){
   const el = $('#expPage'); if (!el) return;
   const prevDayScroll = $('#expDayFilters')?.scrollLeft ?? null;
+  const prevCatScroll = $('#expChips')?.scrollLeft ?? null;
   const savedForm = preserveForm && $('#expForm') ? {
     desc: $('#expDesc')?.value ?? '',
     amt: $('#expJpy')?.value ?? '',
-    note: $('#expNote')?.value ?? ''
+    note: $('#expNote')?.value ?? '',
+    day: $('#expDay')?.value ?? null
   } : null;
+
   const m = EXP.members();
   const list = EXP.list();
   const rate = store.get('rate', 0.215);
-  const liveInfo = store.get('rate_live', null);
-  const isManualRate = store.get('rate_manual', false);
   const total = list.reduce((acc, e) => acc + (Number(e.jpy) || 0), 0);
   const {paid, share, bal, tx} = EXP.settle();
   const settledMap = EXP.settled();
@@ -1822,22 +1829,27 @@ function renderExp(preserveForm = false){
   if (expState.editId && !editing) expState.editId = null;
 
   // Defaults for form
-  const formDay = editing ? editing.day : (expState.day !== 'all' ? +expState.day : (todayIdx() >= 0 ? todayIdx() + 1 : state.day + 1));
+  const formDay = editing ? editing.day : (savedForm?.day !== null && savedForm?.day !== undefined ? +savedForm.day : (expState.day !== 'all' ? +expState.day : (todayIdx() >= 0 ? todayIdx() + 1 : state.day + 1)));
   const formCur = editing ? (editing.origCur || 'JPY') : expState.cur;
   const formAmt = editing ? (editing.origAmt ?? editing.jpy) : (expState.prefillJpy ?? savedForm?.amt ?? '');
   const formCat = editing ? expDetectCat(editing) : expState.selectedCat;
   const formMethod = editing ? (editing.method || '💵 現金') : expState.method;
-  const formPayer = editing && m.includes(editing.payer) ? editing.payer : m[0];
-  const formSplit = editing ? editing.split : m;
+  const formPayer = editing && m.includes(editing.payer) ? editing.payer : (expState.selectedPayer && m.includes(expState.selectedPayer) ? expState.selectedPayer : m[0]);
+  const formSplit = editing ? editing.split : (expState.selectedSplit ? expState.selectedSplit.filter(x => m.includes(x)) : m.slice());
   const formDesc = editing ? editing.desc : (savedForm?.desc ?? '');
   const formNote = editing ? (editing.note || '') : (savedForm?.note ?? '');
+  const showOptOpen = expState.optOpen || (editing && (!!formNote || formMethod !== '💵 現金'));
 
-  // Day counts for filter chips
+  // Day counts for filter chips (only show days that have entries!)
   const dayCounts = {};
   list.forEach(e => { const d = Number(e.day ?? 1); dayCounts[d] = (dayCounts[d] || 0) + 1; });
+  if (expState.day !== 'all' && !dayCounts[Number(expState.day)]) expState.day = 'all';
+  const activeDayKeys = Object.keys(dayCounts).map(Number).sort((a, b) => a - b);
 
   // Filter list
   const qLower = expState.q.trim().toLowerCase();
+  const advFilterCount = (expState.cat !== 'all' ? 1 : 0) + (expState.payer !== 'all' ? 1 : 0) + (qLower ? 1 : 0);
+  const showFilterBar = expState.filterOpen || advFilterCount > 0;
   const filtered = list.filter(e => {
     if (expState.day !== 'all' && String(e.day) !== String(expState.day)) return false;
     if (expState.cat !== 'all' && expDetectCat(e) !== expState.cat) return false;
@@ -1845,7 +1857,7 @@ function renderExp(preserveForm = false){
     if (qLower && !`${e.desc} ${e.note || ''} ${e.payer} ${expDetectCat(e)}`.toLowerCase().includes(qLower)) return false;
     return true;
   });
-  const isFiltered = expState.day !== 'all' || expState.cat !== 'all' || expState.payer !== 'all' || !!qLower;
+  const isFiltered = expState.day !== 'all' || advFilterCount > 0;
   const filteredTotal = filtered.reduce((acc, e) => acc + (Number(e.jpy) || 0), 0);
 
   // Group filtered entries by day (0..10)
@@ -1862,123 +1874,114 @@ function renderExp(preserveForm = false){
   list.forEach(e => { const c = expDetectCat(e); catTotals[c] = (catTotals[c] || 0) + (Number(e.jpy) || 0); });
   const catRows = Object.entries(catTotals).sort((a, b) => b[1] - a[1]);
 
-  const rateLabel = isManualRate ? `手動匯率 1 JPY = ${rate} TWD` : (liveInfo ? `即時匯率 1 JPY = ${rate} TWD（${liveInfo.date}）` : `1 JPY = ${rate} TWD`);
+  const unsettledCnt = tx.filter(t => !settledMap[t.key]).length;
+  const avgTwd = m.length ? fTwd(total / m.length) : 'NT$0';
 
   el.innerHTML = `
+    <!-- 精簡總覽條 -->
     <div class="exp-hero">
-      <div class="exp-hero-main">
-        <div class="exp-hero-lbl">🧾 旅途總花費（共 ${list.length} 筆）</div>
-        <div class="exp-hero-amt">${fJpy(total)} <span class="exp-hero-twd">≈ ${fTwd(total)}</span></div>
-        <div class="exp-hero-sub">每人平均約 ${fJpy(m.length ? total / m.length : 0)}（${fTwd(m.length ? total / m.length : 0)}）</div>
-      </div>
-      <div class="exp-hero-rate">
-        <span class="exp-rate-txt">${esc(rateLabel)}</span>
-        <div style="display:flex;gap:.35rem;flex-wrap:wrap">
-          <button type="button" class="btn btn-sm" id="expRefreshRate">🔄 更新匯率</button>
-          <button type="button" class="btn btn-sm" id="expOpenCalc">💴 匯率設定</button>
-        </div>
+      <div class="exp-hero-amt">${fJpy(total)} <span class="exp-hero-twd">≈ ${fTwd(total)}</span></div>
+      <div class="exp-hero-bot">
+        <span class="exp-hero-sub">共 ${list.length} 筆 · 均 ${avgTwd}/人</span>
+        <button type="button" class="exp-rate-pill" id="expRefreshRate" title="點擊更新即時匯率">1 JPY=${rate} 🔄</button>
       </div>
     </div>
 
-    <div class="exp-layout">
+    <!-- 手機版分頁切換（桌機隱藏） -->
+    <div class="exp-mob-tabs" role="tablist">
+      <button type="button" role="tab" data-exptab="ledger" aria-selected="${expState.tab === 'ledger'}">📒 明細與記帳 (${list.length})</button>
+      <button type="button" role="tab" data-exptab="settle" aria-selected="${expState.tab === 'settle'}">🤝 結算與統計${unsettledCnt ? ` (${unsettledCnt})` : ''}</button>
+    </div>
+
+    <div class="exp-layout" data-tab="${expState.tab}">
       <div class="exp-main">
-        <!-- 新增 / 編輯記帳卡片 -->
+        <!-- 瘦身版新增／編輯記帳卡片 -->
         <div class="box exp-card ${editing ? 'editing' : ''}">
           <div class="exp-card-hd">
-            <h3 style="margin:0">${editing ? '✏️ 編輯記帳項目' : '➕ 新增記帳'}</h3>
+            <h3 style="margin:0;font-size:.98rem">${editing ? '✏️ 編輯記帳' : '➕ 新增記帳'}</h3>
             ${editing
-              ? `<button type="button" class="btn btn-sm" id="expCancelEdit">✕ 取消編輯</button>`
-              : `<button type="button" class="btn btn-sm" id="expToggleForm">${expState.formOpen ? '收合 ▲' : '展開 ▼'}</button>`}
+              ? `<button type="button" class="exp-ghost-btn" id="expCancelEdit">✕ 取消</button>`
+              : `<button type="button" class="exp-ghost-btn" id="expToggleForm">${expState.formOpen ? '收合 ▲' : '＋ 記一筆'}</button>`}
           </div>
           <form id="expForm" class="exp-form-v2" ${(!editing && !expState.formOpen) ? 'hidden' : ''}>
-            <div class="exp-field">
-              <label class="exp-lbl">1. 選擇類別</label>
-              <div class="exp-chips" id="expChips">
-                ${EXP_CATS.map(c => `<button type="button" data-v="${esc(c)}" aria-pressed="${formCat === c}">${esc(c)}</button>`).join('')}
-              </div>
+            <div class="exp-chips" id="expChips" aria-label="選擇類別">
+              ${EXP_CATS.map(c => `<button type="button" data-v="${esc(c)}" aria-pressed="${formCat === c}">${esc(c)}</button>`).join('')}
             </div>
 
-            <div class="exp-row2">
-              <div class="exp-field" style="flex:1.3">
-                <label class="exp-lbl" for="expDesc">2. 項目說明（留空則用類別名稱）</label>
-                <input id="expDesc" value="${esc(formDesc)}" placeholder="例：一蘭拉麵、晴空塔門票" autocomplete="off">
-              </div>
-              <div class="exp-field" style="flex:1">
-                <label class="exp-lbl" for="expDay">日期</label>
-                <select id="expDay">
-                  <option value="0" ${+formDay === 0 ? 'selected' : ''}>🗓️ 行前預付</option>
-                  ${DAYS.map((d,i) => `<option value="${i+1}" ${+formDay === i+1 ? 'selected' : ''}>${fmtMD(d)}</option>`).join('')}
-                </select>
-              </div>
+            <div class="exp-inline-row">
+              <select id="expDay" class="exp-day-sel" aria-label="日期">
+                <option value="0" ${+formDay === 0 ? 'selected' : ''}>行前</option>
+                ${DAYS.map((d,i) => `<option value="${i+1}" ${+formDay === i+1 ? 'selected' : ''}>${fmtMD(d)}</option>`).join('')}
+              </select>
+              <input id="expDesc" value="${esc(formDesc)}" placeholder="項目說明（留空用類別）" autocomplete="off" aria-label="項目說明">
             </div>
 
-            <div class="exp-row2">
-              <div class="exp-field" style="flex:1.2">
-                <label class="exp-lbl" for="expJpy">3. 金額與幣別</label>
-                <div class="exp-amt-wrap">
-                  <div class="exp-cur-seg" id="expCurSeg">
-                    <button type="button" data-cur="JPY" aria-pressed="${formCur === 'JPY'}">¥ 日幣</button>
-                    <button type="button" data-cur="TWD" aria-pressed="${formCur === 'TWD'}">$ 台幣</button>
-                  </div>
-                  <input id="expJpy" type="number" inputmode="decimal" min="1" step="any" value="${esc(String(formAmt))}" placeholder="${formCur === 'JPY' ? '輸入日幣' : '輸入台幣'}" required>
+            <div class="exp-amt-block">
+              <div class="exp-amt-wrap">
+                <div class="exp-cur-seg" id="expCurSeg">
+                  <button type="button" data-cur="JPY" aria-pressed="${formCur === 'JPY'}">¥ 日幣</button>
+                  <button type="button" data-cur="TWD" aria-pressed="${formCur === 'TWD'}">$ 台幣</button>
                 </div>
-                <div class="exp-conv-preview" id="expConvPreview"></div>
+                <input id="expJpy" type="number" inputmode="decimal" min="1" step="any" value="${esc(String(formAmt))}" placeholder="${formCur === 'JPY' ? '輸入日幣金額' : '輸入台幣金額'}" required aria-label="金額">
               </div>
-              <div class="exp-field" style="flex:1">
-                <label class="exp-lbl">付款方式</label>
-                <div class="exp-pill-group" id="expMethodGroup">
+              <div class="exp-conv-preview" id="expConvPreview"></div>
+            </div>
+
+            <div class="exp-people-grid">
+              <div class="exp-people-row">
+                <span class="exp-mini-lbl">付款</span>
+                <div class="exp-member-pills" id="expPayerGroup">
+                  ${m.map(n => `<button type="button" data-p="${esc(n)}" aria-pressed="${formPayer === n}">${esc(n)}</button>`).join('')}
+                </div>
+              </div>
+              <div class="exp-people-row">
+                <div class="exp-split-hd">
+                  <span class="exp-mini-lbl">分攤</span>
+                  <span class="exp-quick-split">
+                    <button type="button" id="expSplitAll">全選</button>
+                    ${m.length >= 4 ? `<button type="button" id="expSplitAdults">前4</button>` : ''}
+                    <button type="button" id="expSplitNone">清除</button>
+                  </span>
+                </div>
+                <div class="exp-member-pills" id="expWho">
+                  ${m.map(n => `<button type="button" data-s="${esc(n)}" aria-pressed="${formSplit.includes(n)}">${esc(n)}</button>`).join('')}
+                </div>
+              </div>
+            </div>
+
+            <details class="exp-opt-fold" id="expOptFold" ${showOptOpen ? 'open' : ''}>
+              <summary id="expOptSum">付款方式（${esc(formMethod.replace(/^\S+\s*/, ''))}）${formNote ? ' · 有備註' : '／備註'}</summary>
+              <div class="exp-opt-body">
+                <div class="exp-method-pills" id="expMethodGroup">
                   ${EXP_METHODS.map(pm => `<button type="button" data-m="${esc(pm)}" aria-pressed="${formMethod === pm}">${esc(pm)}</button>`).join('')}
                 </div>
+                <input id="expNote" value="${esc(formNote)}" placeholder="備註（例：含稅、刷中信卡、退稅後）" autocomplete="off">
               </div>
-            </div>
+            </details>
 
-            <div class="exp-field">
-              <label class="exp-lbl">4. 誰付錢？</label>
-              <div class="exp-pill-group" id="expPayerGroup">
-                ${m.map(n => `<button type="button" data-p="${esc(n)}" aria-pressed="${formPayer === n}">${esc(n)}</button>`).join('')}
-              </div>
-            </div>
-
-            <div class="exp-field">
-              <div class="exp-lbl-row">
-                <label class="exp-lbl" style="margin:0">5. 誰一起分攤？</label>
-                <div class="exp-quick-split">
-                  <button type="button" id="expSplitAll">全選</button>
-                  ${m.length >= 4 ? `<button type="button" id="expSplitAdults">前4位</button>` : ''}
-                  <button type="button" id="expSplitNone">清除</button>
-                </div>
-              </div>
-              <div class="exp-who-grid" id="expWho">
-                ${m.map(n => `<label class="exp-chk-pill"><input type="checkbox" value="${esc(n)}" ${formSplit.includes(n) ? 'checked' : ''}><span>${esc(n)}</span></label>`).join('')}
-              </div>
-            </div>
-
-            <div class="exp-field">
-              <label class="exp-lbl" for="expNote">備註（選填）</label>
-              <input id="expNote" value="${esc(formNote)}" placeholder="例：含稅、刷中信卡、退稅後金額" autocomplete="off">
-            </div>
-
-            <div style="display:flex;gap:.5rem;flex-wrap:wrap">
-              <button class="btn primary" type="submit" style="flex:1;justify-content:center;margin:0">${editing ? '💾 儲存這筆修改' : '＋ 新增這筆記帳'}</button>
-              ${editing ? `<button class="btn" type="button" id="expCancelEdit2" style="margin:0">取消</button>` : ''}
+            <div style="display:flex;gap:.45rem">
+              <button class="btn primary exp-submit-btn" type="submit">${editing ? '💾 儲存修改' : '＋ 新增記帳'}</button>
+              ${editing ? `<button class="btn" type="button" id="expCancelEdit2" style="margin:0;padding:.45rem .85rem">取消</button>` : ''}
             </div>
           </form>
         </div>
 
-        <!-- 篩選與明細區 -->
+        <!-- 精簡花費明細 -->
         <div class="box exp-card">
-          <div class="exp-card-hd" style="margin-bottom:.5rem">
-            <h3 style="margin:0">📒 花費明細</h3>
-            ${isFiltered ? `<button type="button" class="btn btn-sm" id="expResetFilter">✕ 清除篩選</button>` : ''}
+          <div class="exp-card-hd" style="margin-bottom:.4rem">
+            <h3 style="margin:0;font-size:.98rem">📒 花費明細</h3>
+            <div style="display:flex;gap:.3rem;align-items:center">
+              ${isFiltered ? `<button type="button" class="exp-ghost-btn" id="expResetFilter">✕ 清除</button>` : ''}
+              <button type="button" class="exp-ghost-btn ${advFilterCount ? 'active' : ''}" id="expToggleFilter">🔍 篩選${advFilterCount ? ` (${advFilterCount})` : ''}</button>
+            </div>
           </div>
 
-          <div class="filters hscroll" id="expDayFilters" style="margin-bottom:.55rem">
+          ${activeDayKeys.length ? `<div class="filters hscroll" id="expDayFilters">
             <button type="button" data-d="all" aria-pressed="${expState.day === 'all'}">全部 (${list.length})</button>
-            <button type="button" data-d="0" aria-pressed="${String(expState.day) === '0'}">行前${dayCounts[0] ? ` (${dayCounts[0]})` : ''}</button>
-            ${DAYS.map((d,i) => `<button type="button" data-d="${i+1}" aria-pressed="${String(expState.day) === String(i+1)}">${fmtShortMD(d)}${dayCounts[i+1] ? ` (${dayCounts[i+1]})` : ''}</button>`).join('')}
-          </div>
+            ${activeDayKeys.map(dk => `<button type="button" data-d="${dk}" aria-pressed="${String(expState.day) === String(dk)}">${esc(expDayShort(dk))} (${dayCounts[dk]})</button>`).join('')}
+          </div>` : ''}
 
-          <div class="exp-filter-bar">
+          <div class="exp-filter-bar" id="expFilterBar" ${showFilterBar ? '' : 'hidden'}>
             <select id="expCatFilter" aria-label="篩選類別">
               <option value="all">全部類別</option>
               ${EXP_CATS.map(c => `<option value="${esc(c)}" ${expState.cat === c ? 'selected' : ''}>${esc(c)}</option>`).join('')}
@@ -1990,7 +1993,7 @@ function renderExp(preserveForm = false){
             <input id="expSearchInp" type="search" value="${esc(expState.q)}" placeholder="🔍 搜尋項目或備註">
           </div>
 
-          ${isFiltered ? `<div class="exp-filter-sum">篩選結果：<b>${filtered.length} 筆</b>｜${fJpy(filteredTotal)}（約 ${fTwd(filteredTotal)}）</div>` : ''}
+          ${isFiltered ? `<div class="exp-filter-sum">篩選：<b>${filtered.length} 筆</b>｜${fJpy(filteredTotal)}（${fTwd(filteredTotal)}）</div>` : ''}
 
           ${sortedGroupKeys.length ? sortedGroupKeys.map(dk => {
             const items = groups.get(dk);
@@ -1998,7 +2001,7 @@ function renderExp(preserveForm = false){
             return `<div class="exp-day-group">
               <div class="exp-day-hd">
                 <span>${esc(expDayLabel(dk))}</span>
-                <span><b>${fJpy(daySum)}</b> <small>≈ ${fTwd(daySum)}</small></span>
+                <span><b>${fJpy(daySum)}</b> <small>${fTwd(daySum)}</small></span>
               </div>
               <ul class="exp-list-v2">
                 ${items.map(e => {
@@ -2007,36 +2010,38 @@ function renderExp(preserveForm = false){
                   const splitTxt = (e.split || []).length === m.length ? '全員' : (e.split || []).map(esc).join('、');
                   const metaParts = [
                     `<b>${esc(e.payer)}</b>付`,
-                    `分攤:${splitTxt}`,
+                    splitTxt,
                     e.method ? esc(e.method.replace(/^\S+\s*/, '')) : '',
                     e.origCur === 'TWD' ? `原NT$${Math.round(e.origAmt).toLocaleString()}` : '',
                     e.note ? `📝${esc(e.note)}` : ''
                   ].filter(Boolean);
-                  return `<li class="${expState.editId === e.id ? 'is-editing' : ''}">
-                    <div class="exp-row-top">
-                      <span class="exp-row-ic" title="${esc(cat)}">${esc(catIcon)}</span>
-                      <span class="exp-row-desc">${esc(e.desc)}</span>
-                      <span class="exp-row-amt"><b>${fJpy(e.jpy)}</b><small>${fTwd(e.jpy)}</small></span>
+                  const isOpen = expState.activeRowId === e.id;
+                  return `<li class="${expState.editId === e.id ? 'is-editing' : ''} ${isOpen ? 'is-open' : ''}" data-row="${e.id}">
+                    <div class="exp-li-body">
+                      <span class="exp-li-ic" title="${esc(cat)}">${esc(catIcon)}</span>
+                      <div class="exp-li-mid">
+                        <div class="exp-li-title">${esc(e.desc)}</div>
+                        <div class="exp-li-meta">${metaParts.join(' · ')}</div>
+                      </div>
+                      <div class="exp-li-amt"><b>${fJpy(e.jpy)}</b><small>${fTwd(e.jpy)}</small></div>
                     </div>
-                    <div class="exp-row-bot">
-                      <span class="exp-row-sub">${metaParts.join(' · ')}</span>
-                      <span class="exp-row-ops">
-                        <button type="button" data-edit="${e.id}" title="編輯" aria-label="編輯">✏️</button>
-                        <button type="button" data-del="${e.id}" title="刪除" aria-label="刪除">✕</button>
-                      </span>
-                    </div>
+                    ${isOpen ? `<div class="exp-li-actions">
+                      <button type="button" data-edit="${e.id}">✏️ 編輯這筆</button>
+                      <button type="button" class="danger" data-del="${e.id}">🗑️ 刪除</button>
+                    </div>` : ''}
                   </li>`;
                 }).join('')}
               </ul>
             </div>`;
-          }).join('') : `<div class="exp-empty">${list.length ? '沒有符合篩選條件的記帳項目。' : '還沒有記帳紀錄。在上方填入一筆，系統會按天整理並自動計算分帳結算！'}</div>`}
+          }).join('') : `<div class="exp-empty">${list.length ? '沒有符合篩選條件的記帳項目。' : '還沒有記帳紀錄，點上方填一筆就能自動分帳！'}</div>`}
+          ${sortedGroupKeys.length ? `<div class="exp-hint-tip">💡 點擊任一筆明細即可編輯或刪除</div>` : ''}
         </div>
       </div>
 
-      <!-- 側欄：個人結餘、智慧結算、類別佔比、匯出工具 -->
+      <!-- 結算、收支表、類別佔比、輕量工具列 -->
       <aside class="exp-side">
         <div class="box exp-card">
-          <h3 style="margin:0 0 .5rem">🤝 智慧結算（最少轉帳）</h3>
+          <h3 style="margin:0 0 .45rem;font-size:.98rem">🤝 智慧結算（最少轉帳）</h3>
           ${tx.length ? `<div class="exp-tx-list">${tx.map(t => {
             const done = !!settledMap[t.key];
             return `<label class="exp-tx-row ${done ? 'done' : ''}">
@@ -2048,23 +2053,27 @@ function renderExp(preserveForm = false){
         </div>
 
         <div class="box exp-card">
-          <h3 style="margin:0 0 .5rem">👥 每人收支明細</h3>
-          <div class="exp-bal-grid">
-            ${m.map(n => {
-              const bTwd = Math.round((bal[n] || 0) * rate);
-              const cls = bTwd > 0 ? 'pos' : bTwd < 0 ? 'neg' : '';
-              const sign = bTwd > 0 ? '+' : bTwd < 0 ? '-' : '';
-              return `<div class="exp-bal-card">
-                <div class="exp-bal-name">${esc(n)}</div>
-                <div class="exp-bal-net ${cls}">${sign}NT$${Math.abs(bTwd).toLocaleString()}</div>
-                <div class="exp-bal-sub">付 ${fTwd(paid[n] || 0)}<br>攤 ${fTwd(share[n] || 0)}</div>
-              </div>`;
-            }).join('')}
-          </div>
+          <h3 style="margin:0 0 .4rem;font-size:.98rem">👥 每人收支明細</h3>
+          <table class="exp-bal-tbl">
+            <thead><tr><th>成員</th><th>已付</th><th>應攤</th><th>結餘</th></tr></thead>
+            <tbody>
+              ${m.map(n => {
+                const bTwd = Math.round((bal[n] || 0) * rate);
+                const cls = bTwd > 0 ? 'pos' : bTwd < 0 ? 'neg' : '';
+                const sign = bTwd > 0 ? '+' : bTwd < 0 ? '-' : '';
+                return `<tr>
+                  <td><b>${esc(n)}</b></td>
+                  <td>${fTwd(paid[n] || 0)}</td>
+                  <td>${fTwd(share[n] || 0)}</td>
+                  <td class="exp-bal-net ${cls}">${sign}NT$${Math.abs(bTwd).toLocaleString()}</td>
+                </tr>`;
+              }).join('')}
+            </tbody>
+          </table>
         </div>
 
         ${catRows.length ? `<div class="box exp-card">
-          <h3 style="margin:0 0 .55rem">📊 類別花費佔比</h3>
+          <h3 style="margin:0 0 .45rem;font-size:.98rem">📊 類別花費佔比</h3>
           <div class="exp-bars">
             ${catRows.map(([c, v]) => {
               const pct = total ? Math.round(v / total * 100) : 0;
@@ -2076,41 +2085,47 @@ function renderExp(preserveForm = false){
           </div>
         </div>` : ''}
 
-        <div class="box exp-card">
-          <h3 style="margin:0 0 .55rem">🧰 匯出與管理</h3>
-          <div style="display:flex;gap:.45rem;flex-wrap:wrap">
-            <button type="button" class="btn btn-sm" id="expCopy">📋 複製 LINE 結算</button>
-            <button type="button" class="btn btn-sm" id="expCsv">📥 匯出 CSV</button>
-            <button type="button" class="btn btn-sm" id="expNames">👥 修改成員</button>
-            <button type="button" class="btn btn-sm" id="expClear">🗑️ 清空全部</button>
-          </div>
+        <!-- 去卡片化的輕量匯出與管理工具列 -->
+        <div class="exp-tools-bar">
+          <button type="button" id="expCopy">📋 複製結算</button>
+          <button type="button" id="expCsv">📥 匯出 CSV</button>
+          <button type="button" id="expNames">👥 成員</button>
+          <button type="button" id="expClear">🗑️ 清空</button>
         </div>
       </aside>
     </div>
   `;
 
-  // Restore day filter scroll position on mobile
+  // Restore horizontal scroll positions
   const dfEl = $('#expDayFilters');
   if (dfEl && prevDayScroll !== null) dfEl.scrollLeft = prevDayScroll;
+  const cfEl = $('#expChips');
+  if (cfEl && prevCatScroll !== null) cfEl.scrollLeft = prevCatScroll;
 
   // Consume one-time prefill
   if (expState.prefillJpy !== null){ expState.prefillJpy = null; }
 
-  // Live conversion preview inside form
+  // Mobile sub-tabs
+  el.querySelectorAll('[data-exptab]').forEach(b => b.onclick = () => {
+    expState.tab = b.dataset.exptab;
+    el.querySelector('.exp-layout')?.setAttribute('data-tab', expState.tab);
+    el.querySelectorAll('[data-exptab]').forEach(x => x.setAttribute('aria-selected', x === b));
+  });
+
+  // Live conversion preview (empty = hidden via CSS :empty)
   const updatePreview = () => {
     const pv = $('#expConvPreview'); if (!pv) return;
     const raw = parseFloat($('#expJpy')?.value);
     if (!raw || raw <= 0){ pv.textContent = ''; return; }
     pv.textContent = expState.cur === 'JPY'
-      ? `≈ NT$${Math.round(raw * rate).toLocaleString()}（以 1 JPY = ${rate} TWD 換算）`
-      : `≈ ¥${Math.round(raw / rate).toLocaleString()}（將以日幣換算值入帳分攤）`;
+      ? `≈ NT$${Math.round(raw * rate).toLocaleString()}`
+      : `≈ ¥${Math.round(raw / rate).toLocaleString()}（將以日幣換算值入帳）`;
   };
   if (editing) expState.cur = formCur;
   updatePreview();
 
-  // Wire header rate buttons
+  // Header rate pill
   $('#expRefreshRate').onclick = () => fetchLiveRate(true);
-  $('#expOpenCalc').onclick = openCalcModal;
 
   // Toggle form
   const tog = $('#expToggleForm');
@@ -2119,7 +2134,7 @@ function renderExp(preserveForm = false){
   // Cancel edit
   ['#expCancelEdit','#expCancelEdit2'].forEach(sel => {
     const btn = $(sel);
-    if (btn) btn.onclick = () => { expState.editId = null; renderExp(); };
+    if (btn) btn.onclick = () => { expState.editId = null; expState.optOpen = false; renderExp(); };
   });
 
   // Category chips
@@ -2133,35 +2148,54 @@ function renderExp(preserveForm = false){
     expState.cur = b.dataset.cur;
     el.querySelectorAll('#expCurSeg button').forEach(x => x.setAttribute('aria-pressed', x === b));
     const inp = $('#expJpy');
-    if (inp) inp.placeholder = expState.cur === 'JPY' ? '輸入日幣' : '輸入台幣';
+    if (inp) inp.placeholder = expState.cur === 'JPY' ? '輸入日幣金額' : '輸入台幣金額';
     updatePreview();
   });
   $('#expJpy')?.addEventListener('input', updatePreview);
+
+  // Optional fold state & summary label update
+  const updateOptSum = () => {
+    const sum = $('#expOptSum'); if (!sum) return;
+    const mTxt = expState.method.replace(/^\S+\s*/, '');
+    const hasNote = !!$('#expNote')?.value.trim();
+    sum.textContent = `付款方式（${mTxt}）${hasNote ? ' · 有備註' : '／備註'}`;
+  };
+  $('#expOptFold')?.addEventListener('toggle', e => { expState.optOpen = e.target.open; });
+  $('#expNote')?.addEventListener('input', updateOptSum);
 
   // Payment method pills
   el.querySelectorAll('#expMethodGroup button').forEach(b => b.onclick = () => {
     expState.method = b.dataset.m;
     el.querySelectorAll('#expMethodGroup button').forEach(x => x.setAttribute('aria-pressed', x === b));
+    updateOptSum();
   });
 
   // Payer pills
   let chosenPayer = formPayer;
   el.querySelectorAll('#expPayerGroup button').forEach(b => b.onclick = () => {
     chosenPayer = b.dataset.p;
+    expState.selectedPayer = chosenPayer;
     el.querySelectorAll('#expPayerGroup button').forEach(x => x.setAttribute('aria-pressed', x === b));
   });
 
-  // Quick split buttons
-  $('#expSplitAll')?.addEventListener('click', () => el.querySelectorAll('#expWho input').forEach(i => i.checked = true));
-  $('#expSplitAdults')?.addEventListener('click', () => el.querySelectorAll('#expWho input').forEach((i, idx) => i.checked = idx < 4));
-  $('#expSplitNone')?.addEventListener('click', () => el.querySelectorAll('#expWho input').forEach(i => i.checked = false));
+  // Split toggle pills (no bulky checkboxes)
+  const syncSplitState = () => {
+    expState.selectedSplit = [...el.querySelectorAll('#expWho button[aria-pressed="true"]')].map(b => b.dataset.s);
+  };
+  el.querySelectorAll('#expWho button').forEach(b => b.onclick = () => {
+    b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') !== 'true');
+    syncSplitState();
+  });
+  $('#expSplitAll')?.addEventListener('click', () => { el.querySelectorAll('#expWho button').forEach(b => b.setAttribute('aria-pressed', 'true')); syncSplitState(); });
+  $('#expSplitAdults')?.addEventListener('click', () => { el.querySelectorAll('#expWho button').forEach((b, idx) => b.setAttribute('aria-pressed', String(idx < 4))); syncSplitState(); });
+  $('#expSplitNone')?.addEventListener('click', () => { el.querySelectorAll('#expWho button').forEach(b => b.setAttribute('aria-pressed', 'false')); syncSplitState(); });
 
   // Form submit (add or edit)
   $('#expForm')?.addEventListener('submit', ev => {
     ev.preventDefault();
     const rawAmt = parseFloat($('#expJpy').value);
     if (!rawAmt || rawAmt <= 0) return showToast('請輸入正確金額');
-    const split = [...el.querySelectorAll('#expWho input:checked')].map(i => i.value);
+    const split = [...el.querySelectorAll('#expWho button[aria-pressed="true"]')].map(b => b.dataset.s);
     if (!split.length) return showToast('請至少選一位分攤成員');
     const cat = el.querySelector('#expChips button[aria-pressed="true"]')?.dataset.v || expState.selectedCat;
     const desc = $('#expDesc').value.trim() || cat.replace(/^\S+\s*/, '');
@@ -2184,6 +2218,8 @@ function renderExp(preserveForm = false){
       const pos = nextList.findIndex(x => x.id === editing.id);
       if (pos >= 0) nextList[pos] = entry;
       expState.editId = null;
+      expState.activeRowId = null;
+      expState.optOpen = false;
       showToast('✅ 已更新記帳項目');
     } else {
       nextList.push(entry);
@@ -2194,6 +2230,11 @@ function renderExp(preserveForm = false){
   });
 
   // Filters
+  $('#expToggleFilter').onclick = () => {
+    expState.filterOpen = !expState.filterOpen;
+    const fb = $('#expFilterBar');
+    if (fb) fb.hidden = !(expState.filterOpen || advFilterCount > 0);
+  };
   el.querySelectorAll('#expDayFilters button').forEach(b => b.onclick = () => { expState.day = b.dataset.d; renderExp(); });
   $('#expCatFilter').onchange = e => { expState.cat = e.target.value; renderExp(); };
   $('#expPayerFilter').onchange = e => { expState.payer = e.target.value; renderExp(); };
@@ -2205,22 +2246,35 @@ function renderExp(preserveForm = false){
     if (inp){ inp.focus(); inp.setSelectionRange(pos, pos); }
   };
   $('#expResetFilter')?.addEventListener('click', () => {
-    expState.day = 'all'; expState.cat = 'all'; expState.payer = 'all'; expState.q = '';
+    expState.day = 'all'; expState.cat = 'all'; expState.payer = 'all'; expState.q = ''; expState.filterOpen = false;
     renderExp();
   });
 
-  // Edit / Delete
-  el.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => {
+  // Tap ledger row to expand/collapse actions
+  el.querySelectorAll('.exp-list-v2 li[data-row]').forEach(li => li.addEventListener('click', ev => {
+    if (ev.target.closest('button')) return;
+    const id = +li.dataset.row;
+    expState.activeRowId = expState.activeRowId === id ? null : id;
+    renderExp(true);
+  }));
+
+  // Edit / Delete inside expanded row
+  el.querySelectorAll('[data-edit]').forEach(b => b.onclick = ev => {
+    ev.stopPropagation();
     expState.editId = +b.dataset.edit;
+    expState.activeRowId = null;
     expState.formOpen = true;
+    expState.tab = 'ledger';
     renderExp();
     window.scrollTo({top: 0, behavior: 'smooth'});
   });
-  el.querySelectorAll('[data-del]').forEach(b => b.onclick = () => {
+  el.querySelectorAll('[data-del]').forEach(b => b.onclick = ev => {
+    ev.stopPropagation();
     const id = +b.dataset.del;
     const item = EXP.list().find(x => x.id === id);
     if (!confirm(`確定刪除「${item?.desc || '這筆'}」？`)) return;
     if (expState.editId === id) expState.editId = null;
+    if (expState.activeRowId === id) expState.activeRowId = null;
     EXP.save(EXP.list().filter(e => e.id !== id));
     renderExp();
     showToast('🗑️ 已刪除');
@@ -2239,7 +2293,7 @@ function renderExp(preserveForm = false){
     const lines = [
       `🧾 2027 關東家族旅行 記帳結算`,
       `總花費：${fJpy(total)}（約 ${fTwd(total)}，1 JPY = ${rate} TWD）`,
-      `共 ${list.length} 筆｜每人平均 ${fJpy(m.length ? total / m.length : 0)}`,
+      `共 ${list.length} 筆｜每人平均 ${avgTwd}`,
       '',
       '【🤝 轉帳結算】',
       ...(tx.length ? tx.map(t => `${settledMap[t.key] ? '✅' : '▫️'} ${t.from} → ${t.to}：${fTwd(t.jpy)}`) : ['已平衡，無需轉帳']),
@@ -2276,7 +2330,7 @@ function renderExp(preserveForm = false){
     const v = prompt('輸入成員名稱，以逗號分隔（預設：全,言,甫,君,睿,曄）', m.join(','));
     if (v){
       const n = v.split(/[,，]/).map(x => x.trim()).filter(Boolean);
-      if (n.length){ store.set('exp_members', n); renderExp(); showToast('👥 已更新成員名單'); }
+      if (n.length){ store.set('exp_members', n); expState.selectedSplit = null; renderExp(); showToast('👥 已更新成員名單'); }
     }
   };
 
@@ -2284,7 +2338,7 @@ function renderExp(preserveForm = false){
   $('#expClear').onclick = () => {
     if (!list.length) return showToast('目前已經是空的');
     if (confirm(`確定要清空全部 ${list.length} 筆記帳紀錄嗎？此動作無法復原。`)){
-      EXP.save([]); EXP.saveSettled({}); expState.editId = null; renderExp(); showToast('🗑️ 已清空所有記帳');
+      EXP.save([]); EXP.saveSettled({}); expState.editId = null; expState.activeRowId = null; renderExp(); showToast('🗑️ 已清空所有記帳');
     }
   };
 }
@@ -2294,6 +2348,7 @@ $('#calcToExpBtn')?.addEventListener('click', () => {
   if (jpy > 0){ expState.prefillJpy = jpy; expState.cur = 'JPY'; }
   expState.formOpen = true;
   expState.editId = null;
+  expState.tab = 'ledger';
   $('#calcModal').classList.remove('open');
   go('expense');
   setTimeout(() => $('#expDesc')?.focus(), 80);
