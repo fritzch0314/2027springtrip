@@ -260,6 +260,42 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
 .sectitle{font-size:1.3rem;margin:.2rem 0 .8rem}
 .foot{color:var(--muted);font-size:.82rem;text-align:center;margin:2rem 0 1rem}
 
+/* ---------- Subtabs, Quick Pills, Modals & Toast ---------- */
+.subtabs{display:none;gap:.4rem;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:.35rem;margin-bottom:.9rem;box-shadow:var(--shadow)}
+.subtabs.show{display:flex}
+.subtabs button{flex:1;border:0;background:transparent;color:var(--muted);padding:.48rem .6rem;border-radius:10px;font-weight:800;font-size:.92rem;transition:.15s}
+.subtabs button[aria-selected="true"]{background:var(--primary);color:#fff}
+.quick-actions{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.5rem}
+.quick-pill{display:inline-flex;align-items:center;gap:.28rem;padding:.24rem .62rem;border-radius:999px;border:1px solid var(--line);background:var(--surface2);color:var(--primary);font-size:.82rem;font-weight:800;text-decoration:none}
+.quick-pill:hover{border-color:var(--primary);background:color-mix(in srgb,var(--primary) 10%,var(--surface))}
+.daynav-bottom{display:flex;gap:.55rem;margin:1rem 0 .2rem}
+.daynav-bottom button{flex:1;padding:.55rem .8rem;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--text);font-weight:800;box-shadow:var(--shadow)}
+.daynav-bottom button:disabled{opacity:.4;cursor:not-allowed}
+.modal-card.wide{max-width:40rem;text-align:left;max-height:88vh;overflow-y:auto;padding:1.15rem}
+.modal-hd{display:flex;justify-content:space-between;align-items:center;gap:.5rem;margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:1px dashed var(--line)}
+.modal-hd h3{margin:0;font-size:1.08rem}
+.modal-close{border:1px solid var(--line);background:var(--surface2);border-radius:999px;padding:.2rem .65rem;font-weight:800;font-size:.9rem}
+.taxi-prompt{font-size:1.05rem;font-weight:800;color:var(--primary);margin-bottom:.4rem}
+.taxi-ja{font-size:2rem;font-weight:900;line-height:1.3;margin:.4rem 0;word-break:break-word}
+.taxi-addr{font-size:1.18rem;font-weight:800;background:var(--surface2);border:1.5px solid var(--line);border-radius:12px;padding:.7rem .85rem;margin:.65rem 0;line-height:1.5}
+.taxi-tel{display:inline-block;font-size:1.25rem;font-weight:900;color:var(--primary);text-decoration:none;margin-bottom:.8rem}
+.toast{position:fixed;left:50%;bottom:4.8rem;transform:translateX(-50%) translateY(20px);background:#1e293b;color:#fff;padding:.5rem 1rem;border-radius:999px;font-size:.88rem;font-weight:700;z-index:60;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;box-shadow:0 6px 20px rgba(0,0,0,.3);white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.vg-svg{width:100%;height:auto;display:block;border-radius:10px;background:var(--surface2);border:1px solid var(--line)}
+.vg-grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,13rem),1fr));gap:.55rem;margin-top:.45rem}
+.vg-grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,9.5rem),1fr));gap:.5rem;margin-top:.45rem}
+.vg-box{background:var(--surface2);border:1.5px solid var(--line);border-radius:10px;padding:.55rem .65rem;font-size:.86rem;line-height:1.45}
+.vg-box.orange{border-color:#d97706;background:color-mix(in srgb,#d97706 10%,var(--surface))}
+.vg-box.blue{border-color:#2563eb;background:color-mix(in srgb,#2563eb 8%,var(--surface))}
+.vg-box.green{border-color:#15803d;background:color-mix(in srgb,#15803d 9%,var(--surface))}
+.vg-box.red{border-color:#dc2626;background:color-mix(in srgb,#dc2626 9%,var(--surface))}
+.vg-box.dashed{border-style:dashed}
+.vg-floor{display:flex;align-items:stretch;gap:.55rem;padding:.45rem .6rem;border-radius:9px;margin-bottom:.35rem;border:1.5px solid var(--line);background:var(--surface2);font-size:.86rem;line-height:1.4}
+.vg-floor:last-child{margin-bottom:0}
+.vg-floor .fl{flex:0 0 4.6rem;font-weight:900;font-size:.82rem;display:flex;align-items:center;justify-content:center;border-radius:6px;padding:.15rem .3rem;color:#fff;text-align:center}
+.vg-note{margin-top:.55rem;padding:.5rem .65rem;border-radius:8px;font-size:.84rem;background:color-mix(in srgb,var(--tip-line) 12%,var(--surface2));border-left:3px solid var(--tip-line)}
+.vg-note.warn{background:color-mix(in srgb,var(--warn-line) 12%,var(--surface2));border-left-color:var(--warn-line)}
+
 /* ---------- Desktop ---------- */
 @media (min-width:900px){
   body{padding-bottom:0}
@@ -290,18 +326,13 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
 
 <header class="top">
   <div class="top-row">
-    <div class="brand"><span class="logo" aria-hidden="true">🗻</span><span class="t">2027 關東家族旅行助理</span></div>
+    <div class="brand"><span class="logo" aria-hidden="true">🗻</span><span class="t">2027 關東家族旅行</span></div>
     <div class="tools">
-      <div class="fontbar" role="group" aria-label="字級大小">
-        <span class="lbl">字級</span>
-        <button data-fs="0" aria-label="字級：小" title="小" style="font-size:.75rem">A</button>
-        <button data-fs="1" aria-label="字級：標準" title="標準" style="font-size:.9rem">A</button>
-        <button data-fs="2" aria-label="字級：大" title="大" style="font-size:1.05rem">A</button>
-        <button data-fs="3" aria-label="字級：特大" title="特大" style="font-size:1.2rem">A</button>
-        <button data-fs="4" aria-label="字級：超大" title="超大" style="font-size:1.38rem">A</button>
-      </div>
-      <span class="net-pill" id="netPill" role="status">📴 離線模式</span>
-      <button class="iconbtn" id="installBtn" aria-label="安裝 App 到主畫面" title="安裝 App／離線使用">📲 <span class="lbl">安裝</span></button>
+      <button class="iconbtn" id="todayJumpBtn" aria-label="跳回今天此刻行程" title="跳回今天此刻行程">📍 <span class="lbl">今天</span></button>
+      <button class="iconbtn" id="calcBtn" aria-label="快速日幣台幣換算" title="快速匯率換算">💴</button>
+      <button class="iconbtn" id="fontCycleBtn" aria-label="切換字級大小" title="點擊切換字級大小">Aa <span id="fontLbl" style="font-size:.78rem;opacity:.9">標準</span></button>
+      <span class="net-pill" id="netPill" role="status">📴 離線</span>
+      <button class="iconbtn" id="installBtn" aria-label="安裝 App 到主畫面" title="安裝 App／離線使用">📲</button>
       <button class="iconbtn" id="themeBtn" aria-label="切換深色／淺色模式" title="深色／淺色模式">🌙</button>
     </div>
   </div>
@@ -311,6 +342,16 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
 <main>
   <div id="banner"></div>
 
+  <div class="subtabs" id="subtabsPlan" role="tablist" aria-label="行前清單子分頁">
+    <button type="button" role="tab" data-sub="booking" aria-selected="true">🎟️ 訂票提醒</button>
+    <button type="button" role="tab" data-sub="check" aria-selected="false">📝 準備清單</button>
+  </div>
+  <div class="subtabs" id="subtabsMore" role="tablist" aria-label="旅途資訊子分頁">
+    <button type="button" role="tab" data-sub="overview" aria-selected="true">🗺️ 總覽搜尋</button>
+    <button type="button" role="tab" data-sub="hotel" aria-selected="false">🏨 住宿行李</button>
+    <button type="button" role="tab" data-sub="info" aria-selected="false">ℹ️ 實用資訊</button>
+  </div>
+
   <!-- 每日行程 -->
   <section class="view" id="v-day" aria-label="每日行程">
     <div class="daywrap">
@@ -319,8 +360,9 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
       </div>
       <div>
         <div class="dayhead" id="dayhead"></div>
-        <div class="filters" id="filters" role="group" aria-label="篩選類別" style="margin:1rem 0 .8rem"></div>
+        <div class="filters" id="filters" role="group" aria-label="篩選類別" style="margin:.75rem 0 .7rem"></div>
         <ol class="timeline" id="timeline"></ol>
+        <div class="daynav-bottom" id="daynavBottom"></div>
       </div>
       <aside class="side-cards" id="side"></aside>
     </div>
@@ -441,6 +483,58 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
     <button class="btn primary" id="closeModalBtn">✕ 關閉畫面</button>
   </div>
 </div>
+
+<!-- 🚖 秀給司機看 日文大字卡 Modal -->
+<div class="modal-backdrop" id="taxiModal" role="dialog" aria-modal="true" aria-labelledby="taxiJa">
+  <div class="modal-card" style="max-width:34rem">
+    <div class="taxi-prompt">運転手さん、ここまでお願いします</div>
+    <div style="font-size:.86rem;color:var(--muted);margin-bottom:.25rem">（司機先生，請載我們到這裡）</div>
+    <div class="taxi-ja" id="taxiJa"></div>
+    <div style="font-size:.9rem;color:var(--muted);font-weight:700" id="taxiZh"></div>
+    <div class="taxi-addr" id="taxiAddr"></div>
+    <div><a class="taxi-tel" id="taxiTel" href="#"></a></div>
+    <div style="font-size:.8rem;color:var(--muted);margin-bottom:.85rem">💡 可將電話號碼提供給司機輸入車機導航</div>
+    <button class="btn primary" id="closeTaxiBtn">✕ 關閉畫面</button>
+  </div>
+</div>
+
+<!-- 💴 快速匯率換算 Modal -->
+<div class="modal-backdrop" id="calcModal" role="dialog" aria-modal="true" aria-labelledby="calcTitle">
+  <div class="modal-card" style="max-width:28rem;text-align:left">
+    <div class="modal-hd">
+      <h3 id="calcTitle">💴 快速日幣 ↔ 台幣換算</h3>
+      <button type="button" class="modal-close" id="closeCalcBtn">✕ 關閉</button>
+    </div>
+    <div style="font-size:.86rem;color:var(--muted);margin-bottom:.4rem">
+      匯率設定：1 JPY = <input id="mRateInp" type="number" step="0.001" value="0.215" style="width:5.2rem;font:inherit;padding:.15rem .35rem;border:1px solid var(--line);border-radius:6px;background:var(--surface2);color:var(--text)"> TWD
+    </div>
+    <div class="calc-row">
+      <div><label style="font-size:.8rem;color:var(--muted)">日幣 (JPY ¥)</label><input id="mJpyInp" type="number" value="1000" inputmode="decimal"></div>
+      <div style="font-weight:800;padding-top:1.1rem">↔</div>
+      <div><label style="font-size:.8rem;color:var(--muted)">台幣 (TWD $)</label><input id="mTwdInp" type="number" value="215" inputmode="decimal"></div>
+    </div>
+    <div class="preset-chips" id="mCalcPresets">
+      <button type="button" data-jpy="500">¥500</button>
+      <button type="button" data-jpy="1000">¥1,000</button>
+      <button type="button" data-jpy="3000">¥3,000</button>
+      <button type="button" data-jpy="5000">¥5,000</button>
+      <button type="button" data-jpy="10000">¥10,000</button>
+    </div>
+  </div>
+</div>
+
+<!-- 🗺️ 關鍵節點動線／樓層圖解 按需 Modal -->
+<div class="modal-backdrop" id="guideModal" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
+  <div class="modal-card wide">
+    <div class="modal-hd">
+      <h3 id="guideTitle"></h3>
+      <button type="button" class="modal-close" id="closeGuideBtn">✕ 關閉</button>
+    </div>
+    <div id="guideBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <!-- PWA 安裝與離線使用教學 Modal -->
 <div class="modal-backdrop" id="pwaModal" role="dialog" aria-modal="true" aria-labelledby="pwaTitle">
@@ -1157,15 +1251,21 @@ const QUICK_SCHEDULES = [
 ];
 
 const HOTELS = [
-  {name:'MIMARU 東京 上野 NORTH', nights:'第 1–2 晚', dates:'2/1（一）– 2/3（三）', area:'東京・上野',
-   note:'步行約 10 分鐘到 JR 上野站；京成上野站步行約 15 分鐘（推大行李建議分搭 2 台計程車，車程約 5 分鐘，約 ¥800／台）；Day 2 晚整理行李分為「輕井澤使用」及「明日寄送至河口湖旅館」2 類'},
-  {name:'輕井澤王子大飯店 西館', nights:'第 3–4 晚', dates:'2/3（三）– 2/5（五）', area:'長野・輕井澤',
+  {key:'mimaru', name:'MIMARU 東京 上野 NORTH', jaName:'MIMARU東京 上野NORTH', address:'〒110-0005 東京都台東区上野7-14-4', tel:'03-5830-6255', nights:'第 1–2 晚', dates:'2/1（一）– 2/3（三）', area:'東京・上野',
+   note:'步行約 10 分鐘到 JR 上野站；京成上野站步行約 15 分鐘（推大行李建議由「池の端口」旁分搭 2 台計程車，車程約 5 分鐘，約 ¥800／台）；Day 2 晚整理行李分為「輕井澤使用」及「明日寄送至河口湖旅館」2 類'},
+  {key:'prince', name:'輕井澤王子大飯店 西館', jaName:'軽井沢プリンスホテル ウエスト', address:'〒389-0193 長野県北佐久郡軽井沢町大字軽井沢1016-87', tel:'0267-42-1111', nights:'第 3–4 晚', dates:'2/3（三）– 2/5（五）', area:'長野・輕井澤',
    note:'Day 3 09:43 抵輕井澤站後，於南口 (B-1) 搭 10:00 棕線接駁車至西館 (B-12M)，於櫃檯寄放當日行李並順便交寄黑貓宅急便大行李往 Fuji View Hotel（指定 2/5 送達），10:35 直接由西館搭計程車往星野榆樹街'},
-  {name:'Fuji View Hotel 富士景觀飯店', nights:'第 5–7 晚', dates:'2/5（五）– 2/8（一）', area:'山梨・河口湖',
+  {key:'fujiview', name:'Fuji View Hotel 富士景觀飯店', jaName:'富士ビューホテル', address:'〒401-0310 山梨県南都留郡富士河口湖町勝山511', tel:'0555-83-2211', nights:'第 5–7 晚', dates:'2/5（五）– 2/8（一）', area:'山梨・河口湖',
    note:'自駕約 15 分鐘到 Toyota 富士河口湖店；可泡富士溫泉、逛庭園；除夕晚餐（敷島／Bellevue）採 17:45／19:45 兩部制，務必事前預約 17:45 時段；入住時可向櫃檯詢問冬花火有無預約制免費接駁車'},
-  {name:'&Here TOKYO UENO', nights:'第 8–9 晚', dates:'2/8（一）– 2/10（三）', area:'東京・上野',
+  {key:'andhere', name:'&Here TOKYO UENO', jaName:'&Here TOKYO UENO', address:'〒110-0005 東京都台東区上野2-11-18', tel:'03-6240-1161', nights:'第 8–9 晚', dates:'2/8（一）– 2/10（三）', area:'東京・上野',
    note:'近 JR 御徒町站／東京 Metro 上野廣小路站（步行約 3–5 分鐘）；Day 10 09:30 退房步行約 10 分鐘到京成上野站搭 10:00 Skyliner 129號'}
 ];
+
+const TAXI_SPOTS = {
+  ...Object.fromEntries(HOTELS.map(h => [h.key, {zh:h.name, ja:h.jaName, addr:h.address, tel:h.tel}])),
+  hoshino: {zh:'星野榆樹街小鎮（Day 3 計程車）', ja:'ハルニレテラス（星野エリア）', addr:'〒389-0194 長野県北佐久郡軽井沢町星野', tel:'050-3537-3553'},
+  toyota: {zh:'Toyota 租車 富士河口湖店', ja:'トヨタレンタカー 富士河口湖店', addr:'〒401-0301 山梨県南都留郡富士河口湖町船津4657', tel:'0555-72-1100'}
+};
 
 const PACKING = [
   '護照正本（效期 6 個月以上）＆ Visit Japan Web QR Code 截圖（全家人份）',
@@ -1276,16 +1376,22 @@ function getBookingStatus(bk){
 }
 
 /* =========================================================
-   字級 & 主題
+   字級 & 主題 & 輕提示
    ========================================================= */
 const FS = [15, 17, 20, 24, 28];
+const FS_LBL = ['小', '標準', '大', '特大', '超大'];
+let curFs = store.get('fs', 1);
 function setFont(i){
-  document.documentElement.style.setProperty('--fs', FS[i] + 'px');
-  document.querySelectorAll('.fontbar button').forEach(b => b.setAttribute('aria-pressed', +b.dataset.fs === i));
-  store.set('fs', i);
+  curFs = ((i % FS.length) + FS.length) % FS.length;
+  document.documentElement.style.setProperty('--fs', FS[curFs] + 'px');
+  if ($('#fontLbl')) $('#fontLbl').textContent = FS_LBL[curFs];
+  store.set('fs', curFs);
 }
-document.querySelectorAll('.fontbar button').forEach(b => b.addEventListener('click', () => setFont(+b.dataset.fs)));
-setFont(store.get('fs', 1));
+$('#fontCycleBtn').addEventListener('click', () => {
+  setFont(curFs + 1);
+  showToast('字級已切換為：' + FS_LBL[curFs]);
+});
+setFont(curFs);
 
 function setTheme(t){
   document.documentElement.dataset.theme = t;
@@ -1296,34 +1402,203 @@ function setTheme(t){
 $('#themeBtn').addEventListener('click', () => setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'));
 setTheme(store.get('theme', matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
 
+let toastTimer = null;
+function showToast(msg){
+  const el = $('#toast');
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
 /* =========================================================
-   導覽
+   導覽（精簡 5 主分頁 + 子分頁自動對應）
    ========================================================= */
 const VIEWS = [
   ['day','📅','每日行程','行程'],
-  ['booking','🎟️','訂票提醒','訂票'],
-  ['transit','🚆','交通時刻表','時刻表'],
-  ['food','🍽️','推薦餐廳','餐廳'],
-  ['overview','🗺️','行程總覽','總覽'],
-  ['hotel','🏨','住宿行李','住宿'],
-  ['check','📝','準備清單','清單'],
-  ['info','ℹ️','實用資訊','資訊']
+  ['transit','🚆','交通時刻表','交通'],
+  ['food','🍽️','推薦餐廳','美食'],
+  ['plan','🎟️','訂票＆清單','清單'],
+  ['more','ℹ️','總覽＆資訊','資訊']
 ];
+const ALL_VIEWS = ['day','transit','food','booking','check','overview','hotel','info','plan','more'];
+const SUB_PARENT = {booking:'plan', check:'plan', overview:'more', hotel:'more', info:'more'};
+const lastSub = {plan:'booking', more:'overview'};
+
 function buildNav(){
   const openUnbookedCount = BOOKINGS.filter(b => { const s = getBookingStatus(b); return s.isOpen && !s.isDone; }).length;
   const badgeHtml = openUnbookedCount > 0 ? `<span class="nav-badge" title="${openUnbookedCount} 項已開放待預訂">${openUnbookedCount}</span>` : '';
   document.querySelector('nav.bottom').innerHTML = VIEWS.map(([id,ic,lb,shortLb]) =>
-    `<button data-view="${id}"><span class="ic" aria-hidden="true">${ic}</span><span>${shortLb}</span>${id==='booking'?badgeHtml:''}</button>`).join('');
+    `<button data-view="${id}"><span class="ic" aria-hidden="true">${ic}</span><span>${shortLb}</span>${id==='plan'?badgeHtml:''}</button>`).join('');
   document.querySelector('nav.tabs').innerHTML = VIEWS.map(([id,ic,lb]) =>
-    `<button data-view="${id}">${ic} ${lb}${id==='booking'?badgeHtml:''}</button>`).join('');
+    `<button data-view="${id}">${ic} ${lb}${id==='plan'?badgeHtml:''}</button>`).join('');
   document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => go(b.dataset.view)));
 }
+document.querySelectorAll('.subtabs button').forEach(b => b.addEventListener('click', () => go(b.dataset.sub)));
+
 function go(view, push=true){
+  if (view === 'plan') view = lastSub.plan;
+  if (view === 'more') view = lastSub.more;
+  const parent = SUB_PARENT[view] || view;
+  if (parent === 'plan') lastSub.plan = view;
+  if (parent === 'more') lastSub.more = view;
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'v-'+view));
-  document.querySelectorAll('[data-view]').forEach(b => b.dataset.view === view ? b.setAttribute('aria-current','page') : b.removeAttribute('aria-current'));
+  document.querySelectorAll('[data-view]').forEach(b => b.dataset.view === parent ? b.setAttribute('aria-current','page') : b.removeAttribute('aria-current'));
+  $('#subtabsPlan').classList.toggle('show', parent === 'plan');
+  $('#subtabsMore').classList.toggle('show', parent === 'more');
+  document.querySelectorAll('.subtabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.sub === view));
   if (push) history.replaceState(null, '', '#' + view + (view==='day' ? '-' + (state.day+1) : ''));
   window.scrollTo({top:0});
 }
+
+/* =========================================================
+   一鍵跳回「今天此刻」＆ 快速匯率彈窗 ＆ 司機大字卡 ＆ 4 大按需動線圖
+   ========================================================= */
+$('#todayJumpBtn').addEventListener('click', () => {
+  const ti = todayIdx();
+  state.filter = 'all';
+  go('day');
+  if (ti >= 0){
+    selectDay(ti);
+    setTimeout(() => {
+      const target = $('#timeline .ev.now') || $('#timeline .ev:not(.past)');
+      if (target) target.scrollIntoView({behavior:'smooth', block:'center'});
+      showToast(`📍 已跳至今天（Day ${ti+1}）目前行程`);
+    }, 80);
+  } else {
+    selectDay(0);
+    showToast('🧳 尚未出發，已為您跳至 Day 1 行程');
+  }
+});
+
+function openCalcModal(){
+  const r = store.get('rate', 0.215);
+  $('#mRateInp').value = r;
+  $('#mTwdInp').value = Math.round((+$('#mJpyInp').value || 0) * r);
+  $('#calcModal').classList.add('open');
+  setTimeout(() => { $('#mJpyInp').focus(); $('#mJpyInp').select(); }, 50);
+}
+$('#calcBtn').addEventListener('click', openCalcModal);
+$('#closeCalcBtn').addEventListener('click', () => $('#calcModal').classList.remove('open'));
+$('#calcModal').addEventListener('click', e => { if (e.target === $('#calcModal')) $('#calcModal').classList.remove('open'); });
+const syncModalCalc = src => {
+  const r = Math.max(0.01, +$('#mRateInp').value || 0.215);
+  store.set('rate', r);
+  if ($('#rateInp')) $('#rateInp').value = r;
+  if (src === 'twd') $('#mJpyInp').value = Math.round((+$('#mTwdInp').value || 0) / r);
+  else $('#mTwdInp').value = Math.round((+$('#mJpyInp').value || 0) * r);
+};
+$('#mRateInp').addEventListener('input', () => syncModalCalc('jpy'));
+$('#mJpyInp').addEventListener('input', () => syncModalCalc('jpy'));
+$('#mTwdInp').addEventListener('input', () => syncModalCalc('twd'));
+$('#mCalcPresets').querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+  $('#mJpyInp').value = b.dataset.jpy;
+  syncModalCalc('jpy');
+}));
+
+function openTaxiModal(key){
+  const t = TAXI_SPOTS[key];
+  if (!t) return;
+  $('#taxiJa').textContent = t.ja;
+  $('#taxiZh').textContent = t.zh;
+  $('#taxiAddr').textContent = t.addr;
+  $('#taxiTel').textContent = '📞 TEL: ' + t.tel;
+  $('#taxiTel').href = 'tel:' + t.tel;
+  $('#taxiModal').classList.add('open');
+}
+$('#closeTaxiBtn').addEventListener('click', () => $('#taxiModal').classList.remove('open'));
+$('#taxiModal').addEventListener('click', e => { if (e.target === $('#taxiModal')) $('#taxiModal').classList.remove('open'); });
+
+const GUIDE_MODALS = {
+  skyliner: {
+    title: '✈️ 成田 T1 橘色月台 ＆ 京成上野分流圖',
+    html: () => `
+      <div style="font-size:.84rem;font-weight:800;color:var(--muted);margin-bottom:.3rem">成田機場 T1 (KS42)｜B1F 剪票大廳層</div>
+      <div class="vg-grid3">
+        <div class="vg-box red"><b>① 特急券賣場 / 機器</b><br>認明「特」標誌購票或持兌換券劃位</div>
+        <div class="vg-box orange"><b>② 入口改札（橘色）</b><br>插入 Skyliner 特急券</div>
+        <div class="vg-box blue"><b>③ 搭電梯下 B2F</b><br>推大行李直接搭電梯往橘色專區</div>
+      </div>
+      <div style="font-size:.84rem;font-weight:800;color:#d97706;margin:.6rem 0 .3rem">B2F 乘車月台層（務必認明橘色指標！）</div>
+      <div class="vg-grid2">
+        <div class="vg-box orange"><b>✅ 橘色區 1・4・5 號月台（Skyliner）</b><br>直達日暮里・京成上野<br><small>136 號 14:18發→15:09抵｜38 號 14:38發→15:23抵</small></div>
+        <div class="vg-box blue dashed"><b>❌ 藍色區 2・3 號（勿誤入）</b><br>京成本線（普通／特急），停站多非 Skyliner</div>
+      </div>
+      <div style="font-size:.84rem;font-weight:800;color:var(--muted);margin:.7rem 0 .3rem">京成上野站 (KS01)｜B2F 搭電梯上 B1F 改札後分流</div>
+      <div class="vg-grid2">
+        <div class="vg-box blue"><b>⬅️ 左轉「正面口」</b><br>輕裝步行 15 分至 MIMARU；Day 10 由 &amp;Here 步行 10 分進站</div>
+        <div class="vg-box red"><b>➡️ 往「池の端口」TAXI 乘車處</b><br><b>★ Day 1 家族推大行李首選！</b>分搭 2 台計程車直達飯店（約 5 分／約 ¥800 台）</div>
+      </div>`
+  },
+  tokyoStation: {
+    title: '🚉 東京站 1F → 八重洲南口 8 號站牌動線圖',
+    html: () => `
+      <div class="vg-grid3">
+        <div class="vg-box green"><b>① 北陸新幹線 20–23 月台</b><br>10:22 抵達下車<br>出<b>「新幹線南のりかえ口」</b>(1F)</div>
+        <div class="vg-box blue"><b>② 買便當 ＆ 出站</b><br>🍱 <b>大丸東京 B1</b>（10:00開）在北口/中央口側，買完往南步 3–4 分 → 經南通路出<b>「八重洲南口」</b>直通屋外 1F</div>
+        <div class="vg-box" style="border-color:#dc2626"><b>③ JR 高速巴士總站 (1F 屋外)</b><br><div style="background:#dc2626;color:#fff;border-radius:8px;padding:.35rem .5rem;font-weight:900;text-align:center;margin:.3rem 0">★ 8 番のりば（河口湖 119 號）</div><small>勿跑錯鐵鋼大樓！9 番旁有廁所，車程 2h07m 無停靠上車前先如廁</small></div>
+      </div>`
+  },
+  solamachi: {
+    title: '🏢 Tokyo Solamachi 晴空塔重點樓層剖面',
+    html: () => `
+      <div style="font-size:.82rem;color:var(--muted);margin-bottom:.45rem">營業 10–21 / 餐廳 11–23｜免費 Wi-Fi：<b>TOBU_Free_WiFi</b></div>
+      <div class="vg-floor" style="border-color:#1e3a8a"><div class="fl" style="background:#1e3a8a">30F–31F</div><div><b>高空景觀餐廳（搭專用電梯）</b>｜30F #1 敘敘苑燒肉・Top of Tree</div></div>
+      <div class="vg-floor" style="border-color:#d97706"><div class="fl" style="background:#d97706">6F–7F</div><div><b>美食層</b>｜6F #14 備長鰻魚三吃・#15 利久牛舌・#9 Toriton 壽司・#18 六厘舍｜7F 鼎泰豐</div></div>
+      <div class="vg-floor" style="border-color:#2563eb"><div class="fl" style="background:#2563eb">5F</div><div><b>晴空塔出口大廳</b>｜SKYTREE SHOP 官方紀念品・兒童樂園 Solafuru Park</div></div>
+      <div class="vg-floor" style="border-color:#dc2626"><div class="fl" style="background:#dc2626">4F</div><div><b>晴空塔入口大廳</b>｜#48 寶可夢中心・JUMP SHOP・卡比咖啡・扭蛋・DAISO</div></div>
+      <div class="vg-floor" style="border-color:#15803d"><div class="fl" style="background:#15803d">3F</div><div><b>#65 吉伊卡哇 Chiikawa Land</b>・迪士尼・LOFT・美食街（一風堂／宮武讚岐）</div></div>
+      <div class="vg-floor" style="border-color:#475569"><div class="fl" style="background:#475569">1–2F / B3F</div><div>2F 伴手禮｜1F 松本清・佐川行李｜<b>B3F 直通押上站都營淺草線（20:34 回程）</b></div></div>
+      <div class="vg-note">🎟️ <b>晴空塔門票折扣提醒：</b>須在「點餐或購買前」先出示門票，結帳時才拿出恕不適用！</div>`
+  },
+  kawagoeLoop: {
+    title: '🗺️ 川越一日無回頭路環線圖 ＆ 兩大地雷提醒',
+    html: () => `
+      <svg class="vg-svg" viewBox="0 0 600 205" role="img" aria-label="川越一日無回頭路環線圖">
+        <rect x="0" y="0" width="600" height="205" fill="var(--surface)"/>
+        <polyline points="85,165 255,165 425,165 510,96 390,36 225,36 90,96 85,165" fill="none" stroke="#d97706" stroke-width="3.5" stroke-dasharray="7,5"/>
+        <rect x="18" y="142" width="132" height="44" rx="8" fill="#1e293b"/>
+        <text x="84" y="161" font-size="12.5" fill="#fff" font-weight="900" text-anchor="middle">🚆 川越站東口</text>
+        <text x="84" y="177" font-size="10.5" fill="#cbd5e1" text-anchor="middle">09:10 西武本52發</text>
+        <rect x="182" y="142" width="144" height="44" rx="8" fill="var(--surface)" stroke="#c2410c" stroke-width="2"/>
+        <text x="254" y="161" font-size="12" fill="#c2410c" font-weight="900" text-anchor="middle">① 喜多院・五百羅漢</text>
+        <text x="254" y="177" font-size="10.5" fill="var(--muted)" text-anchor="middle">東側 T2 喜多院前 10:08</text>
+        <rect x="352" y="142" width="144" height="44" rx="8" fill="var(--surface)" stroke="#c2410c" stroke-width="2"/>
+        <text x="424" y="161" font-size="12" fill="#c2410c" font-weight="900" text-anchor="middle">② 川越城本丸御殿</text>
+        <text x="424" y="177" font-size="10.5" fill="var(--muted)" text-anchor="middle">T7 博物館前 10:18 抵</text>
+        <rect x="444" y="72" width="142" height="44" rx="8" fill="var(--surface)" stroke="#b91c1c" stroke-width="2"/>
+        <text x="515" y="91" font-size="12" fill="#b91c1c" font-weight="900" text-anchor="middle">③ 冰川神社 (北端)</text>
+        <text x="515" y="107" font-size="10.5" fill="var(--muted)" text-anchor="middle">釣鯛魚籤・繪馬隧道</text>
+        <rect x="318" y="14" width="148" height="44" rx="8" fill="var(--surface)" stroke="#92400e" stroke-width="2"/>
+        <text x="392" y="33" font-size="12" fill="#92400e" font-weight="900" text-anchor="middle">④ 菓子屋橫丁 &amp; 吉伊</text>
+        <text x="392" y="49" font-size="10.5" fill="var(--muted)" text-anchor="middle">ちいかわもぐもぐ本舗</text>
+        <rect x="150" y="14" width="148" height="44" rx="8" fill="var(--surface)" stroke="#92400e" stroke-width="2"/>
+        <text x="224" y="33" font-size="12" fill="#92400e" font-weight="900" text-anchor="middle">⑤ 藏造一番街・時之鐘</text>
+        <text x="224" y="49" font-size="10.5" fill="var(--muted)" text-anchor="middle">鰻魚午餐・鐘樓星巴克</text>
+        <rect x="18" y="72" width="144" height="44" rx="8" fill="var(--surface)" stroke="#2563eb" stroke-width="2"/>
+        <text x="90" y="91" font-size="12" fill="#2563eb" font-weight="900" text-anchor="middle">⑥ 浪漫通→熊野神社</text>
+        <text x="90" y="107" font-size="10.5" fill="#2563eb" font-weight="700" text-anchor="middle">W5 蓮馨寺 16:45 回站</text>
+      </svg>
+      <div class="vg-note warn">⚠️ <b>川越搭公車兩大地雷：</b><br>
+        1. 西武下車「喜多院入口」在西側，東武名03「<b>T2 喜多院前</b>」在東側近成田山。<br>
+        2. 認明「<b>東武バス（橙藍標誌）</b>」，勿搭錯橘白色 Eagle Bus；全程刷 Suica 最省錢。
+      </div>`
+  }
+};
+
+function openGuideModal(key){
+  const g = GUIDE_MODALS[key];
+  if (!g) return;
+  $('#guideTitle').textContent = g.title;
+  $('#guideBody').innerHTML = g.html();
+  $('#guideModal').classList.add('open');
+}
+$('#closeGuideBtn').addEventListener('click', () => $('#guideModal').classList.remove('open'));
+$('#guideModal').addEventListener('click', e => { if (e.target === $('#guideModal')) $('#guideModal').classList.remove('open'); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') ['#phraseModal','#taxiModal','#calcModal','#guideModal','#pwaModal'].forEach(s => $(s)?.classList.remove('open'));
+});
 
 /* =========================================================
    全域狀態
@@ -1414,13 +1689,7 @@ function renderDay(){
       <span class="pill">📍 ${esc(d.area)}</span>
       ${d.tag ? `<span class="pill holiday">🧧 ${d.tag}</span>` : ''}
     </div>
-    <h2>${esc(d.title)}</h2>
-    <div class="daynav">
-      <button id="prevDay" ${state.day===0?'disabled':''} aria-label="前一天">◀ 前一天</button>
-      <button id="nextDay" ${state.day===DAYS.length-1?'disabled':''} aria-label="後一天">後一天 ▶</button>
-    </div>`;
-  $('#prevDay').onclick = () => selectDay(state.day-1);
-  $('#nextDay').onclick = () => selectDay(state.day+1);
+    <h2>${esc(d.title)}</h2>`;
 
   // 篩選
   const fl = [['all','全部'], ['sight','📍 景點/活動'], ['transit','🚆 交通'], ['food','🍽️ 餐食']];
@@ -1444,6 +1713,14 @@ function renderDay(){
   $('#timeline').innerHTML = list.map(({p,i}) => {
     const past = isToday && p.start !== null && i < nowIdx && nowIdx >= 0;
     const matchedMeal = findMatchingMeal(d, p);
+    const pills = [];
+    if (dayNum === 1 && p.text.includes('Skyliner 136')) pills.push(`<button type="button" class="quick-pill" onclick="openGuideModal('skyliner')">🗺️ 成田 T1／京成上野動線圖</button>`);
+    if (dayNum === 1 && p.text.includes('MIMARU')) pills.push(`<button type="button" class="quick-pill" onclick="openTaxiModal('mimaru')">🚖 秀給司機看（飯店）</button>`);
+    if (dayNum === 3 && p.text.includes('星野榆樹街小鎮')) pills.push(`<button type="button" class="quick-pill" onclick="openTaxiModal('hoshino')">🚖 秀給司機看（星野）</button>`);
+    if (dayNum === 5 && p.text.includes('119號')) pills.push(`<button type="button" class="quick-pill" onclick="openGuideModal('tokyoStation')">🗺️ 東京站轉 8 號站牌動線圖</button>`);
+    if (dayNum === 5 && p.text.includes('Toyota')) pills.push(`<button type="button" class="quick-pill" onclick="openTaxiModal('toyota')">🚖 秀給司機看（租車站）</button>`);
+    if (dayNum === 8 && p.text.includes('東京晴空塔觀景台')) pills.push(`<button type="button" class="quick-pill" onclick="openGuideModal('solamachi')">🏢 Solamachi 晴空塔樓層圖</button>`);
+    if (dayNum === 9 && p.text.includes('本52')) pills.push(`<button type="button" class="quick-pill" onclick="openGuideModal('kawagoeLoop')">🗺️ 川越無回頭路環線圖</button>`);
 
     return `<li class="ev ${p.type} ${i===nowIdx?'now':''} ${past?'past':''}">
       <span class="dot" aria-hidden="true">${p.icon}</span>
@@ -1451,6 +1728,7 @@ function renderDay(){
         <div class="time">${esc(p.time.replace(/-/g, ' – '))} <span class="cat">${TYPES[p.type].label}</span>${i===nowIdx?'<span class="nowtag">進行中</span>':''}</div>
         <div class="txt">${renderText(p.text, d)}</div>
         ${p.tips.map(t => `<div class="tip ${t.warn?'warn':''}">${t.warn?'⚠️ 注意：':'💡 小提醒：'}${esc(t.text)}</div>`).join('')}
+        ${pills.length ? `<div class="quick-actions">${pills.join('')}</div>` : ''}
         ${matchedMeal ? `<details class="meal-drawer">
           <summary><span>🍴 查看 ${esc(matchedMeal.slot)} 推薦清單（A/B/C三級）</span><span>▼</span></summary>
           <div class="meal-drawer-body">${renderMealTiersHTML(matchedMeal, d.map)}</div>
@@ -1458,12 +1736,22 @@ function renderDay(){
       </div></li>`;
   }).join('') || '<li style="color:var(--muted);padding:1rem">此類別今天沒有項目</li>';
 
+  $('#daynavBottom').innerHTML = `
+    <button id="prevDay" ${state.day===0?'disabled':''} aria-label="前一天">◀ 前一天</button>
+    <button id="nextDay" ${state.day===DAYS.length-1?'disabled':''} aria-label="後一天">後一天 ▶</button>`;
+  $('#prevDay').onclick = () => { selectDay(state.day-1); window.scrollTo({top:0,behavior:'smooth'}); };
+  $('#nextDay').onclick = () => { selectDay(state.day+1); window.scrollTo({top:0,behavior:'smooth'}); };
+
   // 側欄
   let side = '';
   if (d.hotel){
+    const hObj = HOTELS.find(h => d.hotel.includes(h.name.split(' ')[0]));
     side += `<div class="box"><h3>🏨 今晚住宿</h3>
       <div class="hotelname">${esc(d.hotel)}</div>
-      <a class="btn primary" href="${mapUrl(d.hotel)}" target="_blank" rel="noopener">🗺️ 開啟地圖導航</a></div>`;
+      <div style="display:flex;gap:.45rem;flex-wrap:wrap">
+        <a class="btn primary" href="${mapUrl(d.hotel)}" target="_blank" rel="noopener">🗺️ 開啟地圖導航</a>
+        ${hObj ? `<button type="button" class="btn" onclick="openTaxiModal('${hObj.key}')">🚖 秀給司機看</button>` : ''}
+      </div></div>`;
   } else {
     side += `<div class="box"><h3>🏠 溫暖的家</h3><div>返抵國門，旅程圓滿結束！</div></div>`;
   }
@@ -1965,8 +2253,17 @@ function renderHotels(){
   const hotelCards = HOTELS.map(h => `
     <div class="box"><h3>🏨 ${esc(h.nights)}</h3>
       <div class="hotelname">${esc(h.name)}</div>
-      <table class="info"><tr><th>日期</th><td>${esc(h.dates)}</td></tr><tr><th>地區</th><td>${esc(h.area)}</td></tr><tr><th>重要備註</th><td>${esc(h.note)}</td></tr></table>
-      <a class="btn primary" href="${mapUrl(h.name)}" target="_blank" rel="noopener">🗺️ Google 地圖</a>
+      <table class="info">
+        <tr><th>日期</th><td>${esc(h.dates)}</td></tr>
+        <tr><th>地區</th><td>${esc(h.area)}</td></tr>
+        ${h.address ? `<tr><th>地址</th><td>${esc(h.address)}</td></tr>` : ''}
+        ${h.tel ? `<tr><th>電話</th><td><a href="tel:${esc(h.tel.replace(/[^+\d]/g,''))}">${esc(h.tel)}</a></td></tr>` : ''}
+        <tr><th>重要備註</th><td>${esc(h.note)}</td></tr>
+      </table>
+      <div style="display:flex;gap:.45rem;flex-wrap:wrap">
+        <a class="btn primary" href="${mapUrl(h.name)}" target="_blank" rel="noopener">🗺️ Google 地圖</a>
+        <button type="button" class="btn" onclick="openTaxiModal('${h.key}')">🚖 秀給司機看</button>
+      </div>
     </div>`).join('');
 
   const luggageCard = `
@@ -2321,7 +2618,7 @@ renderHotels();
 renderChecks();
 renderInfo();
 renderBanner();
-go(VIEWS.some(v => v[0] === hash) ? hash : 'day', false);
+go(ALL_VIEWS.includes(hash) ? hash : 'day', false);
 function centerChip(chip, smooth){
   const p = $('#daypicker');
   p.scrollTo({left: chip.offsetLeft - p.offsetLeft - (p.clientWidth - chip.offsetWidth)/2, behavior: smooth ? 'smooth' : 'auto'});
