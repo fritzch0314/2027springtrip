@@ -1685,33 +1685,6 @@ if (backTopBtn){
 /* =========================================================
    啟動
    ========================================================= */
-buildNav();
-buildQuickScheduleTable();
-updateNetUI();
-const ti = todayIdx();
-state.day = ti >= 0 ? ti : store.get('day', 0);
-const hash = location.hash.slice(1);
-const hm = hash.match(/^day-(\d+)$/);
-if (hm) state.day = Math.min(9, Math.max(0, +hm[1]-1));
-state.foodDay = String(state.day);
-state.transitDay = String(state.day + 1);
-buildPicker();
-renderDay();
-renderBookings();
-renderTimetables();
-renderFood();
-renderHotels();
-renderChecks();
-renderInfo();
-renderBanner();
-go(ALL_VIEWS.includes(hash) ? hash : 'day', false);
-function centerChip(chip, smooth){
-  const p = $('#daypicker');
-  p.scrollTo({left: chip.offsetLeft - p.offsetLeft - (p.clientWidth - chip.offsetWidth)/2, behavior: smooth ? 'smooth' : 'auto'});
-}
-setTimeout(() => { const c = $('#daypicker .daychip[aria-selected="true"]'); if (c) centerChip(c, false); }, 60);
-setInterval(() => { renderBanner(); if (todayIdx() === state.day) renderDay(); }, 60000);
-
 /* ===== DEMO 新增：行前提醒標籤、天氣、頂欄捲動收合 ===== */
 function prepHtml(x){
   const m = String(x).replace(/^📝\s*/,'').match(/^【([^】]+)】\s*([\s\S]*)$/);
@@ -2321,3 +2294,31 @@ $('#calcToExpBtn')?.addEventListener('click', () => {
   go('expense');
   setTimeout(() => $('#expDesc')?.focus(), 80);
 });
+
+
+buildNav();
+buildQuickScheduleTable();
+updateNetUI();
+const ti = todayIdx();
+state.day = ti >= 0 ? ti : store.get('day', 0);
+const hash = location.hash.slice(1);
+const hm = hash.match(/^day-(\d+)$/);
+if (hm) state.day = Math.min(9, Math.max(0, +hm[1]-1));
+state.foodDay = String(state.day);
+state.transitDay = String(state.day + 1);
+buildPicker();
+renderDay();
+renderBookings();
+renderTimetables();
+renderFood();
+renderHotels();
+renderChecks();
+renderInfo();
+renderBanner();
+go(ALL_VIEWS.includes(hash) ? hash : 'day', false);
+function centerChip(chip, smooth){
+  const p = $('#daypicker');
+  p.scrollTo({left: chip.offsetLeft - p.offsetLeft - (p.clientWidth - chip.offsetWidth)/2, behavior: smooth ? 'smooth' : 'auto'});
+}
+setTimeout(() => { const c = $('#daypicker .daychip[aria-selected="true"]'); if (c) centerChip(c, false); }, 60);
+setInterval(() => { renderBanner(); if (todayIdx() === state.day) renderDay(); }, 60000);
