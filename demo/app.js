@@ -1732,6 +1732,102 @@ function tipsHtml(p){
 const EXP_CATS = ['🍜 餐飲','🚆 交通','🚖 計程車','🎟️ 門票','🛍️ 購物','🎁 伴手禮','🏨 住宿','⛽ 油資/ETC','🅿️ 停車','☕ 飲料零食','💊 藥妝','📦 其他'];
 const EXP_METHODS = ['現金','刷卡','IC'];
 function normMethod(m){ if (!m) return '現金'; if (m.includes('刷卡')) return '刷卡'; if (m.includes('IC') || m.includes('Suica')) return 'IC'; return '現金'; }
+function normCat(c){
+  const s = String(c || '').trim();
+  if (!s) return '📦 其他';
+  const hit = EXP_CATS.find(x => x === s || x.endsWith(s) || x.replace(/^\S+\s*/, '') === s.replace(/^\S+\s*/, ''));
+  return hit || '📦 其他';
+}
+function parseCsvRows(text){
+  const src = String(text || '').replace(/^\uFEFF/, '');
+  const rows = []; let row = [], cell = '', inQ = false;
+  for (let i = 0; i < src.length; i++){
+    const ch = src[i];
+    if (inQ){
+      if (ch === '"' && src[i+1] === '"'){ cell += '"'; i++; }
+      else if (ch === '"') inQ = false;
+      else cell += ch;
+    } else {
+      if (ch === '"') inQ = true;
+      else if (ch === ','){ row.push(cell); cell = ''; }
+      else if (ch === '\r'){ if (src[i+1] === '\n') i++; row.push(cell); rows.push(row); row = []; cell = ''; }
+      else if (ch === '\n'){ row.push(cell); rows.push(row); row = []; cell = ''; }
+      else cell += ch;
+    }
+  }
+  if (cell.length || row.length){ row.push(cell); rows.push(row); }
+  return rows.filter(r => r.some(c => String(c).trim() !== ''));
+}
+function parseExpCsvDay(raw){
+  const s = String(raw || '').trim();
+  if (!s || s.includes('行前') || s === '0') return 0;
+  const dm = s.match(/Day\s*(\d+)/i);
+  if (dm) return Math.min(DAYS.length, Math.max(0, +dm[1]));
+  const iso = s.match(/(\d{4}-\d{2}-\d{2})/);
+  if (iso){ const idx = DAYS.findIndex(d => d.date === iso[1]); if (idx >= 0) return idx + 1; }
+  const md = s.match(/(\d{1,2})\s*\/\s*(\d{1,2})/);
+  if (md){
+    const m = +md[1], day = +md[2];
+    const idx = DAYS.findIndex(d => +d.date.slice(5,7) === m && +d.date.slice(8,10) === day);
+    if (idx >= 0) return idx + 1;
+  }
+  return 1;
+}
+function parseExpCsv(text, rate, curMembers){
+  const rows = parseCsvRows(text);
+  if (!rows.length) return {items: [], extraMembers: []};
+  const num = v => parseFloat(String(v ?? '').replace(/[^\d.-]/g, '')) || 0;
+  const hasHeader = rows[0].some(c => /日期|項目|日幣|付款人/.test(String(c)));
+  const hdr = hasHeader ? rows[0].map(c => String(c).trim()) : null;
+  const dataRows = hasHeader ? rows.slice(1) : rows;
+  const idxOf = (re, fallback) => {
+    if (!hdr) return fallback;
+    const i = hdr.findIndex(h => re.test(h));
+    return i >= 0 ? i : fallback;
+  };
+  const iDay = idxOf(/日期/, 0), iCat = idxOf(/類別/, 1), iDesc = idxOf(/項目/, 2),
+        iJpy = idxOf(/日幣|JPY/i, 3), iTwd = idxOf(/台幣|TWD/i, 4),
+        iCur = idxOf(/原幣別/, 5), iOrig = idxOf(/原金額/, 6),
+        iMethod = idxOf(/付款方式/, 7), iPayer = idxOf(/付款人/, 8), iSplit = idxOf(/分攤/, 9);
+
+  const items = [];
+  const extraSet = new Set();
+  const baseId = Date.now();
+  dataRows.forEach((r, idx) => {
+    const cat = normCat(r[iCat]);
+    const desc = String(r[iDesc] ?? '').trim() || cat.replace(/^\S+\s*/, '');
+    const origCur = String(r[iCur] ?? '').trim().toUpperCase() === 'TWD' ? 'TWD' : 'JPY';
+    const origAmtRaw = num(r[iOrig]);
+    let jpy = Math.round(num(r[iJpy]));
+    if (jpy <= 0){
+      const twdRaw = origCur === 'TWD' && origAmtRaw > 0 ? origAmtRaw : num(r[iTwd]);
+      if (twdRaw > 0) jpy = Math.round(twdRaw / rate);
+    }
+    if (jpy <= 0) return;
+    const origAmt = origAmtRaw > 0 ? origAmtRaw : (origCur === 'TWD' ? Math.round(jpy * rate) : jpy);
+    const payer = String(r[iPayer] ?? '').trim() || curMembers[0] || '全';
+    const rawSplit = String(r[iSplit] ?? '').trim();
+    let split = (!rawSplit || rawSplit === '全員' || rawSplit === '全員分攤')
+      ? curMembers.slice()
+      : rawSplit.split(/[、,，;；\s]+/).map(x => x.trim()).filter(Boolean);
+    if (!split.length) split = [payer];
+    if (!curMembers.includes(payer)) extraSet.add(payer);
+    split.forEach(n => { if (!curMembers.includes(n)) extraSet.add(n); });
+    items.push({
+      id: baseId + idx,
+      desc,
+      cat,
+      jpy,
+      origAmt,
+      origCur,
+      method: normMethod(r[iMethod]),
+      day: parseExpCsvDay(r[iDay]),
+      payer,
+      split
+    });
+  });
+  return {items, extraMembers: [...extraSet]};
+}
 function fmtMD(d){ return d ? `${+d.date.slice(5,7)}/${+d.date.slice(8,10)}（${d.wd}）` : ''; }
 function fmtShortMD(d){ return d ? `${+d.date.slice(5,7)}/${+d.date.slice(8,10)}` : ''; }
 function expDayLabel(dayNum){
@@ -2082,6 +2178,8 @@ function renderExp(preserveForm = false){
         <div class="exp-tools-bar">
           <button type="button" id="expCopy">📋 複製結算</button>
           <button type="button" id="expCsv">📥 匯出 CSV</button>
+          <button type="button" id="expImportCsv">📤 匯入 CSV</button>
+          <input type="file" id="expCsvFile" accept=".csv,text/csv" hidden>
           <button type="button" id="expNames">👥 成員</button>
           <button type="button" id="expClear">🗑️ 清空</button>
         </div>
@@ -2303,6 +2401,39 @@ function renderExp(preserveForm = false){
     link.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
     showToast('📥 已匯出 CSV 檔案');
+  };
+
+  // Import CSV
+  $('#expImportCsv').onclick = () => $('#expCsvFile')?.click();
+  $('#expCsvFile').onchange = ev => {
+    const file = ev.target.files?.[0];
+    ev.target.value = '';
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const {items, extraMembers} = parseExpCsv(reader.result, rate, m);
+      if (!items.length) return showToast('⚠️ CSV 內沒有可匯入的記帳資料');
+      let mode = '1';
+      if (list.length){
+        mode = prompt(`讀取到 ${items.length} 筆記帳（目前已有 ${list.length} 筆）。\n請輸入：\n1 ＝ 合併加入現有紀錄\n2 ＝ 覆蓋取代現有紀錄`, '1');
+        if (mode === null) return;
+        mode = mode.trim();
+        if (mode !== '1' && mode !== '2') return showToast('已取消匯入（請輸入 1 或 2）');
+      }
+      if (extraMembers.length){
+        store.set('exp_members', [...m, ...extraMembers]);
+        expState.selectedSplit = null;
+      }
+      const next = mode === '2' ? items : [...list, ...items];
+      EXP.save(next);
+      if (mode === '2') EXP.saveSettled({});
+      expState.editId = null;
+      expState.activeRowId = null;
+      renderExp();
+      showToast(`📤 已${mode === '2' ? '覆蓋' : '合併'}匯入 ${items.length} 筆記帳`);
+    };
+    reader.onerror = () => showToast('⚠️ 讀取檔案失敗');
+    reader.readAsText(file, 'UTF-8');
   };
 
   // Manage members
