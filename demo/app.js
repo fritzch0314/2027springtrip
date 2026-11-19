@@ -707,7 +707,7 @@ function renderDay(){
     const pills = [];
     if (dayNum === 1 && p.text.includes('Skyliner 136')) pills.push(`<button type="button" class="quick-pill" onclick="openGuideModal('skyliner')">🗺️ 成田 T1／京成上野動線圖</button>`);
     if (dayNum === 1 && p.text.includes('MIMARU 東京 上野 NORTH')) pills.push(`<button type="button" class="quick-pill" onclick="openTaxiModal('mimaru')">🚖 秀給司機看（飯店）</button>`);
-    if (dayNum === 3 && p.text.includes('星野榆樹街小鎮')) pills.push(`<button type="button" class="quick-pill" onclick="openTaxiModal('hoshino')">🚖 秀給司機看（星野）</button>`);
+    if (dayNum === 3 && p.text.includes('星野榆樹街小鎮') && p.text.includes('計程車')) pills.push(`<button type="button" class="quick-pill" onclick="openTaxiModal('hoshino')">🚖 秀給司機看（星野）</button>`);
     if (dayNum === 5 && p.text.includes('119號')) pills.push(`<button type="button" class="quick-pill" onclick="openGuideModal('tokyoStation')">🗺️ 東京站轉 8 號站牌動線圖</button>`);
     if (dayNum === 5 && p.text.includes('Toyota 富士河口湖店')) {
       pills.push(`<button type="button" class="quick-pill" onclick="openTaxiModal('toyota')">🚖 秀給司機看（租車站）</button>`);
