@@ -343,8 +343,8 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
   <div id="banner"></div>
 
   <div class="subtabs" id="subtabsPlan" role="tablist" aria-label="行前清單子分頁">
-    <button type="button" role="tab" data-sub="booking" aria-selected="true">🎟️ 訂票提醒</button>
-    <button type="button" role="tab" data-sub="check" aria-selected="false">📝 準備清單</button>
+    <button type="button" role="tab" data-sub="check" aria-selected="true">📝 準備清單</button>
+    <button type="button" role="tab" data-sub="booking" aria-selected="false">🎟️ 訂票提醒</button>
   </div>
   <div class="subtabs" id="subtabsMore" role="tablist" aria-label="旅途資訊子分頁">
     <button type="button" role="tab" data-sub="overview" aria-selected="true">🗺️ 總覽搜尋</button>
@@ -1424,7 +1424,7 @@ const VIEWS = [
 ];
 const ALL_VIEWS = ['day','transit','food','booking','check','overview','hotel','info','plan','more'];
 const SUB_PARENT = {booking:'plan', check:'plan', overview:'more', hotel:'more', info:'more'};
-const lastSub = {plan:'booking', more:'overview'};
+const lastSub = {plan:'check', more:'overview'};
 
 function buildNav(){
   const openUnbookedCount = BOOKINGS.filter(b => { const s = getBookingStatus(b); return s.isOpen && !s.isDone; }).length;
