@@ -330,6 +330,7 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
     <div class="tools">
       <button class="iconbtn" id="todayJumpBtn" aria-label="跳回今天此刻行程" title="跳回今天此刻行程">📍 <span class="lbl">今天</span></button>
       <button class="iconbtn" id="phraseHubBtn" aria-label="旅途日語溝通手冊" title="全場景日語溝通卡">🗣️ <span class="lbl">日語</span></button>
+      <button class="iconbtn" id="searchBtn" aria-label="全站搜尋" title="搜尋行程、餐廳、訂票與時刻表">🔍</button>
       <button class="iconbtn" id="calcBtn" aria-label="快速日幣台幣換算" title="快速匯率換算">💴</button>
       <button class="iconbtn" id="fontCycleBtn" aria-label="切換字級大小" title="點擊切換字級大小">Aa <span id="fontLbl" style="font-size:.78rem;opacity:.9">標準</span></button>
       <span class="net-pill" id="netPill" role="status">📴 離線</span>
@@ -348,8 +349,7 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
     <button type="button" role="tab" data-sub="booking" aria-selected="false">🎟️ 訂票提醒</button>
   </div>
   <div class="subtabs" id="subtabsMore" role="tablist" aria-label="旅途資訊子分頁">
-    <button type="button" role="tab" data-sub="overview" aria-selected="true">🗺️ 總覽搜尋</button>
-    <button type="button" role="tab" data-sub="hotel" aria-selected="false">🏨 住宿行李</button>
+    <button type="button" role="tab" data-sub="hotel" aria-selected="true">🏨 住宿行李</button>
     <button type="button" role="tab" data-sub="info" aria-selected="false">ℹ️ 實用資訊</button>
   </div>
 
@@ -417,17 +417,6 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
     <div class="grid-wide" id="foodGrid"></div>
   </section>
 
-  <!-- 總覽 -->
-  <section class="view" id="v-overview" aria-label="行程總覽">
-    <h2 class="sectitle">🗺️ 10 天行程總覽 ＆ 全站綜合搜尋</h2>
-    <div class="searchbox">
-      <label class="sr-only" for="q">搜尋行程、訂票、時刻表與餐廳</label>
-      <input id="q" type="search" placeholder="🔍 搜尋景點、餐廳、班次、訂票提醒、時刻表…（例：晴空塔、はくたか、黑貓、樹冰祭、敘敘苑）" autocomplete="off">
-    </div>
-    <div class="results" id="results"></div>
-    <div class="grid" id="grid"></div>
-  </section>
-
   <!-- 住宿 -->
   <section class="view" id="v-hotel" aria-label="住宿">
     <h2 class="sectitle">🏨 住宿安排（共 9 晚）＆ 大行李寄送動線</h2>
@@ -436,7 +425,7 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
 
   <!-- 清單 -->
   <section class="view" id="v-check" aria-label="準備清單">
-    <h2 class="sectitle">📝 準備事項 ＆ 預約確認清單</h2>
+    <h2 class="sectitle">📝 準備事項 ＆ 打包清單</h2>
     <div class="box" style="margin-bottom:1rem">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;flex-wrap:wrap">
         <b id="progtxt">完成 0 / 0</b>
@@ -450,14 +439,13 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
         <input id="customChkInput" type="text" placeholder="➕ 新增個人或家族待辦事項（例：預約成田機場接送、買兒童雪鏡）">
         <button class="btn primary" id="addCustomChkBtn" style="margin:0">新增項目</button>
       </div>
-      <small style="color:var(--muted);display:block;margin-top:.35rem">勾選狀態與「🎟️ 訂票提醒」雙向自動同步，並儲存在這台裝置上。</small>
     </div>
     <div class="grid-wide" id="checks"></div>
   </section>
 
   <!-- 資訊 -->
   <section class="view" id="v-info" aria-label="實用資訊">
-    <h2 class="sectitle">ℹ️ 實用資訊 ＆ 旅途工具</h2>
+    <h2 class="sectitle">ℹ️ 航班、緊急聯絡 ＆ 離線狀態</h2>
     <div class="grid-wide" id="info"></div>
   </section>
 
@@ -483,6 +471,22 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
       <span style="color:var(--muted);font-size:.8rem" id="partySummary">（共 6 位，即時同步候位卡）</span>
     </div>
     <div id="hubWrap" class="phrase-grid" style="margin-top:0"></div>
+  </div>
+</div>
+
+<!-- 🔍 全站綜合搜尋 Modal -->
+<div class="modal-backdrop" id="searchModal" role="dialog" aria-modal="true" aria-labelledby="searchTitle">
+  <div class="modal-card wide" style="text-align:left">
+    <div class="modal-hd">
+      <h3 id="searchTitle">🔍 全站綜合搜尋</h3>
+      <button type="button" class="modal-close" id="closeSearchBtn">✕ 關閉</button>
+    </div>
+    <div class="searchbox" style="margin-bottom:.6rem">
+      <label class="sr-only" for="q">搜尋行程、訂票、時刻表與餐廳</label>
+      <input id="q" type="search" placeholder="🔍 搜尋景點、餐廳、班次、訂票提醒、時刻表…（例：晴空塔、はくたか、黑貓、樹冰祭、敘敘苑）" autocomplete="off">
+    </div>
+    <div class="results" id="results" style="margin-top:0"></div>
+    <div id="searchHint" style="color:var(--muted);font-size:.88rem;padding:.4rem .2rem">輸入關鍵字即可一次搜尋 10 天行程、推薦餐廳、訂票提醒與交通時刻表。</div>
   </div>
 </div>
 
@@ -1622,11 +1626,11 @@ const VIEWS = [
   ['transit','🚆','交通時刻表','交通'],
   ['food','🍽️','推薦餐廳','美食'],
   ['plan','🎟️','訂票＆清單','清單'],
-  ['more','ℹ️','總覽＆資訊','資訊']
+  ['more','ℹ️','住宿＆資訊','資訊']
 ];
-const ALL_VIEWS = ['day','transit','food','booking','check','overview','hotel','info','plan','more'];
-const SUB_PARENT = {booking:'plan', check:'plan', overview:'more', hotel:'more', info:'more'};
-const lastSub = {plan:'check', more:'overview'};
+const ALL_VIEWS = ['day','transit','food','booking','check','hotel','info','plan','more'];
+const SUB_PARENT = {booking:'plan', check:'plan', hotel:'more', info:'more'};
+const lastSub = {plan:'check', more:'hotel'};
 
 function buildNav(){
   const openUnbookedCount = BOOKINGS.filter(b => { const s = getBookingStatus(b); return s.isOpen && !s.isDone; }).length;
@@ -1640,6 +1644,7 @@ function buildNav(){
 document.querySelectorAll('.subtabs button').forEach(b => b.addEventListener('click', () => go(b.dataset.sub)));
 
 function go(view, push=true){
+  if (view === 'overview') view = 'hotel';
   if (view === 'plan') view = lastSub.plan;
   if (view === 'more') view = lastSub.more;
   const parent = SUB_PARENT[view] || view;
@@ -1847,6 +1852,13 @@ $('#closeHubBtn').addEventListener('click', () => $('#phraseHubModal').classList
 $('#phraseHubModal').addEventListener('click', e => { if (e.target === $('#phraseHubModal')) $('#phraseHubModal').classList.remove('open'); });
 $('#hubSearch').addEventListener('input', e => { hubState.q = e.target.value; renderPhraseHub(); });
 
+$('#searchBtn').addEventListener('click', () => {
+  $('#searchModal').classList.add('open');
+  setTimeout(() => { $('#q')?.focus(); $('#q')?.select(); }, 40);
+});
+$('#closeSearchBtn').addEventListener('click', () => $('#searchModal').classList.remove('open'));
+$('#searchModal').addEventListener('click', e => { if (e.target === $('#searchModal')) $('#searchModal').classList.remove('open'); });
+
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
   if ($('#phraseModal')?.classList.contains('open')) {
@@ -1854,7 +1866,7 @@ document.addEventListener('keydown', e => {
     $('#phraseModal').classList.remove('open');
     return;
   }
-  ['#placeModal','#phraseHubModal','#taxiModal','#calcModal','#guideModal','#pwaModal'].forEach(s => $(s)?.classList.remove('open'));
+  ['#placeModal','#phraseHubModal','#searchModal','#taxiModal','#calcModal','#guideModal','#pwaModal'].forEach(s => $(s)?.classList.remove('open'));
 });
 
 /* =========================================================
@@ -1862,9 +1874,9 @@ document.addEventListener('keydown', e => {
    ========================================================= */
 const state = {
   day: 0, filter: 'all',
-  foodDay: 'all', foodTier: 'all',
+  foodDay: '0', foodTier: 'all',
   bookingStatus: 'all', bookingCat: 'all',
-  transitCat: 'all', transitDay: 'all',
+  transitCat: 'all', transitDay: '1',
   onlyUnchecked: false
 };
 
@@ -1884,11 +1896,15 @@ function buildPicker(){
 
 function selectDay(i, scroll=true){
   state.day = Math.max(0, Math.min(DAYS.length-1, i));
+  state.foodDay = String(state.day);
+  state.transitDay = String(state.day + 1);
   store.set('day', state.day);
   $('#daypicker').querySelectorAll('.daychip').forEach(b => b.setAttribute('aria-selected', +b.dataset.i === state.day));
   const chip = $('#daypicker').querySelector(`[data-i="${state.day}"]`);
   if (chip && scroll) centerChip(chip, true);
   renderDay();
+  renderFood();
+  renderTimetables();
   history.replaceState(null, '', '#day-' + (state.day+1));
 }
 
@@ -1983,20 +1999,6 @@ function renderDay(){
     if (dayNum === 8 && p.text.includes('東京晴空塔') && p.time.includes('16:30')) pills.push(`<button type="button" class="quick-pill" onclick="openGuideModal('solamachi')">🏢 Solamachi 晴空塔樓層圖</button>`);
     if (dayNum === 9 && p.text.includes('本52')) pills.push(`<button type="button" class="quick-pill" onclick="openGuideModal('kawagoeLoop')">🗺️ 川越無回頭路環線圖</button>`);
 
-    // 依行程情境自動掛載合適的日語溝通卡連結
-    if (p.type === 'food' && !/(自助早餐|飯店早餐|車上享用|超商)/.test(p.text)) {
-      pills.push(`<button type="button" class="quick-pill" onclick="openPhraseHub('food')">🗣️ 餐廳點餐日語</button>`);
-    }
-    if (/(Check-in|入住|寄放行李|黑貓宅急便|退房)/i.test(p.text)) {
-      pills.push(`<button type="button" class="quick-pill" onclick="openPhraseHub('hotel')">🗣️ 飯店／行李日語</button>`);
-    }
-    if (/(購物廣場|晴空街道商場|阿美橫丁|逛街採購)/.test(p.text)) {
-      pills.push(`<button type="button" class="quick-pill" onclick="openPhraseHub('shop')">🗣️ 購物退稅日語</button>`);
-    }
-    if ((dayNum === 1 && p.text.includes('Skyliner 136')) || (dayNum === 5 && p.text.includes('119號')) || (dayNum === 9 && p.text.includes('本52'))) {
-      pills.push(`<button type="button" class="quick-pill" onclick="openPhraseHub('transit')">🗣️ 車站交通日語</button>`);
-    }
-
     return `<li class="ev ${p.type} ${i===nowIdx?'now':''} ${past?'past':''}">
       <span class="dot" aria-hidden="true">${p.icon}</span>
       <div class="card">
@@ -2017,7 +2019,7 @@ function renderDay(){
   $('#prevDay').onclick = () => { selectDay(state.day-1); window.scrollTo({top:0,behavior:'smooth'}); };
   $('#nextDay').onclick = () => { selectDay(state.day+1); window.scrollTo({top:0,behavior:'smooth'}); };
 
-  // 側欄
+  // 側欄（精簡無重複）
   let side = '';
   if (d.hotel){
     const hObj = HOTELS.find(h => d.hotel.includes(h.name.split(' ')[0]));
@@ -2032,35 +2034,20 @@ function renderDay(){
   }
 
   if (d.prep.length){
-    side += `<div class="box"><h3>📝 提前準備事項</h3><ul>${d.prep.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
-      <button class="btn" onclick="go('check')">前往清單勾選 →</button></div>`;
+    side += `<div class="box"><details>
+      <summary style="cursor:pointer;font-weight:800;font-size:.98rem;color:var(--primary)">📝 提前準備事項（${d.prep.length} 項）</summary>
+      <ul style="margin-top:.5rem">${d.prep.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
+      <button class="btn" onclick="go('check')">前往清單勾選 →</button>
+    </details></div>`;
   }
 
-  // 當日相關訂票提醒
   const dayBookings = BOOKINGS.filter(b => b.days.includes(dayNum));
-  if (dayBookings.length){
-    side += `<div class="box"><h3>🎟️ 今日相關預訂 ＆ 票券狀態</h3>
-      <ul style="padding-left:1.1rem;font-size:.92rem">${dayBookings.map(b => {
-        const st = getBookingStatus(b);
-        const badge = st.isDone ? '<span class="pill done">✅ 已預訂</span>' : st.isOpen ? '<span class="pill urgent">🔥 已開放待訂</span>' : `<span class="pill upcoming">⏳ ${esc(b.openTwt.split(/[（※\n]/)[0])} 開放</span>`;
-        return `<li style="margin:.45rem 0">
-          <div style="display:flex;align-items:center;gap:.35rem;flex-wrap:wrap"><b>#${b.id} ${esc(b.shortTitle)}</b> ${badge}</div>
-          <div style="font-size:.82rem;color:var(--muted)">${esc(b.dayLabel)}｜<a href="#" onclick="event.preventDefault();jumpToBooking(${b.id})">查看詳情</a>・<a href="${esc(b.url)}" target="_blank" rel="noopener">官網 ↗</a></div>
-        </li>`;
-      }).join('')}</ul>
-      <button class="btn" onclick="go('booking')">前往訂票提醒清單 →</button></div>`;
-  }
-
-  // 當日相關交通時刻表
   const dayTimetables = TIMETABLES.filter(t => t.days.includes(dayNum));
-  if (dayTimetables.length){
-    side += `<div class="box"><h3>🚆 今日交通時刻表 ＆ 常用連結</h3>
-      <ul style="padding-left:1.1rem;font-size:.9rem">${dayTimetables.map(t => `
-        <li style="margin:.35rem 0">
-          <a href="${esc(t.url)}" target="_blank" rel="noopener" style="font-weight:700">#${t.id} ${esc(t.title)} ↗</a>
-          <div style="font-size:.8rem;color:var(--muted)">${esc(t.note)}</div>
-        </li>`).join('')}</ul>
-      <button class="btn" onclick="jumpToTimetableDay(${dayNum})">查看 Day ${dayNum} 完整時刻表 →</button></div>`;
+  if (dayBookings.length || dayTimetables.length){
+    side += `<div class="box" style="display:flex;gap:.45rem;flex-wrap:wrap;align-items:center">
+      ${dayTimetables.length ? `<button type="button" class="btn" style="margin:0" onclick="jumpToTimetableDay(${dayNum})">🚆 Day ${dayNum} 交通時刻表（${dayTimetables.length}）→</button>` : ''}
+      ${dayBookings.length ? `<button type="button" class="btn" style="margin:0" onclick="go('booking')">🎟️ 今日相關預訂（${dayBookings.length}）→</button>` : ''}
+    </div>`;
   }
   $('#side').innerHTML = side;
 }
@@ -2234,46 +2221,37 @@ function renderBookings(){
     return `<div class="box bk-card ${st.isDone?'is-done':''}" id="bk-card-${b.id}" style="border-top:5px solid ${borderCol}">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:.4rem;flex-wrap:wrap">
         <div style="display:flex;gap:.35rem;align-items:center;flex-wrap:wrap">
-          <span class="pill area">順序 #${b.id}</span>
-          <span class="pill">${esc(b.cat)}</span>
+          <span class="pill area">#${b.id}</span>
+          <span class="pill">${esc(b.dayLabel)}</span>
         </div>
         ${statusBadge}
       </div>
 
-      <h3 style="margin:.15rem 0 0;font-size:1.15rem">${esc(b.title)}</h3>
+      <h3 style="margin:.15rem 0 .2rem;font-size:1.05rem">${esc(b.title)}</h3>
+      <div style="font-size:.86rem;color:var(--muted);margin-bottom:.35rem">⏰ 最早可訂：<b style="color:var(--primary)">${esc(b.openTwt.split('\n')[0])}</b></div>
 
-      <div style="display:flex;gap:.35rem;align-items:center;flex-wrap:wrap;font-size:.86rem">
-        <span style="color:var(--muted);font-weight:700">📅 對應行程：${esc(b.dayLabel)}</span>
-        ${b.days.slice(0,4).map(dNum => `<button type="button" class="btn btn-sm" onclick="go('day');selectDay(${dNum-1})">Day ${dNum} →</button>`).join('')}
-      </div>
-
-      <div class="bk-meta">
-        <div class="bk-meta-item">
-          <b>⏰ 最早可訂時間（台灣時間）</b>
-          <span style="font-weight:800;color:var(--primary)">${esc(b.openTwt)}</span>
-        </div>
-        <div class="bk-meta-item">
-          <b>🕘 最早可訂時間（日本 JST）</b>
-          <span>${esc(b.openJst)}</span>
-        </div>
-      </div>
-
-      <div class="tip" style="margin-top:0">💡 <b>備註與注意事項：</b>${esc(b.note)}</div>
-      ${subHtml}
-
-      <div>
-        <input type="text" class="bk-note-inp" data-note-id="${b.id}" value="${esc(notesMap[b.id]||'')}" placeholder="📝 填寫預約編號、訂位時間或備忘錄（自動儲存）…">
-      </div>
-
-      <div class="bk-actions">
+      <div class="bk-actions" style="margin-top:0">
         <button type="button" class="btn btn-sm ${st.isDone?'done-btn':'accent'}" data-toggle-bk="${b.chkKey}">
-          ${st.isDone ? '✅ 已預訂（點擊改為待預訂）' : '📌 待預訂（完成後點此打勾）'}
+          ${st.isDone ? '✅ 已預訂' : '📌 標記已訂'}
         </button>
-        <a class="btn primary btn-sm" href="${esc(b.url)}" target="_blank" rel="noopener">🔗 官方訂票／預約網站 ↗</a>
-        ${b.tel ? `<a class="btn btn-sm" href="tel:${esc(b.tel)}">📞 ${esc(b.telLabel)}</a>` : ''}
-        ${(b.cal || []).map(ev => `<a class="btn btn-sm" href="${gcalUrl(ev, b)}" target="_blank" rel="noopener">📅 加入行事曆（${esc(ev.label)}）</a>`).join('')}
-        ${(b.ttIds || []).map(tid => `<button type="button" class="btn btn-sm" onclick="jumpToTimetableId(${tid})">🕒 時刻表 #${tid}</button>`).join('')}
+        <a class="btn primary btn-sm" href="${esc(b.url)}" target="_blank" rel="noopener">🔗 官網 ↗</a>
+        ${b.tel ? `<a class="btn btn-sm" href="tel:${esc(b.tel)}">📞 電話</a>` : ''}
       </div>
+
+      <details style="margin-top:.45rem;border-top:1px dashed var(--line);padding-top:.4rem">
+        <summary style="cursor:pointer;font-size:.86rem;font-weight:700;color:var(--primary)">展開詳情、預約備註 ＆ 加入行事曆 ▼</summary>
+        <div style="margin-top:.5rem;display:grid;gap:.45rem">
+          <div style="font-size:.84rem;color:var(--muted)">🕘 日本時間：${esc(b.openJst)}</div>
+          <div class="tip" style="margin-top:0">💡 ${esc(b.note)}</div>
+          ${subHtml}
+          <input type="text" class="bk-note-inp" data-note-id="${b.id}" value="${esc(notesMap[b.id]||'')}" placeholder="📝 填寫預約編號、訂位時間或備忘錄（自動儲存）…">
+          <div class="bk-actions" style="margin-top:0">
+            ${b.days.slice(0,4).map(dNum => `<button type="button" class="btn btn-sm" onclick="go('day');selectDay(${dNum-1})">Day ${dNum} →</button>`).join('')}
+            ${(b.cal || []).map(ev => `<a class="btn btn-sm" href="${gcalUrl(ev, b)}" target="_blank" rel="noopener">📅 行事曆（${esc(ev.label)}）</a>`).join('')}
+            ${(b.ttIds || []).map(tid => `<button type="button" class="btn btn-sm" onclick="jumpToTimetableId(${tid})">🕒 時刻表 #${tid}</button>`).join('')}
+          </div>
+        </div>
+      </details>
     </div>`;
   }).join('') || '<div class="box">沒有符合篩選條件的預訂項目。</div>';
 
@@ -2375,9 +2353,8 @@ function renderTimetables(){
         <span class="pill">📅 ${esc(t.dayLabel)}</span>
       </div>
 
-      <h3 style="margin:.15rem 0 0;font-size:1.1rem">${esc(t.title)}</h3>
-      <div style="font-size:.94rem;color:var(--text)">${esc(t.note)}</div>
-      <div class="tt-domain">🌐 來源網址：${esc(domain)}</div>
+      <h3 style="margin:.15rem 0 0;font-size:1.05rem">${esc(t.title)}</h3>
+      <div style="font-size:.9rem;color:var(--muted)">${esc(t.note)}</div>
 
       <div style="display:flex;gap:.4rem;flex-wrap:wrap;align-items:center;margin-top:auto;padding-top:.4rem;border-top:1px dashed var(--line)">
         <a class="btn primary btn-sm" href="${esc(t.url)}" target="_blank" rel="noopener">🕒 開啟官方時刻表／網站 ↗</a>
@@ -2495,23 +2472,11 @@ function renderFood(){
 $('#fq').addEventListener('input', renderFood);
 
 /* =========================================================
-   總覽 + 全站搜尋（涵蓋行程、訂票提醒、時刻表與推薦餐廳）
+   全站搜尋彈窗（涵蓋行程、訂票提醒、時刻表與推薦餐廳）
    ========================================================= */
-function renderOverview(){
-  $('#grid').innerHTML = DAYS.map((d,i) => {
-    const hl = [...new Set(d.parsed.filter(p => p.type==='sight'||p.type==='event').flatMap(p => p.places))].filter(s => !/^(午餐|晚餐|除夕晚宴|第\s*\d+\s*晚)/.test(s)).slice(0,5);
-    return `<button class="dcard" style="--areac:${d.color}" data-i="${i}">
-      <div class="h"><span class="n">Day ${i+1}・${fmtDate(d)}</span>${d.tag?`<span class="pill holiday">🧧 ${d.tag}</span>`:''}</div>
-      <div class="ti">${esc(d.title)}</div>
-      <div class="hl">${hl.length ? '✨ ' + hl.map(esc).join('、') : ''}</div>
-      <div class="ho">${d.hotel ? '🏨 ' + esc(d.hotel) : '🏠 返抵國門'}</div>
-    </button>`;
-  }).join('');
-  $('#grid').querySelectorAll('.dcard').forEach(b => b.onclick = () => { go('day'); selectDay(+b.dataset.i); });
-}
 $('#q').addEventListener('input', e => {
   const q = e.target.value.trim();
-  if (!q){ $('#results').innerHTML=''; $('#grid').style.display=''; return; }
+  if (!q){ $('#results').innerHTML=''; $('#searchHint').style.display=''; return; }
   const re = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'gi');
   const hits = [];
   DAYS.forEach((d,i) => {
@@ -2546,11 +2511,12 @@ $('#q').addEventListener('input', e => {
     }
     return out + esc(txt.slice(last));
   };
-  $('#grid').style.display = 'none';
-  $('#results').innerHTML = `<p><b>找到 ${hits.length} 筆結果</b></p>` + hits.map((h, idx) =>
+  $('#searchHint').style.display = 'none';
+  $('#results').innerHTML = `<p style="margin:.2rem 0 .5rem"><b>找到 ${hits.length} 筆結果</b></p>` + hits.map((h, idx) =>
     `<button class="r" data-hit="${idx}"><small>${esc(h.label)}</small><br>${h.icon} ${highlight(h.txt)}</button>`).join('');
   $('#results').querySelectorAll('.r').forEach(b => b.onclick = () => {
     const h = hits[+b.dataset.hit];
+    $('#searchModal').classList.remove('open');
     if (h.kind === 'booking') jumpToBooking(h.id);
     else if (h.kind === 'transit') jumpToTimetableId(h.id);
     else { go('day'); selectDay(h.i); }
@@ -2602,27 +2568,22 @@ function renderChecks(){
 
   groups.push({
     title:'🎒 冬季家族旅遊建議攜帶物品',
+    open: true,
     items: PACKING.map((t,j) => ({id:`p${j}`, t}))
   });
   if (custom.length){
     groups.push({
       title:'⭐ 自訂待辦與準備事項',
+      open: true,
       items: custom.map((t,j) => ({id:`c-${j}`, t, customIdx: j}))
     });
   }
   DAYS.filter(d => d.prep.length).forEach(d => {
     groups.push({
       title:`📅 Day ${d.idx+1}・${fmtDate(d)} 提醒與準備`,
+      open: false,
       items: d.prep.map((t,j) => ({id:`d${d.idx}-${j}`, t}))
     });
-  });
-  groups.push({
-    title:'🎟️ 訂票與預訂確認清單（與「訂票提醒」分頁雙向同步）',
-    items: BOOKINGS.map(b => ({
-      id: b.chkKey,
-      t: `#${b.id} 【${b.dayLabel}】${b.title}（最早可訂：${b.openTwt}）`,
-      bkId: b.id
-    }))
   });
 
   $('#filterUncheckedBtn').textContent = state.onlyUnchecked ? '顯示全部項目' : '僅看未完成';
@@ -2631,12 +2592,20 @@ function renderChecks(){
   $('#checks').innerHTML = groups.map(g => {
     const visibleItems = state.onlyUnchecked ? g.items.filter(it => !done[it.id]) : g.items;
     if (!visibleItems.length) return '';
-    return `<div class="box"><h3>${esc(g.title)}</h3>${visibleItems.map(it =>
-      `<label class="check ${done[it.id]?'done':''}">
-        <input type="checkbox" data-id="${it.id}" ${done[it.id]?'checked':''}>
-        <span>${esc(it.t)} ${it.bkId ? `<a href="#" onclick="event.preventDefault();jumpToBooking(${it.bkId})" style="font-size:.82rem;font-weight:700;margin-left:.25rem">[查看訂票詳情]</a>` : ''}</span>
-        ${it.customIdx !== undefined ? `<button type="button" class="del-btn" data-del="${it.customIdx}" title="刪除此自訂項目">🗑️</button>` : ''}
-      </label>`).join('')}</div>`;
+    const doneCnt = g.items.filter(it => done[it.id]).length;
+    const isOpen = g.open || state.onlyUnchecked;
+    return `<div class="box"><details ${isOpen ? 'open' : ''}>
+      <summary style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:.4rem;font-weight:800;font-size:1rem;color:var(--primary)">
+        <span>${esc(g.title)}</span>
+        <span class="pill ${doneCnt===g.items.length?'done':''}">${doneCnt} / ${g.items.length}</span>
+      </summary>
+      <div style="margin-top:.55rem">${visibleItems.map(it =>
+        `<label class="check ${done[it.id]?'done':''}">
+          <input type="checkbox" data-id="${it.id}" ${done[it.id]?'checked':''}>
+          <span>${esc(it.t)}</span>
+          ${it.customIdx !== undefined ? `<button type="button" class="del-btn" data-del="${it.customIdx}" title="刪除此自訂項目">🗑️</button>` : ''}
+        </label>`).join('')}</div>
+    </details></div>`;
   }).join('') || '<div class="box">🎉 太棒了！所有準備項目皆已完成！</div>';
 
   const allIds = groups.flatMap(g => g.items.map(it => it.id));
@@ -2691,70 +2660,15 @@ $('#resetChk').onclick = () => {
 };
 
 /* =========================================================
-   實用資訊 ＆ 日幣換算工具
+   實用資訊（精簡核心 3 卡片）
    ========================================================= */
 function renderInfo(){
-  const rate = store.get('rate', 0.215);
   $('#info').innerHTML = `
   <div class="box"><h3>✈️ 航班資訊（長榮航空）</h3>
     <table class="info">
       <tr><th>去程</th><td><b>BR198</b>　2/1（一）<br>08:50 桃園 T2 → 12:55 成田 T1<br><small>05:30 出發 → 06:30 桃園 T2 長榮櫃檯報到</small></td></tr>
       <tr><th>回程</th><td><b>BR197</b>　2/10（三）<br>14:00 成田 T1 → 17:05 桃園 T2<br><small>⚠️ 搭 Skyliner 129號於 10:53 停靠第 2 航廈請勿下車，終點站 10:57 成田第 1 航廈下車</small></td></tr>
     </table></div>
-
-  <div class="box"><h3>💴 日幣 ↔ 台幣即時換算小工具</h3>
-    <div style="font-size:.86rem;color:var(--muted);margin-bottom:.35rem">
-      匯率設定：1 JPY = <input id="rateInp" type="number" step="0.001" value="${rate}" style="width:5.2rem;font:inherit;padding:.1rem .3rem;border:1px solid var(--line);border-radius:6px;background:var(--surface2);color:var(--text)"> TWD
-    </div>
-    <div class="calc-row">
-      <div><label style="font-size:.8rem;color:var(--muted)">日幣 (JPY ¥)</label><input id="jpyInp" type="number" value="1000" inputmode="decimal"></div>
-      <div style="font-weight:800;padding-top:1.1rem">↔</div>
-      <div><label style="font-size:.8rem;color:var(--muted)">台幣 (TWD $)</label><input id="twdInp" type="number" value="${Math.round(1000*rate)}" inputmode="decimal"></div>
-    </div>
-    <div class="preset-chips">
-      <button type="button" data-jpy="800">¥800 上野計程車</button>
-      <button type="button" data-jpy="1200">¥1,200 富士山纜車</button>
-      <button type="button" data-jpy="1550">¥1,550 江之島夜間套票</button>
-      <button type="button" data-jpy="3500">¥3,500 輕井澤計程車</button>
-      <button type="button" data-jpy="5000">¥5,000 Suica儲值</button>
-    </div>
-  </div>
-
-  <div class="box"><h3>🚗 自駕租車與雪地安全（Day 5–8）</h3>
-    <ul>
-      <li><b>取車：</b>2/5（五）14:00 <b>Toyota 富士河口湖店</b>（河口湖站步行約 7 分鐘；若巴士塞車晚於 14:00，致電 <a href="tel:0555-72-1100">0555-72-1100</a> 留車）</li>
-      <li><b>必備證件：</b><b>台灣駕照正本 ＋ 日文譯本正本 ＋ 護照</b>（⚠️不可使用國際駕照）</li>
-      <li><b>輪胎確認：</b>取車時務必確認配備<b>【冬季雪胎 スタッドレスタイヤ】</b>及兒童安全座椅</li>
-      <li><b>除霜與黑冰警告：</b>Day 6 清晨 06:15 前往大石公園約 -8°C，過河口湖大橋須防路面黑冰；提早 10 分鐘發動暖氣除霜</li>
-      <li><b>冬花火停車與防塞：</b>Day 6 18:30 自駕前往<b>平浜駐車場</b>（車程約 12 分鐘）或<b>船津浜駐車場</b>，19:00 前停妥避開車潮；19:30 施放確認舉辦信號煙火；20:20 結束後在車內休息 15–20 分鐘待車潮消退再返飯店</li>
-      <li><b>還車動線：</b>2/8（一）08:15 先送家人與行李至河口湖站，駕駛再開往「ENEOS セルフ富士河口湖SS」加滿油，08:45 Toyota 還車後輕裝步行約 7 分鐘回車站會合</li>
-    </ul>
-    <a class="btn" href="${mapUrl('Toyota Rent-a-Car 富士河口湖店')}" target="_blank" rel="noopener">🗺️ 租車店地圖</a>
-    <a class="btn" href="${mapUrl('ENEOS セルフ富士河口湖SS')}" target="_blank" rel="noopener">⛽ ENEOS 加油站地圖</a></div>
-
-  <div class="box"><h3>🎫 關鍵交通班次 ＆ 轉乘攻略</h3>
-    <ul>
-      <li><b>Suica / IC 卡：</b>建議第 1 晚每人儲值 ¥5,000；<b>Day 2 鎌倉→長谷→江之島→藤澤</b> 及 <b>Day 9 川越（含西武巴士本52）</b> 全程直接刷 Suica 即可，無須購買一日券</li>
-      <li><b>Day 1 / Day 10 京成 Skyliner：</b>去程 14:18（136號，備案 14:38 的 38號，建議出關後現場購票／劃位或持兌換券換位）；回程 10:00（129號，⚠️10:53 停第 2 航廈勿下車，10:57 終點第 1 航廈下車）</li>
-      <li><b>Day 2 鎌倉 JR 綠車 & 江之電：</b>07:00 出門步行至上野站，排自由席綠車（選車廂兩端或下層較易有位），07:46 上野發東海道線 → 08:30 戶塚站 4 號月台，對面 3 號月台轉 08:40 橫須賀線 → 08:51 鎌倉；回程 19:01 片瀨江之島搭小田急至藤澤（19:07），轉 19:40 JR 東海道線直達上野（20:34，買便當車上吃）</li>
-      <li><b>Day 3 / Day 5 北陸新幹線：</b>去程 08:47 上野發「はくたか 555號」（09:43 抵輕井澤）；回程 <b>09:19</b> 輕井澤發「はくたか 554號」（10:22 抵東京站）</li>
-      <li><b>Day 3–5 輕井澤接駁車 & 巴士：</b>D3 10:00 南口(B-1) 搭棕線接駁車至西館寄行李，10:35 由西館搭計程車直達星野榆樹街（備案北口1號站牌 11:30 西武巴士）；D4 14:10 北口2號站牌搭草輕巴士往舊輕井澤（⚠️不支援 Suica，可付現／感應卡／PayPay），回程 16:15 西武巴士（16:08 前候車）；D5 08:20 西館(G-12M) 搭綠線接駁車往南口（備案 08:05 棕線）</li>
-      <li><b>Day 5 東京站八重洲南口轉乘：</b>北陸新幹線在 20–23 號月台，下月台走<b>【八重洲南口改札】</b>出站正前方即為 1F 屋外 JR 高速巴士總站（11:10 富士急高速巴士 119 號），旁有大丸東京店 B1 可買便當</li>
-      <li><b>Day 9 川越動線：</b>07:45 御徒町搭山手線 → 08:04 池袋轉 08:15 東武東上線急行(始發) → 08:49 川越（備案 07:28 山手線 → 08:00 急行 → 08:34 川越）；川越站搭 09:10 西武巴士「本52」至喜多院入口；10:08 喜多院前搭東武巡迴巴士「名03」平日首班至博物館前；回程 16:45 蓮馨寺前搭「川越01」回川越站，轉 17:21「川越特急」至池袋轉山手線回御徒町</li>
-    </ul>
-    <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.5rem">
-      <button class="btn primary" style="margin:0" onclick="go('transit')">🚆 開啟 35 項交通時刻表查詢 →</button>
-      <button class="btn" style="margin:0" onclick="go('booking')">🎟️ 開啟 12 項訂票提醒 →</button>
-    </div></div>
-
-  <div class="box"><h3>❄️ 冬季穿搭 ＆ 景點貼心提醒</h3>
-    <ul>
-      <li><b>洋蔥式穿法：</b>日本室內、百貨與電車暖氣極強，請採「發熱衣 ＋ 薄長袖 ＋ 防風羽絨外套」，勿給孩童穿厚高領毛衣</li>
-      <li><b>Day 7 期間限定「2027 西湖樹冰祭」：</b>2027/2/6–2/14 於西湖野鳥之森公園舉辦，距西湖根場車程僅 5 分鐘（15:05–16:00 順遊），可欣賞 5–10 公尺高巨型冰雕群與富士山同框</li>
-      <li><b>新倉山淺間公園無障礙緩坡：</b>登上忠靈塔觀景台有 398 階（冬季有殘雪結冰請穿防滑雪靴或冰爪）；若長輩膝蓋不適，<b>右側有緩坡車道可走</b></li>
-      <li><b>江之島夜間套票與岩屋提醒：</b>17:00 後離苑須持「江の島シーキャンドルセット券 ＋ナイト」（大人 ¥1,550／小人 ¥750）；岩屋 17:00 閉館且坡道無手扶梯，建議由山頂往下走 10 分鐘看海蝕平台即可折返</li>
-      <li><b>晴空塔五級浮動票價與黃金時段：</b>2026/4/1 起採五級浮動票價（線上成人 ¥3,000–¥4,800），現場 4F 櫃檯購票每張加收 ¥500 手續費；Day 8 預約 16:30 入場可一次飽覽白日街景、17:10 夕陽富士山與夜景</li>
-    </ul></div>
 
   <div class="box"><h3>🚨 日本緊急聯絡 ＆ 實用連結</h3>
     <div style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-bottom:.6rem">
@@ -2781,17 +2695,6 @@ function renderInfo(){
       <button class="btn primary" id="infoInstallBtn" style="margin:0">📲 安裝 App／加入主畫面</button>
       <button class="btn" id="refreshCacheBtn" style="margin:0">🔄 檢查更新並重新快取</button>
     </div></div>`;
-
-  // 綁定匯率計算器
-  const rInp = $('#rateInp'), jInp = $('#jpyInp'), tInp = $('#twdInp');
-  const getRate = () => parseFloat(rInp.value) || 0.215;
-  rInp.oninput = () => { store.set('rate', getRate()); tInp.value = Math.round((parseFloat(jInp.value)||0) * getRate()); };
-  jInp.oninput = () => { tInp.value = Math.round((parseFloat(jInp.value)||0) * getRate()); };
-  tInp.oninput = () => { jInp.value = Math.round((parseFloat(tInp.value)||0) / getRate()); };
-  $('#info').querySelectorAll('[data-jpy]').forEach(b => b.onclick = () => {
-    jInp.value = b.dataset.jpy;
-    tInp.value = Math.round((+b.dataset.jpy) * getRate());
-  });
 
   $('#infoInstallBtn').onclick = () => openPwaModal();
   $('#shareAppBtn').onclick = async () => {
@@ -2918,12 +2821,13 @@ state.day = ti >= 0 ? ti : store.get('day', 0);
 const hash = location.hash.slice(1);
 const hm = hash.match(/^day-(\d+)$/);
 if (hm) state.day = Math.min(9, Math.max(0, +hm[1]-1));
+state.foodDay = String(state.day);
+state.transitDay = String(state.day + 1);
 buildPicker();
 renderDay();
 renderBookings();
 renderTimetables();
 renderFood();
-renderOverview();
 renderHotels();
 renderChecks();
 renderInfo();
