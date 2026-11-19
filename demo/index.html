@@ -18,7 +18,7 @@
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <link rel="icon" type="image/svg+xml" href="../icon.svg">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗻</text></svg>">
-<link rel="stylesheet" href="style.css?v=20261119-2">
+<link rel="stylesheet" href="style.css?v=20261119-3">
 </head>
 <body>
 
@@ -28,7 +28,7 @@
     <div class="tools">
       <button class="iconbtn" id="todayJumpBtn" aria-label="跳回今天此刻行程" title="跳回今天此刻行程">📍 <span class="lbl">今天</span></button>
       <button class="iconbtn" id="phraseHubBtn" aria-label="旅途日語溝通手冊" title="全場景日語溝通卡">🗣️ <span class="lbl">日語</span></button>
-      <button class="iconbtn" id="calcBtn" aria-label="快速日幣台幣換算" title="快速匯率換算">💴 <span class="lbl">匯率記帳</span></button>
+      <button class="iconbtn" id="calcBtn" aria-label="快速日幣台幣換算" title="快速匯率換算">💴 <span class="lbl">匯率</span></button>
       <button class="iconbtn" id="fontCycleBtn" aria-label="切換字級大小" title="點擊切換字級大小">Aa <span id="fontLbl" style="font-size:.78rem;opacity:.9">標準</span></button>
       <span class="net-pill" id="netPill" role="status">📴 離線</span>
     </div>
@@ -74,6 +74,11 @@
     <div class="filters" id="bookingCatFilters" role="group" aria-label="依類別篩選" style="margin-bottom:1rem"></div>
     <div id="bookingDayBar"></div>
     <div class="grid-wide" id="bookingGrid"></div>
+  </section>
+
+  <!-- 旅途記帳與分帳 -->
+  <section class="view" id="v-expense" aria-label="旅途記帳與分帳">
+    <div id="expPage"></div>
   </section>
 
   <!-- 交通時刻表與常用連結查詢 -->
@@ -232,8 +237,6 @@
       <h3 id="calcTitle">💴 快速日幣 ↔ 台幣換算</h3>
       <button type="button" class="modal-close" id="closeCalcBtn">✕ 關閉</button>
     </div>
-    <div class="seg" id="calcTabs"><button type="button" data-t="calc" aria-pressed="true">💴 換算</button><button type="button" data-t="exp" aria-pressed="false">🧾 記帳分帳</button></div>
-    <div id="calcPane">
     <div style="font-size:.86rem;color:var(--muted);margin-bottom:.4rem">
       匯率設定：1 JPY = <input id="mRateInp" type="number" step="0.001" value="0.215" style="width:5.2rem;font:inherit;padding:.15rem .35rem;border:1px solid var(--line);border-radius:6px;background:var(--surface2);color:var(--text)"> TWD
       <button type="button" class="btn btn-sm" id="rateLiveBtn" style="margin-left:.3rem">🔄 即時匯率</button>
@@ -251,8 +254,9 @@
       <button type="button" data-jpy="5000">¥5,000</button>
       <button type="button" data-jpy="10000">¥10,000</button>
     </div>
-  </div>
-    <div id="expPane" hidden></div>
+    <div style="margin-top:.85rem;padding-top:.65rem;border-top:1px dashed var(--line);display:flex;justify-content:flex-end">
+      <button type="button" class="btn primary" id="calcToExpBtn" style="margin:0">🧾 帶入金額去記帳 →</button>
+    </div>
   </div>
 </div>
 
@@ -300,8 +304,8 @@
 <button type="button" id="backTopBtn" class="back-top" aria-label="回到頁面頂端" title="回到頂端">↑</button>
 <nav class="bottom" aria-label="主選單"></nav>
 
-<script src="data/trip-data.js?v=20261119-2"></script>
-<script src="data/places.js?v=20261119-2"></script>
-<script src="app.js?v=20261119-2"></script>
+<script src="data/trip-data.js?v=20261119-3"></script>
+<script src="data/places.js?v=20261119-3"></script>
+<script src="app.js?v=20261119-3"></script>
 </body>
 </html>
