@@ -329,6 +329,7 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
     <div class="brand"><span class="logo" aria-hidden="true">🗻</span><span class="t">2027 關東家族旅行</span></div>
     <div class="tools">
       <button class="iconbtn" id="todayJumpBtn" aria-label="跳回今天此刻行程" title="跳回今天此刻行程">📍 <span class="lbl">今天</span></button>
+      <button class="iconbtn" id="phraseHubBtn" aria-label="旅途日語溝通手冊" title="全場景日語溝通卡">🗣️ <span class="lbl">日語</span></button>
       <button class="iconbtn" id="calcBtn" aria-label="快速日幣台幣換算" title="快速匯率換算">💴</button>
       <button class="iconbtn" id="fontCycleBtn" aria-label="切換字級大小" title="點擊切換字級大小">Aa <span id="fontLbl" style="font-size:.78rem;opacity:.9">標準</span></button>
       <span class="net-pill" id="netPill" role="status">📴 離線</span>
@@ -482,6 +483,22 @@ table.info th{color:var(--muted);font-weight:700;white-space:nowrap}
 
   <p class="foot">行程時間皆為日本當地時間（桃園出發／返台降落為台灣時間）</p>
 </main>
+
+<!-- 🗣️ 全場景旅途日語溝通手冊 Modal -->
+<div class="modal-backdrop" id="phraseHubModal" role="dialog" aria-modal="true" aria-labelledby="hubTitle">
+  <div class="modal-card wide" style="text-align:left">
+    <div class="modal-hd">
+      <h3 id="hubTitle">🗣️ 旅途指差し日語溝通手冊</h3>
+      <button type="button" class="modal-close" id="closeHubBtn">✕ 關閉</button>
+    </div>
+    <div class="searchbox" style="margin-bottom:.6rem">
+      <label class="sr-only" for="hubSearch">搜尋日語會話</label>
+      <input id="hubSearch" type="search" placeholder="🔍 搜尋關鍵字…（例：免稅、置物櫃、雪胎、發燒、合照、刷卡、月台）" autocomplete="off">
+    </div>
+    <div class="filters" id="hubCats" role="group" aria-label="依旅途情境篩選日語會話" style="margin-bottom:.65rem"></div>
+    <div id="hubWrap" class="phrase-grid" style="margin-top:0"></div>
+  </div>
+</div>
 
 <!-- 指差し溝通卡放大 Modal -->
 <div class="modal-backdrop" id="phraseModal" role="dialog" aria-modal="true" aria-labelledby="mZh">
@@ -1322,12 +1339,58 @@ const HOTEL_PHRASES = [
   {zh:'我們要辦理入住／寄放行李，共 6 位（大人 4 位、小學生 2 位）', ja:'チェックイン（または荷物預け）をお願いします。大人4名、小学生2名です。', ro:'Chekku-in (mata wa nimotsu azuke) wo onegaishimasu. Otona 4-mei, shougakusei 2-mei desu.'},
   {zh:'我想寄放今天入住的行李，並把這件大行李用宅急便寄到河口湖的飯店（指定 2/5 送達）', ja:'本日宿泊の荷物を預けて、こちらの荷物を宅急便で河口湖のホテルへ送りたいです（2月5日着希望）。', ro:'Honjitsu shukuhaku no nimotsu wo azukete, kochira no nimotsu wo takkyuubin de Kawaguchiko no hoteru e okuritai desu (2-gatsu 5-ka chaku kibou).'},
   {zh:'請問明後兩晚的「河口湖冬花火」飯店有免費接駁車可以預約嗎？', ja:'明日と明後日の「河口湖冬花火」について、ホテルの無料送迎バスの予約はありますか？', ro:'Ashita to asatte no Kawaguchiko Fuyu Hanabi ni tsuite, hoteru no muryou sougei basu no yoyaku wa arimasu ka?'},
-  {zh:'請幫我們叫計程車到星野榆樹街小鎮（ハルニレテラス）', ja:'ハルニレテラスまでタクシーを呼んでいただけますか？', ro:'Harunire Terasu made takushii wo yonde itadakemasu ka?'}
+  {zh:'請幫我們叫計程車到星野榆樹街小鎮（ハルニレテラス）', ja:'ハルニレテラスまでタクシーを呼んでいただけますか？', ro:'Harunire Terasu made takushii wo yonde itadakemasu ka?'},
+  {zh:'不好意思，可以多給我們毛巾／枕頭嗎？', ja:'すみません、タオル（枕）を追加でいただけますか？', ro:'Sumimasen, taoru (makura) wo tsuika de itadakemasu ka?'},
+  {zh:'請問早餐時間與退房時間是幾點？', ja:'朝食の時間とチェックアウトは何時ですか？', ro:'Choushoku no jikan to chekku-auto wa nanji desu ka?'},
+  {zh:'我們要退房，退房後可以先寄放行李嗎？', ja:'チェックアウトをお願いします。荷物を預かっていただけますか？', ro:'Chekku-auto wo onegaishimasu. Nimotsu wo azukatte itadakemasu ka?'}
 ];
 
 const GAS_PHRASES = [
   {zh:'請加滿普通汽油（Regular）', ja:'レギュラー満タンでお願いします。', ro:'Regyuraa mantan de onegaishimasu.'},
   {zh:'還車確認用，請給我加油收據', ja:'レンタカー返却用なので、領収書をお願いします。', ro:'Rentakaa henkyaku-you nanode, ryoushuusho wo onegaishimasu.'}
+];
+
+const TRANSIT_PHRASES = [
+  {zh:'請問這班車（電車／巴士）有到這裡嗎？（指地點）', ja:'この電車（バス）はここに行きますか？', ro:'Kono densha (basu) wa koko ni ikimasu ka?'},
+  {zh:'請問這個月台／巴士站牌怎麼走？', ja:'このホーム（バス乗り場）はどこですか？', ro:'Kono hoomu (basu noriba) wa doko desu ka?'},
+  {zh:'不好意思，Suica 刷不過／進出站異常，請幫我處理', ja:'すみません、Suicaがエラーになりました。確認していただけますか？', ro:'Sumimasen, Suica ga eraa ni narimashita. Kakunin shite itadakemasu ka?'},
+  {zh:'請問大型投幣置物櫃（Coin Locker）在哪裡？', ja:'大きいコインロッカーはどこですか？', ro:'Ookii koin rokkaa wa doko desu ka?'},
+  {zh:'請問這張對號車票的車廂與座位在哪邊？', ja:'この指定席の号車と座席はどこですか？', ro:'Kono shiteiseki no gousha to zaseki wa doko desu ka?'},
+  {zh:'請問下一班車是幾點？', ja:'次の電車（バス）は何時ですか？', ro:'Tsugi no densha (basu) wa nanji desu ka?'}
+];
+
+const DRIVE_PHRASES = [
+  ...GAS_PHRASES,
+  {zh:'我有預約租車，這是護照、駕照與日文譯本', ja:'レンタカーを予約しています。パスポートと免許証・翻訳文です。', ro:'Rentakaa wo yoyaku shite imasu. Pasupooto to menkyoshou / honyakubun desu.'},
+  {zh:'請確認這台車已配備雪胎（スタッドレス）與 ETC 卡', ja:'スタッドレスタイヤとETCカードが付いていますか？', ro:'Sutaddoresu taiya to ETC kaado ga tsuite imasu ka?'},
+  {zh:'請問這台車是加普通汽油（Regular）嗎？油箱蓋怎麼開？', ja:'燃料はレギュラーですか？給油口の開け方を教えてください。', ro:'Nenryou wa regyuraa desu ka? Kyuuyukou no akekata wo oshiete kudasai.'},
+  {zh:'不好意思，停車場繳費機不會操作，可以幫忙嗎？', ja:'すみません、駐車場の精算機の使い方が分かりません。手伝っていただけますか？', ro:'Sumimasen, chuushajou no seisanki no tsukaikata ga wakarimasen. Tetsudatte itadakemasu ka?'}
+];
+
+const SHOP_PHRASES = [
+  {zh:'請問這裡可以辦理免稅（Tax-Free）嗎？', ja:'免税（タックスフリー）はできますか？', ro:'Menzei (Takkusu Furii) wa dekimasu ka?'},
+  {zh:'請問這個有其他尺寸或顏色嗎？', ja:'これの別のサイズや色はありますか？', ro:'Kore no betsu no saizu ya iro wa arimasu ka?'},
+  {zh:'請問這件可以試穿嗎？', ja:'これを試着してもいいですか？', ro:'Kore wo shichaku shitemo ii desu ka?'},
+  {zh:'請給我一個購物袋（需要加購也沒關係）', ja:'袋をお願いします（有料でも大丈夫です）。', ro:'Fukuro wo onegaishimasu (yuuryou demo daijoubu desu).'},
+  {zh:'請問這幾個可以幫我分開包裝嗎？', ja:'別々に包んでいただけますか？', ro:'Betsubetsu ni tsutsunde itadakemasu ka?'},
+  {zh:'請問這個含稅是多少錢？', ja:'これは税込でいくらですか？', ro:'Kore wa zeikomi de ikura desu ka?'}
+];
+
+const HELP_PHRASES = [
+  {zh:'小朋友（11歲／9歲）發燒或感冒，請問推薦哪款兒童常備藥？', ja:'子ども（11歳／9歳）が熱・風邪っぽいです。おすすめの子ども用の薬はありますか？', ro:'Kodomo (11-sai / 9-sai) ga netsu / kazeppoi desu. Osusume no kodomo-you no kusuri wa arimasu ka?'},
+  {zh:'小朋友肚子不舒服，請問有兒童腸胃藥嗎？', ja:'子どもがお腹の調子が悪いです。子ども用の胃腸薬はありますか？', ro:'Kodomo ga onaka no choushi ga warui desu. Kodomo-you no ichouyaku wa arimasu ka?'},
+  {zh:'不好意思，我們有東西遺失了（手機／外套／手套）', ja:'すみません、忘れ物をしてしまいました（スマホ／上着／手袋）。', ro:'Sumimasen, wasuremono wo shite shimaimashita (sumaho / uwagi / tebukuro).'},
+  {zh:'不好意思，可以麻煩您幫我們拍一張全家福合照嗎？', ja:'すみません、家族写真を撮っていただけますか？', ro:'Sumimasen, kazoku shashin wo totte itadakemasu ka?'},
+  {zh:'請問這裡可以拍照嗎？', ja:'ここで写真を撮ってもいいですか？', ro:'Koko de shashin wo tottemo ii desu ka?'}
+];
+
+const ALL_PHRASES = [
+  ...PHRASES.map(p => ({...p, scene:'food', sceneLabel:'🍽️ 餐廳'})),
+  ...HOTEL_PHRASES.map(p => ({...p, scene:'hotel', sceneLabel:'🏨 飯店'})),
+  ...TRANSIT_PHRASES.map(p => ({...p, scene:'transit', sceneLabel:'🚆 交通'})),
+  ...DRIVE_PHRASES.map(p => ({...p, scene:'drive', sceneLabel:'🚗 自駕'})),
+  ...SHOP_PHRASES.map(p => ({...p, scene:'shop', sceneLabel:'🛍️ 購物'})),
+  ...HELP_PHRASES.map(p => ({...p, scene:'help', sceneLabel:'🆘 求助'}))
 ];
 
 /* =========================================================
@@ -1634,8 +1697,57 @@ function openGuideModal(key){
 }
 $('#closeGuideBtn').addEventListener('click', () => $('#guideModal').classList.remove('open'));
 $('#guideModal').addEventListener('click', e => { if (e.target === $('#guideModal')) $('#guideModal').classList.remove('open'); });
+
+const hubState = { scene: 'all', q: '' };
+function renderPhraseHub(){
+  const scenes = [
+    ['all', `全部（${ALL_PHRASES.length}）`],
+    ['food', '🍽️ 餐廳'],
+    ['hotel', '🏨 飯店'],
+    ['transit', '🚆 交通'],
+    ['drive', '🚗 自駕'],
+    ['shop', '🛍️ 購物'],
+    ['help', '🆘 求助']
+  ];
+  $('#hubCats').innerHTML = scenes.map(([k,l]) => `<button type="button" data-hs="${k}" aria-pressed="${hubState.scene===k}">${l}</button>`).join('');
+  $('#hubCats').querySelectorAll('button').forEach(b => b.onclick = () => { hubState.scene = b.dataset.hs; renderPhraseHub(); });
+
+  const q = hubState.q.trim().toLowerCase();
+  const list = ALL_PHRASES.map((p, idx) => ({p: getDynamicPhrase(p), idx})).filter(({p}) => {
+    if (!q && hubState.scene !== 'all' && p.scene !== hubState.scene) return false;
+    if (q && !(p.zh + ' ' + p.ja + ' ' + p.ro + ' ' + p.sceneLabel).toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  $('#hubWrap').innerHTML = list.map(({p, idx}) => `
+    <button type="button" class="phrase-card" data-hi="${idx}" title="點擊放大顯示">
+      <div style="font-size:.75rem;color:var(--accent);font-weight:700;margin-bottom:.15rem">${esc(p.sceneLabel)}</div>
+      <div class="zh">${esc(p.zh)}</div>
+      <div class="ja">${esc(p.ja)}</div>
+      <div class="ro">${esc(p.ro)}</div>
+    </button>`).join('') || '<div style="color:var(--muted);padding:.8rem">找不到符合關鍵字的日語會話，請清除搜尋或切換其他情境。</div>';
+  $('#hubWrap').querySelectorAll('.phrase-card').forEach(b => b.onclick = () => openPhraseModal(ALL_PHRASES[+b.dataset.hi]));
+}
+function openPhraseHub(scene = 'all'){
+  hubState.scene = scene;
+  hubState.q = '';
+  if ($('#hubSearch')) $('#hubSearch').value = '';
+  renderPhraseHub();
+  $('#phraseHubModal').classList.add('open');
+}
+$('#phraseHubBtn').addEventListener('click', () => openPhraseHub('all'));
+$('#closeHubBtn').addEventListener('click', () => $('#phraseHubModal').classList.remove('open'));
+$('#phraseHubModal').addEventListener('click', e => { if (e.target === $('#phraseHubModal')) $('#phraseHubModal').classList.remove('open'); });
+$('#hubSearch').addEventListener('input', e => { hubState.q = e.target.value; renderPhraseHub(); });
+
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') ['#phraseModal','#taxiModal','#calcModal','#guideModal','#pwaModal'].forEach(s => $(s)?.classList.remove('open'));
+  if (e.key !== 'Escape') return;
+  if ($('#phraseModal')?.classList.contains('open')) {
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    $('#phraseModal').classList.remove('open');
+    return;
+  }
+  ['#phraseHubModal','#taxiModal','#calcModal','#guideModal','#pwaModal'].forEach(s => $(s)?.classList.remove('open'));
 });
 
 /* =========================================================
@@ -1756,10 +1868,27 @@ function renderDay(){
     if (dayNum === 1 && p.text.includes('MIMARU')) pills.push(`<button type="button" class="quick-pill" onclick="openTaxiModal('mimaru')">🚖 秀給司機看（飯店）</button>`);
     if (dayNum === 3 && p.text.includes('星野榆樹街小鎮')) pills.push(`<button type="button" class="quick-pill" onclick="openTaxiModal('hoshino')">🚖 秀給司機看（星野）</button>`);
     if (dayNum === 5 && p.text.includes('119號')) pills.push(`<button type="button" class="quick-pill" onclick="openGuideModal('tokyoStation')">🗺️ 東京站轉 8 號站牌動線圖</button>`);
-    if (dayNum === 5 && p.text.includes('Toyota')) pills.push(`<button type="button" class="quick-pill" onclick="openTaxiModal('toyota')">🚖 秀給司機看（租車站）</button>`);
+    if (dayNum === 5 && p.text.includes('Toyota')) {
+      pills.push(`<button type="button" class="quick-pill" onclick="openTaxiModal('toyota')">🚖 秀給司機看（租車站）</button>`);
+      pills.push(`<button type="button" class="quick-pill" onclick="openPhraseHub('drive')">🗣️ 租車取車日語</button>`);
+    }
     if (dayNum === 8 && p.text.includes('ENEOS')) pills.push(`<button type="button" class="quick-pill" onclick="openPhraseModal(GAS_PHRASES[0])">⛽ 加油溝通卡（加滿普通油）</button>`);
     if (dayNum === 8 && p.text.includes('東京晴空塔觀景台')) pills.push(`<button type="button" class="quick-pill" onclick="openGuideModal('solamachi')">🏢 Solamachi 晴空塔樓層圖</button>`);
     if (dayNum === 9 && p.text.includes('本52')) pills.push(`<button type="button" class="quick-pill" onclick="openGuideModal('kawagoeLoop')">🗺️ 川越無回頭路環線圖</button>`);
+
+    // 依行程情境自動掛載合適的日語溝通卡連結
+    if (p.type === 'food' && !/(自助早餐|飯店早餐|車上享用|超商)/.test(p.text)) {
+      pills.push(`<button type="button" class="quick-pill" onclick="openPhraseHub('food')">🗣️ 餐廳點餐日語</button>`);
+    }
+    if (/(Check-in|入住|寄放行李|黑貓宅急便|退房)/i.test(p.text)) {
+      pills.push(`<button type="button" class="quick-pill" onclick="openPhraseHub('hotel')">🗣️ 飯店／行李日語</button>`);
+    }
+    if (/(Outlet|購物廣場|Solamachi 商場|阿美橫丁|逛街採購)/.test(p.text)) {
+      pills.push(`<button type="button" class="quick-pill" onclick="openPhraseHub('shop')">🗣️ 購物退稅日語</button>`);
+    }
+    if ((dayNum === 1 && p.text.includes('Skyliner 136')) || (dayNum === 5 && p.text.includes('119號')) || (dayNum === 9 && p.text.includes('本52'))) {
+      pills.push(`<button type="button" class="quick-pill" onclick="openPhraseHub('transit')">🗣️ 車站交通日語</button>`);
+    }
 
     return `<li class="ev ${p.type} ${i===nowIdx?'now':''} ${past?'past':''}">
       <span class="dot" aria-hidden="true">${p.icon}</span>
