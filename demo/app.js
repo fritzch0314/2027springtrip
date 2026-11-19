@@ -1714,7 +1714,7 @@ async function loadWeather(d){
 function tipsHtml(p){
   if (!p.tips.length) return '';
   const all = p.tips.map(t => `<div class="tip ${t.warn?'warn':''}">${t.warn?'⚠️ 注意：':'💡 小提醒：'}${esc(t.text)}</div>`).join('');
-  if (!(p.type === 'transit' || p.type === 'flight') || p.tips.length === 0) return all;
+  return all; // 已取消「長交通項目收合」，一律直接顯示
   const warn = p.tips.filter(t => t.warn).length;
   return `<details class="tipfold"><summary>${warn ? '⚠️' : '💡'} 備案與注意事項（${p.tips.length}）<span>展開 ▼</span></summary>${all}</details>`;
 }

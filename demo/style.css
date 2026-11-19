@@ -413,3 +413,15 @@ header.top{border-top:4px solid #ffd166}
 /* 僅保留「✓ 已過」：移除進行中／接下來的視覺強調 */
 .ev.now .card{outline:none}
 .ev.next .card{border-style:solid}
+/* 手機頂欄：品牌一列、四顆功能鈕一列並保留文字 */
+@media (max-width:520px){
+  .top-row{flex-wrap:wrap;gap:.4rem}
+  .brand{flex:1 1 100%}
+  .brand span.t{font-size:.95rem}
+  .tools{width:100%;justify-content:space-between;flex-wrap:nowrap;gap:.3rem}
+  .iconbtn{width:auto;min-width:0;flex:1 1 auto;height:2.4rem;padding:0 .5rem;font-size:.88rem;gap:.15rem;white-space:nowrap}
+  .iconbtn .lbl{display:inline}
+  #fontLbl{display:inline;font-size:.78rem}
+  .net-pill{font-size:.78rem;padding:.2rem .55rem}.net-pill::before{content:none}
+}
+.net-pill{white-space:nowrap}
