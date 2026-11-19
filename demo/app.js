@@ -1730,7 +1730,8 @@ function tipsHtml(p){
 }
 
 const EXP_CATS = ['🍜 餐飲','🚆 交通','🚖 計程車','🎟️ 門票','🛍️ 購物','🎁 伴手禮','🏨 住宿','⛽ 油資/ETC','🅿️ 停車','☕ 飲料零食','💊 藥妝','📦 其他'];
-const EXP_METHODS = ['💵 現金','💳 刷卡','🐧 Suica/IC'];
+const EXP_METHODS = ['現金','刷卡','IC'];
+function normMethod(m){ if (!m) return '現金'; if (m.includes('刷卡')) return '刷卡'; if (m.includes('IC') || m.includes('Suica')) return 'IC'; return '現金'; }
 function fmtMD(d){ return d ? `${+d.date.slice(5,7)}/${+d.date.slice(8,10)}（${d.wd}）` : ''; }
 function fmtShortMD(d){ return d ? `${+d.date.slice(5,7)}/${+d.date.slice(8,10)}` : ''; }
 function expDayLabel(dayNum){
@@ -1754,9 +1755,8 @@ const expState = {
   q: '',
   formOpen: true,
   filterOpen: false,
-  optOpen: false,
   cur: 'JPY',
-  method: '💵 現金',
+  method: '現金',
   selectedCat: '🍜 餐飲',
   selectedPayer: null,
   selectedSplit: null,
@@ -1811,7 +1811,6 @@ function renderExp(preserveForm = false){
   const savedForm = preserveForm && $('#expForm') ? {
     desc: $('#expDesc')?.value ?? '',
     amt: $('#expJpy')?.value ?? '',
-    note: $('#expNote')?.value ?? '',
     day: $('#expDay')?.value ?? null
   } : null;
 
@@ -1833,12 +1832,10 @@ function renderExp(preserveForm = false){
   const formCur = editing ? (editing.origCur || 'JPY') : expState.cur;
   const formAmt = editing ? (editing.origAmt ?? editing.jpy) : (expState.prefillJpy ?? savedForm?.amt ?? '');
   const formCat = editing ? expDetectCat(editing) : expState.selectedCat;
-  const formMethod = editing ? (editing.method || '💵 現金') : expState.method;
+  const formMethod = editing ? normMethod(editing.method) : normMethod(expState.method);
   const formPayer = editing && m.includes(editing.payer) ? editing.payer : (expState.selectedPayer && m.includes(expState.selectedPayer) ? expState.selectedPayer : m[0]);
   const formSplit = editing ? editing.split : (expState.selectedSplit ? expState.selectedSplit.filter(x => m.includes(x)) : m.slice());
   const formDesc = editing ? editing.desc : (savedForm?.desc ?? '');
-  const formNote = editing ? (editing.note || '') : (savedForm?.note ?? '');
-  const showOptOpen = expState.optOpen || (editing && (!!formNote || formMethod !== '💵 現金'));
 
   // Day counts for filter chips (only show days that have entries!)
   const dayCounts = {};
@@ -1854,7 +1851,7 @@ function renderExp(preserveForm = false){
     if (expState.day !== 'all' && String(e.day) !== String(expState.day)) return false;
     if (expState.cat !== 'all' && expDetectCat(e) !== expState.cat) return false;
     if (expState.payer !== 'all' && e.payer !== expState.payer) return false;
-    if (qLower && !`${e.desc} ${e.note || ''} ${e.payer} ${expDetectCat(e)}`.toLowerCase().includes(qLower)) return false;
+    if (qLower && !`${e.desc} ${e.payer} ${expDetectCat(e)} ${normMethod(e.method)}`.toLowerCase().includes(qLower)) return false;
     return true;
   });
   const isFiltered = expState.day !== 'all' || advFilterCount > 0;
@@ -1949,15 +1946,12 @@ function renderExp(preserveForm = false){
               </div>
             </div>
 
-            <details class="exp-opt-fold" id="expOptFold" ${showOptOpen ? 'open' : ''}>
-              <summary id="expOptSum">付款方式（${esc(formMethod.replace(/^\S+\s*/, ''))}）${formNote ? ' · 有備註' : '／備註'}</summary>
-              <div class="exp-opt-body">
-                <div class="exp-method-pills" id="expMethodGroup">
-                  ${EXP_METHODS.map(pm => `<button type="button" data-m="${esc(pm)}" aria-pressed="${formMethod === pm}">${esc(pm)}</button>`).join('')}
-                </div>
-                <input id="expNote" value="${esc(formNote)}" placeholder="備註（例：含稅、刷中信卡、退稅後）" autocomplete="off">
+            <div class="exp-pay-row">
+              <span class="exp-mini-lbl">付款方式：</span>
+              <div class="exp-method-pills" id="expMethodGroup">
+                ${EXP_METHODS.map(pm => `<button type="button" data-m="${esc(pm)}" aria-pressed="${formMethod === pm}">${esc(pm)}</button>`).join('')}
               </div>
-            </details>
+            </div>
 
             <div style="display:flex;gap:.45rem">
               <button class="btn primary exp-submit-btn" type="submit">${editing ? '💾 儲存修改' : '＋ 新增記帳'}</button>
@@ -1990,7 +1984,7 @@ function renderExp(preserveForm = false){
               <option value="all">全部付款人</option>
               ${m.map(n => `<option value="${esc(n)}" ${expState.payer === n ? 'selected' : ''}>${esc(n)} 付</option>`).join('')}
             </select>
-            <input id="expSearchInp" type="search" value="${esc(expState.q)}" placeholder="🔍 搜尋項目或備註">
+            <input id="expSearchInp" type="search" value="${esc(expState.q)}" placeholder="🔍 搜尋項目">
           </div>
 
           ${isFiltered ? `<div class="exp-filter-sum">篩選：<b>${filtered.length} 筆</b>｜${fJpy(filteredTotal)}（${fTwd(filteredTotal)}）</div>` : ''}
@@ -2011,9 +2005,8 @@ function renderExp(preserveForm = false){
                   const metaParts = [
                     `<b>${esc(e.payer)}</b>付`,
                     splitTxt,
-                    e.method ? esc(e.method.replace(/^\S+\s*/, '')) : '',
-                    e.origCur === 'TWD' ? `原NT$${Math.round(e.origAmt).toLocaleString()}` : '',
-                    e.note ? `📝${esc(e.note)}` : ''
+                    e.method ? esc(normMethod(e.method)) : '',
+                    e.origCur === 'TWD' ? `原NT$${Math.round(e.origAmt).toLocaleString()}` : ''
                   ].filter(Boolean);
                   const isOpen = expState.activeRowId === e.id;
                   return `<li class="${expState.editId === e.id ? 'is-editing' : ''} ${isOpen ? 'is-open' : ''}" data-row="${e.id}">
@@ -2134,7 +2127,7 @@ function renderExp(preserveForm = false){
   // Cancel edit
   ['#expCancelEdit','#expCancelEdit2'].forEach(sel => {
     const btn = $(sel);
-    if (btn) btn.onclick = () => { expState.editId = null; expState.optOpen = false; renderExp(); };
+    if (btn) btn.onclick = () => { expState.editId = null; renderExp(); };
   });
 
   // Category chips
@@ -2153,21 +2146,10 @@ function renderExp(preserveForm = false){
   });
   $('#expJpy')?.addEventListener('input', updatePreview);
 
-  // Optional fold state & summary label update
-  const updateOptSum = () => {
-    const sum = $('#expOptSum'); if (!sum) return;
-    const mTxt = expState.method.replace(/^\S+\s*/, '');
-    const hasNote = !!$('#expNote')?.value.trim();
-    sum.textContent = `付款方式（${mTxt}）${hasNote ? ' · 有備註' : '／備註'}`;
-  };
-  $('#expOptFold')?.addEventListener('toggle', e => { expState.optOpen = e.target.open; });
-  $('#expNote')?.addEventListener('input', updateOptSum);
-
   // Payment method pills
   el.querySelectorAll('#expMethodGroup button').forEach(b => b.onclick = () => {
     expState.method = b.dataset.m;
     el.querySelectorAll('#expMethodGroup button').forEach(x => x.setAttribute('aria-pressed', x === b));
-    updateOptSum();
   });
 
   // Payer pills
@@ -2210,8 +2192,7 @@ function renderExp(preserveForm = false){
       method: el.querySelector('#expMethodGroup button[aria-pressed="true"]')?.dataset.m || expState.method,
       day: +$('#expDay').value,
       payer: chosenPayer,
-      split,
-      note: $('#expNote').value.trim()
+      split
     };
     const nextList = EXP.list();
     if (editing){
@@ -2219,7 +2200,6 @@ function renderExp(preserveForm = false){
       if (pos >= 0) nextList[pos] = entry;
       expState.editId = null;
       expState.activeRowId = null;
-      expState.optOpen = false;
       showToast('✅ 已更新記帳項目');
     } else {
       nextList.push(entry);
@@ -2309,10 +2289,10 @@ function renderExp(preserveForm = false){
     if (!list.length) return showToast('目前沒有記帳資料可匯出');
     const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
     const rows = [
-      ['日期','類別','項目','日幣(JPY)','約台幣(TWD)','原幣別','原金額','付款方式','付款人','分攤成員','備註'],
+      ['日期','類別','項目','日幣(JPY)','約台幣(TWD)','原幣別','原金額','付款方式','付款人','分攤成員'],
       ...list.map(e => [
         expDayLabel(e.day), expDetectCat(e), e.desc, Math.round(e.jpy), Math.round(e.jpy * rate),
-        e.origCur || 'JPY', e.origAmt ?? e.jpy, e.method || '', e.payer, (e.split || []).join('、'), e.note || ''
+        e.origCur || 'JPY', e.origAmt ?? e.jpy, normMethod(e.method), e.payer, (e.split || []).join('、')
       ])
     ];
     const csv = '\uFEFF' + rows.map(r => r.map(q).join(',')).join('\r\n');

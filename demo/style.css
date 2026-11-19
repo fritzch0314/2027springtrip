@@ -499,12 +499,11 @@ header.top{border-top:4px solid #ffd166}
 .exp-member-pills button{border:1px solid var(--line);background:var(--surface2);color:var(--muted);border-radius:8px;padding:.28rem .1rem;font-size:.86rem;font-weight:700;min-height:2.15rem;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .exp-member-pills button[aria-pressed="true"]{background:var(--primary);color:var(--primary-ink);border-color:var(--primary)}
 
-/* 付款方式與備註折疊列 */
-.exp-opt-fold{border:1px dashed var(--line);border-radius:9px;padding:.28rem .55rem;background:var(--surface2)}
-.exp-opt-fold>summary{cursor:pointer;font-size:.82rem;font-weight:700;color:var(--muted);user-select:none}
-.exp-opt-body{display:flex;flex-direction:column;gap:.4rem;margin-top:.42rem;padding-top:.4rem;border-top:1px dashed var(--line)}
-.exp-method-pills{display:flex;gap:.3rem;flex-wrap:wrap}
-.exp-method-pills button{flex:1 1 auto;border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:8px;padding:.24rem .5rem;font-size:.82rem;font-weight:700;min-height:2.05rem;white-space:nowrap}
+/* 付款方式單列樣式 */
+.exp-pay-row{display:flex;align-items:center;gap:.4rem}
+.exp-pay-row .exp-mini-lbl{flex:0 0 auto;white-space:nowrap}
+.exp-method-pills{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.3rem;flex:1 1 auto;min-width:0}
+.exp-method-pills button{border:1px solid var(--line);background:var(--surface2);color:var(--muted);border-radius:8px;padding:.24rem .4rem;font-size:.85rem;font-weight:700;min-height:2.1rem;white-space:nowrap}
 .exp-method-pills button[aria-pressed="true"]{background:var(--primary);color:var(--primary-ink);border-color:var(--primary)}
 .exp-submit-btn{flex:1;justify-content:center;margin:0;padding:.48rem .85rem;font-size:.94rem}
 
