@@ -1758,14 +1758,16 @@ function tipsHtml(p){
 const EXP_CATS = ['🍜 餐飲','🚆 交通','🚖 計程車','🎟️ 門票','🛍️ 購物','🎁 伴手禮','🏨 住宿','⛽ 油資/ETC','🅿️ 停車','☕ 飲料零食','💊 藥妝','📦 其他'];
 const EXP_METHODS = ['💵 現金','💳 刷卡','🐧 Suica/IC'];
 function fmtMD(d){ return d ? `${+d.date.slice(5,7)}/${+d.date.slice(8,10)}（${d.wd}）` : ''; }
+function fmtShortMD(d){ return d ? `${+d.date.slice(5,7)}/${+d.date.slice(8,10)}` : ''; }
 function expDayLabel(dayNum){
   if (+dayNum === 0) return '🗓️ 行前預付';
   const d = DAYS[dayNum - 1];
-  return d ? `Day ${dayNum}｜${fmtMD(d)}` : `Day ${dayNum}`;
+  return d ? fmtMD(d) : '';
 }
 function expDayShort(dayNum){
   if (+dayNum === 0) return '行前';
-  return `Day ${dayNum}`;
+  const d = DAYS[dayNum - 1];
+  return d ? fmtShortMD(d) : '';
 }
 
 const expState = {
@@ -1824,6 +1826,7 @@ function expDetectCat(e){
 
 function renderExp(){
   const el = $('#expPage'); if (!el) return;
+  const prevDayScroll = $('#expDayFilters')?.scrollLeft ?? null;
   const m = EXP.members();
   const list = EXP.list();
   const rate = store.get('rate', 0.215);
@@ -1925,7 +1928,7 @@ function renderExp(){
                 <label class="exp-lbl" for="expDay">日期</label>
                 <select id="expDay">
                   <option value="0" ${+formDay === 0 ? 'selected' : ''}>🗓️ 行前預付</option>
-                  ${DAYS.map((d,i) => `<option value="${i+1}" ${+formDay === i+1 ? 'selected' : ''}>Day ${i+1}｜${fmtMD(d)}</option>`).join('')}
+                  ${DAYS.map((d,i) => `<option value="${i+1}" ${+formDay === i+1 ? 'selected' : ''}>${fmtMD(d)}</option>`).join('')}
                 </select>
               </div>
             </div>
@@ -1993,7 +1996,7 @@ function renderExp(){
           <div class="filters hscroll" id="expDayFilters" style="margin-bottom:.55rem">
             <button type="button" data-d="all" aria-pressed="${expState.day === 'all'}">全部 (${list.length})</button>
             <button type="button" data-d="0" aria-pressed="${String(expState.day) === '0'}">行前${dayCounts[0] ? ` (${dayCounts[0]})` : ''}</button>
-            ${DAYS.map((d,i) => `<button type="button" data-d="${i+1}" aria-pressed="${String(expState.day) === String(i+1)}">Day ${i+1}${dayCounts[i+1] ? ` (${dayCounts[i+1]})` : ''}</button>`).join('')}
+            ${DAYS.map((d,i) => `<button type="button" data-d="${i+1}" aria-pressed="${String(expState.day) === String(i+1)}">${fmtShortMD(d)}${dayCounts[i+1] ? ` (${dayCounts[i+1]})` : ''}</button>`).join('')}
           </div>
 
           <div class="exp-filter-bar">
@@ -2108,6 +2111,10 @@ function renderExp(){
       </aside>
     </div>
   `;
+
+  // Restore day filter scroll position on mobile
+  const dfEl = $('#expDayFilters');
+  if (dfEl && prevDayScroll !== null) dfEl.scrollLeft = prevDayScroll;
 
   // Consume one-time prefill
   if (expState.prefillJpy !== null){ expState.prefillJpy = null; }
