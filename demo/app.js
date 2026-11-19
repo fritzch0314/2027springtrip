@@ -684,7 +684,7 @@ function renderDay(){
     return `<li class="ev ${p.type} ${i===nowIdx?'now':''} ${past?'past':''} ${isNext?'next':''}">
       <span class="dot" aria-hidden="true">${p.icon}</span>
       <div class="card">
-        <div class="time">${esc(p.time.replace(/-/g, ' – '))} <span class="cat">${TYPES[p.type].label}</span>${i===nowIdx?'<span class="nowtag">進行中</span>':''}${isNext?'<span class="nowtag nexttag">接下來</span>':''}${past?'<span class="donetag">✓ 已過</span>':''}</div>
+        <div class="time">${esc(p.time.replace(/-/g, ' – '))} <span class="cat">${TYPES[p.type].label}</span>${past?'<span class="donetag">✓ 已過</span>':''}</div>
         <div class="txt">${renderText(p.text, d)}</div>
         ${tipsHtml(p)}
         ${pills.length ? `<div class="quick-actions">${pills.join('')}</div>` : ''}
