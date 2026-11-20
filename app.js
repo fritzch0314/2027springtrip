@@ -218,9 +218,8 @@ setFont(curFs);
 
 function setTheme(t){
   document.documentElement.dataset.theme = t;
-  const tb = $('#themeBtn');
-  if (tb) tb.textContent = t === 'dark' ? '☀️ 切換為淺色模式' : '🌙 切換為深色模式';
-  document.querySelector('meta[name=theme-color]').content = t === 'dark' ? '#12161d' : '#1f3a5f';
+  document.querySelectorAll('#themeSeg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.theme === t));
+  document.querySelector('meta[name=theme-color]').content = t === 'dark' ? '#162235' : '#1f3a5f';
   store.set('theme', t);
 }
 setTheme(store.get('theme', matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
@@ -434,28 +433,28 @@ const GUIDE_MODALS = {
     html: () => `
       <svg class="vg-svg" viewBox="0 0 600 205" role="img" aria-label="川越一日無回頭路環線圖">
         <rect x="0" y="0" width="600" height="205" fill="var(--surface)"/>
-        <polyline points="85,165 255,165 425,165 510,96 390,36 225,36 90,96 85,165" fill="none" stroke="#d97706" stroke-width="3.5" stroke-dasharray="7,5"/>
-        <rect x="18" y="142" width="132" height="44" rx="8" fill="#1e293b"/>
+        <polyline points="85,165 255,165 425,165 510,96 390,36 225,36 90,96 85,165" fill="none" stroke="var(--svg-orange)" stroke-width="3.5" stroke-dasharray="7,5"/>
+        <rect x="18" y="142" width="132" height="44" rx="8" fill="#1e293b" stroke="var(--line)" stroke-width="1.5"/>
         <text x="84" y="161" font-size="12.5" fill="#fff" font-weight="900" text-anchor="middle">🚆 川越站東口</text>
         <text x="84" y="177" font-size="10.5" fill="#cbd5e1" text-anchor="middle">09:10 西武本52發</text>
-        <rect x="182" y="142" width="144" height="44" rx="8" fill="var(--surface)" stroke="#c2410c" stroke-width="2"/>
-        <text x="254" y="161" font-size="12" fill="#c2410c" font-weight="900" text-anchor="middle">① 喜多院・五百羅漢</text>
+        <rect x="182" y="142" width="144" height="44" rx="8" fill="var(--surface)" stroke="var(--svg-orange)" stroke-width="2"/>
+        <text x="254" y="161" font-size="12" fill="var(--svg-orange)" font-weight="900" text-anchor="middle">① 喜多院・五百羅漢</text>
         <text x="254" y="177" font-size="10.5" fill="var(--muted)" text-anchor="middle">東側 T2 喜多院前 10:08</text>
-        <rect x="352" y="142" width="144" height="44" rx="8" fill="var(--surface)" stroke="#c2410c" stroke-width="2"/>
-        <text x="424" y="161" font-size="12" fill="#c2410c" font-weight="900" text-anchor="middle">② 川越城本丸御殿</text>
+        <rect x="352" y="142" width="144" height="44" rx="8" fill="var(--surface)" stroke="var(--svg-orange)" stroke-width="2"/>
+        <text x="424" y="161" font-size="12" fill="var(--svg-orange)" font-weight="900" text-anchor="middle">② 川越城本丸御殿</text>
         <text x="424" y="177" font-size="10.5" fill="var(--muted)" text-anchor="middle">T7 博物館前 10:18 抵</text>
-        <rect x="444" y="72" width="142" height="44" rx="8" fill="var(--surface)" stroke="#b91c1c" stroke-width="2"/>
-        <text x="515" y="91" font-size="12" fill="#b91c1c" font-weight="900" text-anchor="middle">③ 冰川神社 (北端)</text>
+        <rect x="444" y="72" width="142" height="44" rx="8" fill="var(--surface)" stroke="var(--svg-red)" stroke-width="2"/>
+        <text x="515" y="91" font-size="12" fill="var(--svg-red)" font-weight="900" text-anchor="middle">③ 冰川神社 (北端)</text>
         <text x="515" y="107" font-size="10.5" fill="var(--muted)" text-anchor="middle">釣鯛魚籤・繪馬隧道</text>
-        <rect x="318" y="14" width="148" height="44" rx="8" fill="var(--surface)" stroke="#92400e" stroke-width="2"/>
-        <text x="392" y="33" font-size="12" fill="#92400e" font-weight="900" text-anchor="middle">④ 菓子屋橫丁 &amp; 吉伊</text>
+        <rect x="318" y="14" width="148" height="44" rx="8" fill="var(--surface)" stroke="var(--svg-amber)" stroke-width="2"/>
+        <text x="392" y="33" font-size="12" fill="var(--svg-amber)" font-weight="900" text-anchor="middle">④ 菓子屋橫丁 &amp; 吉伊</text>
         <text x="392" y="49" font-size="10.5" fill="var(--muted)" text-anchor="middle">ちいかわもぐもぐ本舗</text>
-        <rect x="150" y="14" width="148" height="44" rx="8" fill="var(--surface)" stroke="#92400e" stroke-width="2"/>
-        <text x="224" y="33" font-size="12" fill="#92400e" font-weight="900" text-anchor="middle">⑤ 藏造一番街・時之鐘</text>
+        <rect x="150" y="14" width="148" height="44" rx="8" fill="var(--surface)" stroke="var(--svg-amber)" stroke-width="2"/>
+        <text x="224" y="33" font-size="12" fill="var(--svg-amber)" font-weight="900" text-anchor="middle">⑤ 藏造一番街・時之鐘</text>
         <text x="224" y="49" font-size="10.5" fill="var(--muted)" text-anchor="middle">鰻魚午餐・鐘樓星巴克</text>
-        <rect x="18" y="72" width="144" height="44" rx="8" fill="var(--surface)" stroke="#2563eb" stroke-width="2"/>
-        <text x="90" y="91" font-size="12" fill="#2563eb" font-weight="900" text-anchor="middle">⑥ 浪漫通→熊野神社</text>
-        <text x="90" y="107" font-size="10.5" fill="#2563eb" font-weight="700" text-anchor="middle">W5 蓮馨寺 16:45 回站</text>
+        <rect x="18" y="72" width="144" height="44" rx="8" fill="var(--surface)" stroke="var(--svg-blue)" stroke-width="2"/>
+        <text x="90" y="91" font-size="12" fill="var(--svg-blue)" font-weight="900" text-anchor="middle">⑥ 浪漫通→熊野神社</text>
+        <text x="90" y="107" font-size="10.5" fill="var(--svg-blue)" font-weight="700" text-anchor="middle">W5 蓮馨寺 16:45 回站</text>
       </svg>
       <div class="vg-note warn">⚠️ <b>川越搭公車兩大地雷：</b><br>
         1. 西武下車「喜多院入口」在西側，東武名03「<b>T2 喜多院前</b>」在東側近成田山。<br>
@@ -536,11 +535,11 @@ function renderPhraseHub(){
 
   $('#hubWrap').innerHTML = list.map(({p, idx}) => `
     <button type="button" class="phrase-card" data-hi="${idx}" title="點擊放大顯示">
-      <div style="font-size:.75rem;color:var(--accent);font-weight:700;margin-bottom:.15rem">${esc(p.sceneLabel)}</div>
+      <div class="scene-tag">${esc(p.sceneLabel)}</div>
       <div class="zh">${esc(p.zh)}</div>
       <div class="ja">${esc(p.ja)}</div>
       <div class="ro">${esc(p.ro)}</div>
-    </button>`).join('') || '<div style="color:var(--muted);padding:.8rem">找不到符合關鍵字的日語會話，請清除搜尋或切換其他情境。</div>';
+    </button>`).join('') || '<div class="exp-empty">找不到符合關鍵字的日語會話，請清除搜尋或切換其他情境。</div>';
   $('#hubWrap').querySelectorAll('.phrase-card').forEach(b => b.onclick = () => openPhraseModal(ALL_PHRASES[+b.dataset.hi]));
 }
 function openPhraseHub(scene = 'all'){
@@ -559,6 +558,7 @@ function openSearchModal(){
   $('#searchModal').classList.add('open');
   setTimeout(() => { $('#q')?.focus(); $('#q')?.select(); }, 40);
 }
+$('#topSearchBtn')?.addEventListener('click', openSearchModal);
 $('#closeSearchBtn').addEventListener('click', () => $('#searchModal').classList.remove('open'));
 $('#searchModal').addEventListener('click', e => { if (e.target === $('#searchModal')) $('#searchModal').classList.remove('open'); });
 
@@ -746,11 +746,11 @@ function renderDay(){
         ${tipsHtml(p)}
         ${pills.length ? `<div class="quick-actions">${pills.join('')}</div>` : ''}
         ${matchedMeal ? `<details class="meal-drawer">
-          <summary><span>🍴 查看 ${esc(matchedMeal.slot)} 推薦清單</span><span>▼</span></summary>
+          <summary><span>🍴 查看 ${esc(matchedMeal.slot)} 推薦清單</span></summary>
           <div class="meal-drawer-body">${renderMealTiersHTML(matchedMeal, d.map)}</div>
         </details>` : ''}
       </div></li>`;
-  }).join('') || '<li style="color:var(--muted);padding:1rem">此類別今天沒有項目</li>';
+  }).join('') || '<li class="exp-empty">此類別今天沒有項目</li>';
 
   $('#daynavBottom').innerHTML = `
     <button id="prevDay" ${state.day===0?'disabled':''} aria-label="前一天">◀ 前一天</button>
@@ -764,7 +764,7 @@ function renderDay(){
     const hObj = HOTELS.find(h => d.hotel.includes(h.name.split(' ')[0]));
     side += `<div class="box"><h3>🏨 今晚住宿</h3>
       <div class="hotelname">${esc(d.hotel)}</div>
-      <div style="display:flex;gap:.45rem;flex-wrap:wrap">
+      <div class="hotel-side-btns">
         <a class="btn primary" href="${mapUrl(d.hotel)}" target="_blank" rel="noopener">🗺️ 開啟地圖導航</a>
         ${hObj ? `<button type="button" class="btn" onclick="openTaxiModal('${hObj.key}')">🚖 秀給司機看</button>` : ''}
       </div></div>`;
@@ -776,8 +776,8 @@ function renderDay(){
     const done = store.get('chk', {});
     const prepDone = d.prep.filter((_, j) => done[`d${d.idx}-${j}`]).length;
     side += `<div class="box">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:.4rem;margin-bottom:.45rem">
-        <h3 style="margin:0">📝 當日行前提醒與準備</h3>
+      <div class="prep-hd">
+        <h3>📝 當日行前提醒與準備</h3>
         <span class="pill ${prepDone===d.prep.length?'done':''}" id="dayPrepProg">${prepDone} / ${d.prep.length}</span>
       </div>
       <div class="pbar" aria-hidden="true"><i id="dayPrepBar" style="width:${Math.round(prepDone/d.prep.length*100)}%"></i></div>
@@ -795,15 +795,15 @@ function renderDay(){
   const dayBookings = BOOKINGS.filter(b => b.days.includes(dayNum));
   const dayTimetables = TIMETABLES.filter(t => t.days.includes(dayNum));
   const wxLink = (dayNum === 3 || dayNum === 4)
-    ? `<a class="btn" style="margin:0" href="https://tenki.jp/forecast/3/23/4820/20321/" target="_blank" rel="noopener">❄️ 輕井澤天氣 ↗</a>`
+    ? `<a class="btn btn-sm" href="https://tenki.jp/forecast/3/23/4820/20321/" target="_blank" rel="noopener">❄️ 輕井澤天氣 ↗</a>`
     : (dayNum >= 5 && dayNum <= 7)
-      ? `<a class="btn" style="margin:0" href="https://tenki.jp/forecast/3/22/4920/19430/" target="_blank" rel="noopener">🗻 河口湖天氣 ↗</a>
-         <a class="btn" style="margin:0" href="https://fujisantotomoni.jp/livecamera/" target="_blank" rel="noopener">📹 富士山即時影像 ↗</a>`
-      : `<a class="btn" style="margin:0" href="https://tenki.jp/forecast/3/16/4410/13106/" target="_blank" rel="noopener">🌤️ 東京天氣 ↗</a>`;
+      ? `<a class="btn btn-sm" href="https://tenki.jp/forecast/3/22/4920/19430/" target="_blank" rel="noopener">🗻 河口湖天氣 ↗</a>
+         <a class="btn btn-sm" href="https://fujisantotomoni.jp/livecamera/" target="_blank" rel="noopener">📹 富士山即時影像 ↗</a>`
+      : `<a class="btn btn-sm" href="https://tenki.jp/forecast/3/16/4410/13106/" target="_blank" rel="noopener">🌤️ 東京天氣 ↗</a>`;
 
-  side += `<div class="box" style="display:flex;gap:.45rem;flex-wrap:wrap;align-items:center">
-    ${dayTimetables.length ? `<button type="button" class="btn" style="margin:0" onclick="jumpToTimetableDay(${dayNum})">🚆 Day ${dayNum} 交通時刻表（${dayTimetables.length}）→</button>` : ''}
-    ${dayBookings.length ? `<button type="button" class="btn" style="margin:0" onclick="jumpToBookingDay(${dayNum})">🎟️ 今日相關預訂（${dayBookings.length}）→</button>` : ''}
+  side += `<div class="box side-jump-box">
+    ${dayTimetables.length ? `<button type="button" class="btn btn-sm" onclick="jumpToTimetableDay(${dayNum})">🚆 Day ${dayNum} 交通時刻表（${dayTimetables.length}）→</button>` : ''}
+    ${dayBookings.length ? `<button type="button" class="btn btn-sm" onclick="jumpToBookingDay(${dayNum})">🎟️ 今日相關預訂（${dayBookings.length}）→</button>` : ''}
     ${wxLink}
   </div>`;
   $('#side').innerHTML = side;
@@ -848,7 +848,7 @@ function renderBanner(){
     const days = Math.round((start - today) / 864e5);
     html += `<div class="banner">
       <span class="big" aria-hidden="true">🧳</span>
-      <div class="btxt" title="2/1 05:30 桃園 T2（BR198 08:50 起飛）"><b>倒數 ${days} 天</b>｜2/1（一）出發・BR198 08:50</div>
+      <div class="btxt" title="2/1 05:30 桃園 T2（BR198 08:50 起飛）"><b>倒數 ${days} 天</b>｜2/1 BR198 08:50 出發</div>
     </div>`;
   } else if (ti >= 0){
     const d = DAYS[ti];
@@ -934,19 +934,33 @@ function renderBookings(){
   });
   const pct = Math.round(doneCnt / BOOKINGS.length * 100);
 
+  const bqOpen = $('#bqWrap') && !$('#bqWrap').hidden;
+  const bqActive = bqOpen || !!q;
+
   $('#bookingDash').innerHTML = `
     <div class="bk-hero">
       <div class="bk-hero-top">
         <div>
-          <div class="bk-hero-title">已訂 <b>${doneCnt} / ${BOOKINGS.length}</b> 項（${pct}%）</div>
+          <div class="bk-hero-title">🎟️ 訂票提醒 · 已訂 <b>${doneCnt} / ${BOOKINGS.length}</b> 項（${pct}%）</div>
           <div class="bk-hero-sub">🔥 待訂 ${openWaitCnt} · ⏳ 即將 ${upcomingCnt} · ⏰ 皆對照台／日時間</div>
         </div>
-        <button type="button" class="exp-rate-pill" id="exportIcsBtn">📥 匯出 .ics</button>
+        <div class="bk-hero-actions">
+          <button type="button" class="hero-pill-btn ${bqActive ? 'active' : ''}" id="toggleBqBtn">🔍 搜尋</button>
+          <button type="button" class="hero-pill-btn" id="exportIcsBtn">📥 匯出 .ics</button>
+        </div>
       </div>
       <div class="bk-hero-prog" aria-hidden="true"><i style="width:${pct}%"></i></div>
     </div>`;
 
   $('#exportIcsBtn').onclick = downloadAllBookingICS;
+  $('#toggleBqBtn').onclick = () => {
+    const wrap = $('#bqWrap'), inp = $('#bq'), btn = $('#toggleBqBtn');
+    if (!wrap || !inp || !btn) return;
+    const opening = wrap.hidden;
+    wrap.hidden = !opening;
+    btn.classList.toggle('active', opening || !!inp.value.trim());
+    if (opening) setTimeout(() => inp.focus(), 30);
+  };
 
   const stOpts = [
     ['all', `全部 (${BOOKINGS.length})`],
@@ -976,9 +990,9 @@ function renderBookings(){
   });
 
   if (state.bookingDay !== 'all'){
-    $('#bookingDayBar').innerHTML = `<div class="box" style="margin-bottom:.75rem;display:flex;justify-content:space-between;align-items:center;gap:.5rem;flex-wrap:wrap;border-left:4px solid var(--primary)">
+    $('#bookingDayBar').innerHTML = `<div class="box bk-day-bar">
       <span>📅 目前僅顯示 <b>Day ${esc(state.bookingDay)}</b> 相關預訂（共 ${filtered.length} 項）</span>
-      <button type="button" class="btn primary" id="clearBookingDayBtn" style="margin:0">顯示全部 ${BOOKINGS.length} 項預訂</button>
+      <button type="button" class="btn primary btn-sm" id="clearBookingDayBtn">顯示全部 ${BOOKINGS.length} 項預訂</button>
     </div>`;
     $('#clearBookingDayBtn').onclick = () => { state.bookingDay = 'all'; renderBookings(); };
   } else {
@@ -987,7 +1001,7 @@ function renderBookings(){
 
   $('#bookingGrid').innerHTML = filtered.map(b => {
     const st = getBookingStatus(b);
-    const borderCol = st.isDone ? 'var(--now)' : st.isOpen ? 'var(--urgent)' : 'var(--upcoming)';
+    const cardStateCls = st.isDone ? 'is-done' : st.isOpen ? 'is-open' : '';
     const statusBadge = st.isDone
       ? `<span class="pill done">✅ 已完成預訂</span>`
       : st.isOpen
@@ -998,38 +1012,38 @@ function renderBookings(){
       <div class="sub-chk-grid">
         ${b.subItems.map((si, idx) => {
           const sk = `${b.id}-${idx}`;
-          return `<label><input type="checkbox" data-sub="${sk}" ${subChkMap[sk]?'checked':''}> <span style="${subChkMap[sk]?'text-decoration:line-through;color:var(--muted)':''}">${esc(si)}</span></label>`;
+          return `<label><input type="checkbox" data-sub="${sk}" ${subChkMap[sk]?'checked':''}> <span class="${subChkMap[sk]?'sub-chk-done':''}">${esc(si)}</span></label>`;
         }).join('')}
       </div>` : '';
 
-    return `<div class="box bk-card ${st.isDone?'is-done':''}" id="bk-card-${b.id}" style="border-top:5px solid ${borderCol}">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:.4rem;flex-wrap:wrap">
-        <div style="display:flex;gap:.35rem;align-items:center;flex-wrap:wrap">
+    return `<div class="box bk-card ${cardStateCls}" id="bk-card-${b.id}">
+      <div class="bk-card-top">
+        <div class="bk-card-badges">
           <span class="pill area">#${b.id}</span>
           <span class="pill">${esc(b.dayLabel)}</span>
         </div>
         ${statusBadge}
       </div>
 
-      <h3 style="margin:.15rem 0 .2rem;font-size:1.05rem">${esc(b.title)}</h3>
-      <div style="font-size:.86rem;color:var(--muted);margin-bottom:.35rem">⏰ 最早可訂：<b style="color:var(--primary)">${esc(b.openTwt.split('\n')[0])}</b></div>
+      <h3>${esc(b.title)}</h3>
+      <div class="bk-open-twt">⏰ 最早可訂：<b>${esc(b.openTwt.split('\n')[0])}</b></div>
 
-      <div class="bk-actions" style="margin-top:0">
-        <button type="button" class="btn btn-sm ${st.isDone?'done-btn':'accent'}" data-toggle-bk="${b.chkKey}">
+      <div class="bk-actions">
+        <button type="button" class="btn btn-sm ${st.isDone?'done-soft':'pending-soft'}" data-toggle-bk="${b.chkKey}">
           ${st.isDone ? '✅ 已預訂' : '📌 標記已訂'}
         </button>
         <a class="btn primary btn-sm" href="${esc(b.url)}" target="_blank" rel="noopener">🔗 官網 ↗</a>
         ${b.tel ? `<a class="btn btn-sm" href="tel:${esc(b.tel)}">📞 電話</a>` : ''}
       </div>
 
-      <details style="margin-top:.45rem;border-top:1px dashed var(--line);padding-top:.4rem">
-        <summary style="cursor:pointer;font-size:.86rem;font-weight:700;color:var(--primary)">展開詳情、預約備註 ＆ 加入行事曆 ▼</summary>
-        <div style="margin-top:.5rem;display:grid;gap:.45rem">
-          <div style="font-size:.84rem;color:var(--muted)">🕘 日本時間：${esc(b.openJst)}</div>
-          <div class="tip" style="margin-top:0">💡 ${esc(b.note)}</div>
+      <details class="collapsible">
+        <summary class="bk-details-summary">展開詳情、預約備註 ＆ 加入行事曆</summary>
+        <div class="bk-details-body">
+          <div class="bk-open-jst">🕘 日本時間：${esc(b.openJst)}</div>
+          <div class="tip">💡 ${esc(b.note)}</div>
           ${subHtml}
           <input type="text" class="bk-note-inp" data-note-id="${b.id}" value="${esc(notesMap[b.id]||'')}" placeholder="📝 填寫預約編號、訂位時間或備忘錄（自動儲存）…">
-          <div class="bk-actions" style="margin-top:0">
+          <div class="bk-actions">
             ${b.days.slice(0,4).map(dNum => `<button type="button" class="btn btn-sm" onclick="go('day');selectDay(${dNum-1})">Day ${dNum} →</button>`).join('')}
             ${(b.cal || []).map(ev => `<a class="btn btn-sm" href="${gcalUrl(ev, b)}" target="_blank" rel="noopener">📅 行事曆（${esc(ev.label)}）</a>`).join('')}
             ${(b.ttIds || []).map(tid => `<button type="button" class="btn btn-sm" onclick="jumpToTimetableId(${tid})">🕒 時刻表 #${tid}</button>`).join('')}
@@ -1058,7 +1072,11 @@ function renderBookings(){
     };
   });
 }
-$('#bq').addEventListener('input', renderBookings);
+$('#bq').addEventListener('input', () => {
+  const btn = $('#toggleBqBtn');
+  if (btn) btn.classList.toggle('active', !$('#bqWrap')?.hidden || !!$('#bq').value.trim());
+  renderBookings();
+});
 
 /* =========================================================
    交通時刻表與常用連結查詢功能 (v-transit)
@@ -1082,9 +1100,10 @@ function buildQuickScheduleTable(){
 }
 $('#toggleQuickTtBtn').onclick = () => {
   const el = $('#quickTtWrap');
-  const opening = el.style.display === 'none';
-  el.style.display = opening ? 'block' : 'none';
+  const opening = el.hidden;
+  el.hidden = !opening;
   $('#toggleQuickTtBtn').textContent = opening ? '收合 ▲' : '展開 ▼';
+  $('#toggleQuickTtBtn').classList.toggle('active', opening);
 };
 
 const TT_CAT_ICONS = {
@@ -1130,16 +1149,17 @@ function renderTimetables(){
     return true;
   });
 
+  if ($('#transitTitle')) $('#transitTitle').textContent = `🚆 交通時刻表 (${TIMETABLES.length})`;
+  if ($('#transitCount')) $('#transitCount').textContent = `顯示 ${filtered.length} / ${TIMETABLES.length}`;
+
   $('#transitGrid').innerHTML = filtered.map(t => {
     const isPdf = /\.pdf($|\?)/i.test(t.url);
-    let domain = '';
-    try { domain = new URL(t.url).hostname; } catch(e) { domain = t.url; }
     const bk = t.bkId ? BOOKINGS.find(b => b.id === t.bkId) : null;
     const ic = TT_CAT_ICONS[t.cat] || '🚆';
 
-    return `<div class="box tt-card" id="tt-card-${t.id}" style="border-left:5px solid var(--c-transit)">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:.4rem;flex-wrap:wrap">
-        <div style="display:flex;gap:.35rem;align-items:center;flex-wrap:wrap">
+    return `<div class="box tt-card" id="tt-card-${t.id}">
+      <div class="tt-card-top">
+        <div class="tt-card-badges">
           <span class="pill area">#${t.id}</span>
           <span class="pill">${ic} ${esc(t.cat)}</span>
           ${isPdf ? '<span class="pill urgent">📄 PDF 時刻表</span>' : ''}
@@ -1147,8 +1167,8 @@ function renderTimetables(){
         <span class="pill">📅 ${esc(t.dayLabel)}</span>
       </div>
 
-      <h3 style="margin:.15rem 0 0;font-size:1.05rem">${esc(t.title)}</h3>
-      <div style="font-size:.9rem;color:var(--muted)">${esc(t.note)}</div>
+      <h3>${esc(t.title)}</h3>
+      <div class="tt-note">${esc(t.note)}</div>
 
       <div class="tt-card-foot">
         <a class="btn primary btn-sm" href="${esc(t.url)}" target="_blank" rel="noopener">🕒 時刻表／官網 ↗</a>
@@ -1252,10 +1272,10 @@ function renderFood(){
       }).filter(Boolean);
 
       if (filteredTiers.length){
-        cards.push(`<div class="box" style="border-top:5px solid ${d.color}">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:.4rem;flex-wrap:wrap;margin-bottom:.35rem">
+        cards.push(`<div class="box food-card">
+          <div class="food-card-top">
             <span class="pill area">Day ${i+1}・${fmtDate(d)}</span>
-            <button class="btn" style="margin:0;padding:.2rem .55rem;font-size:.8rem" onclick="go('day');selectDay(${i})">查看當日行程 →</button>
+            <button type="button" class="btn btn-sm" onclick="go('day');selectDay(${i})">查看當日行程 →</button>
           </div>
           <h3>${esc(m.slot)}</h3>
           ${renderMealTiersHTML({tiers: filteredTiers}, d.map)}
@@ -1264,6 +1284,7 @@ function renderFood(){
     });
   });
 
+  if ($('#foodCount')) $('#foodCount').textContent = `顯示 ${cards.length} 餐`;
   $('#foodGrid').classList.toggle('food-single', cards.length === 1);
   $('#foodGrid').innerHTML = cards.join('') || '<div class="box">沒有符合篩選條件的推薦餐廳，請嘗試切換篩選或清除關鍵字。</div>';
 }
@@ -1333,7 +1354,7 @@ function renderHotels(){
       </div>
       <div class="hotelname" style="margin:.35rem 0 .45rem">${esc(h.name)}</div>
       <div class="hotel-meta">
-        ${h.address ? `<div class="hotel-meta-row"><span>📍 ${esc(h.address)}</span><button type="button" class="hotel-copy" data-copy="${esc(h.address)}" title="複製地址">📋</button></div>` : ''}
+        ${h.address ? `<div class="hotel-meta-row"><span>📍 ${esc(h.address)}</span><button type="button" class="hotel-copy" data-copy="${esc(h.address)}" title="複製地址">📋 複製</button></div>` : ''}
         ${h.tel ? `<div class="hotel-meta-row"><a href="tel:${esc(h.tel.replace(/[^+\d]/g,''))}">📞 ${esc(h.tel)}</a></div>` : ''}
       </div>
       <div class="hotel-note">💡 ${esc(h.note)}</div>
@@ -1344,7 +1365,7 @@ function renderHotels(){
     </div>`).join('');
 
   const luggageCard = `
-    <div class="box" style="grid-column:1 / -1;border-left:5px solid var(--c-hotel)">
+    <div class="box luggage-card">
       <h3>🧳 全程大行李寄送 ＆ 寄放關鍵動線總整理</h3>
       <ul>
         <li><b>Day 1（2/1）抵達上野：</b>京成上野站步行至 MIMARU 東京 上野 NORTH 約 15 分鐘，推大行李可分搭 2 台計程車（車程約 5 分鐘，約 ¥800／台）。</li>
@@ -1383,15 +1404,15 @@ function renderChecks(){
   }
 
   $('#filterUncheckedBtn').textContent = state.onlyUnchecked ? '顯示全部項目' : '僅看未完成';
-  $('#filterUncheckedBtn').classList.toggle('primary', state.onlyUnchecked);
+  $('#filterUncheckedBtn').classList.toggle('active', state.onlyUnchecked);
 
   $('#checks').innerHTML = groups.map(g => {
     const visibleItems = state.onlyUnchecked ? g.items.filter(it => !done[it.id]) : g.items;
     if (!visibleItems.length) return '';
     const doneCnt = g.items.filter(it => done[it.id]).length;
     const isOpen = g.open || state.onlyUnchecked;
-    return `<div class="box"><details ${isOpen ? 'open' : ''}>
-      <summary style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:.4rem;font-weight:800;font-size:1rem;color:var(--primary)">
+    return `<div class="box"><details class="pack-details" ${isOpen ? 'open' : ''}>
+      <summary>
         <span>${esc(g.title)}</span>
         <span class="pill ${doneCnt===g.items.length?'done':''}">${doneCnt} / ${g.items.length}</span>
       </summary>
@@ -1503,44 +1524,44 @@ function renderInfo(){
       <a class="sos-pill" href="tel:119"><span>🚑 救護／消防</span><b>119</b></a>
       <a class="sos-pill wide" href="tel:+81-3-3280-7811"><span>🆘 駐日代表處緊急電話</span><b>03-3280-7811</b></a>
     </div>
-    <ul style="margin:.5rem 0 .6rem;padding-left:1.15rem;font-size:.9rem">
+    <ul class="info-links">
       <li><a href="https://www.vjw.digital.go.jp/" target="_blank" rel="noopener">Visit Japan Web（入境手續官網）</a></li>
       <li><a href="https://docs.google.com/spreadsheets/d/1vtYwFh8HCuyi-NK5nKBQ1AQyYui49a9xOxsQALGGbRw/edit" target="_blank" rel="noopener">原始行程表（Google 試算表）</a></li>
     </ul>
-    <div style="display:flex;gap:.45rem;flex-wrap:wrap">
-      <button class="btn btn-sm" onclick="window.print()">🖨️ 列印行程表</button>
-      <button class="btn btn-sm" id="shareAppBtn">📤 分享給家人</button>
+    <div class="info-btn-row">
+      <button type="button" class="btn btn-sm" onclick="window.print()">🖨️ 列印行程表</button>
+      <button type="button" class="btn btn-sm" id="shareAppBtn">📤 分享給家人</button>
     </div></div>
 
   <div class="box"><h3>⛅ 當地即時天氣 ＆ 富士山影像</h3>
-    <div style="font-size:.85rem;color:var(--muted);margin-bottom:.5rem">出發前與河口湖自駕清晨快速確認氣溫、降雪與能見度：</div>
-    <div style="display:flex;gap:.4rem;flex-wrap:wrap">
+    <div class="info-desc">出發前與河口湖自駕清晨快速確認氣溫、降雪與能見度：</div>
+    <div class="info-btn-row">
       <a class="btn btn-sm" href="https://tenki.jp/forecast/3/16/4410/13106/" target="_blank" rel="noopener">🌤️ 東京（上野）↗</a>
       <a class="btn btn-sm" href="https://tenki.jp/forecast/3/23/4820/20321/" target="_blank" rel="noopener">❄️ 輕井澤 ↗</a>
       <a class="btn btn-sm" href="https://tenki.jp/forecast/3/22/4920/19430/" target="_blank" rel="noopener">🗻 富士河口湖 ↗</a>
-      <a class="btn primary btn-sm" href="https://fujisantotomoni.jp/livecamera/" target="_blank" rel="noopener">📹 富士山即時影像 ↗</a>
+      <a class="btn btn-sm" href="https://fujisantotomoni.jp/livecamera/" target="_blank" rel="noopener">📹 富士山即時影像 ↗</a>
       <a class="btn btn-sm" href="https://fujisan.ne.jp/" target="_blank" rel="noopener">🗻 河口湖觀光網 ↗</a>
+      <button type="button" class="btn btn-sm" id="openCarNaviFromInfoBtn">🚗 河口湖車機導航</button>
     </div></div>
 
   <div class="box"><h3>👨‍👩‍👦‍👦 家族進度同步（離線免帳號）</h3>
-    <div style="font-size:.85rem;color:var(--muted);margin-bottom:.5rem">將本機的「訂票完成、預約備註、攜帶物品與每日準備」打包成代碼，貼到 LINE 群組即可一鍵同步。</div>
-    <div style="display:flex;gap:.45rem;flex-wrap:wrap">
+    <div class="info-desc">將本機的「訂票完成、預約備註、攜帶物品與每日準備」打包成代碼，貼到 LINE 群組即可一鍵同步。</div>
+    <div class="info-btn-row">
       <button type="button" class="btn primary btn-sm" id="exportSyncBtn">📤 複製進度代碼</button>
       <button type="button" class="btn btn-sm" id="toggleImportSyncBtn">📥 匯入家人代碼</button>
     </div>
-    <div id="syncImportWrap" style="display:none;margin-top:.55rem;padding-top:.55rem;border-top:1px dashed var(--line)">
-      <textarea id="syncCodeInp" rows="3" placeholder="貼上家人分享的 KANTO2027:... 代碼" style="width:100%;font:inherit;font-size:.84rem;padding:.45rem .6rem;border-radius:9px;border:1px solid var(--line);background:var(--surface2);color:var(--text);resize:vertical"></textarea>
-      <div style="display:flex;gap:.4rem;margin-top:.4rem;flex-wrap:wrap">
+    <div id="syncImportWrap" class="sync-wrap" hidden>
+      <textarea id="syncCodeInp" rows="3" placeholder="貼上家人分享的 KANTO2027:... 代碼"></textarea>
+      <div class="info-btn-row" style="margin-top:.45rem">
         <button type="button" class="btn primary btn-sm" id="applySyncBtn">✅ 確認套用</button>
         <button type="button" class="btn btn-sm" id="cancelSyncBtn">取消</button>
       </div>
     </div></div>
 
   <div class="box"><h3>🔧 顯示設定 ＆ 離線狀態</h3>
-    <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.6rem">
-      <button class="btn primary btn-sm" id="searchBtn">🔍 全站搜尋</button>
-      <button class="btn btn-sm" id="themeBtn">${isDark ? '☀️ 淺色模式' : '🌙 深色模式'}</button>
-      <button class="btn btn-sm" id="openCarNaviFromInfoBtn">🚗 河口湖車機導航</button>
+    <div class="exp-mob-tabs" id="themeSeg" role="group" aria-label="色彩主題" style="margin-bottom:.55rem">
+      <button type="button" data-theme="light" aria-pressed="${!isDark}">☀️ 淺色模式</button>
+      <button type="button" data-theme="dark" aria-pressed="${isDark}">🌙 深色模式</button>
     </div>
     <div class="pwa-mini-list">
       <div><span>版本</span><b>${APP_VERSION}</b></div>
@@ -1548,13 +1569,14 @@ function renderInfo(){
       <div><span>模式</span><b>${(window.matchMedia('(display-mode: standalone)').matches || navigator.standalone) ? '✅ 獨立 App' : '🌐 瀏覽器分頁'}</b></div>
       <div><span>快取</span><span id="infoSwStatus">${esc(pwaState.swText)}</span></div>
     </div>
-    <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.55rem">
-      <button class="btn primary btn-sm" id="infoInstallBtn">📲 安裝 App</button>
-      <button class="btn btn-sm" id="refreshCacheBtn">🔄 檢查更新</button>
+    <div class="info-btn-row">
+      <button type="button" class="btn primary btn-sm" id="infoInstallBtn">📲 安裝 App</button>
+      <button type="button" class="btn btn-sm" id="refreshCacheBtn">🔄 檢查更新</button>
     </div></div>`;
 
-  $('#searchBtn').onclick = openSearchModal;
-  $('#themeBtn').onclick = () => setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+  $('#themeSeg')?.querySelectorAll('button').forEach(b => {
+    b.onclick = () => setTheme(b.dataset.theme);
+  });
   $('#openCarNaviFromInfoBtn').onclick = () => openGuideModal('carNavi');
   $('#exportSyncBtn').onclick = async () => {
     const code = encodeSyncCode();
@@ -1567,7 +1589,7 @@ function renderInfo(){
     }
     const wrap = $('#syncImportWrap');
     if (wrap) {
-      wrap.style.display = 'block';
+      wrap.hidden = false;
       $('#syncCodeInp').value = code;
       $('#syncCodeInp').focus();
       $('#syncCodeInp').select();
@@ -1576,17 +1598,17 @@ function renderInfo(){
   };
   $('#toggleImportSyncBtn').onclick = () => {
     const wrap = $('#syncImportWrap');
-    const open = wrap.style.display !== 'none';
-    wrap.style.display = open ? 'none' : 'block';
-    if (!open) { $('#syncCodeInp').value = ''; $('#syncCodeInp').focus(); }
+    const opening = wrap.hidden;
+    wrap.hidden = !opening;
+    if (opening) { $('#syncCodeInp').value = ''; $('#syncCodeInp').focus(); }
   };
-  $('#cancelSyncBtn').onclick = () => { $('#syncImportWrap').style.display = 'none'; };
+  $('#cancelSyncBtn').onclick = () => { $('#syncImportWrap').hidden = true; };
   $('#applySyncBtn').onclick = () => {
     const res = applySyncCode($('#syncCodeInp').value);
     showToast(res.msg);
     if (res.ok) {
       $('#syncCodeInp').value = '';
-      $('#syncImportWrap').style.display = 'none';
+      $('#syncImportWrap').hidden = true;
     }
   };
   $('#infoInstallBtn').onclick = () => {
@@ -1632,7 +1654,7 @@ function renderInfo(){
 /* =========================================================
    PWA 安裝與離線 Service Worker 管理
    ========================================================= */
-const APP_VERSION = 'v37';
+const APP_VERSION = 'v38';
 if (location.search.includes('u=')) {
   const sp = new URLSearchParams(location.search);
   sp.delete('u');
@@ -1661,7 +1683,7 @@ window.addEventListener('online', updateNetUI);
 window.addEventListener('offline', updateNetUI);
 
 function openPwaModal(){
-  $('#nativeInstallWrap').style.display = pwaState.deferredPrompt ? 'block' : 'none';
+  $('#nativeInstallWrap').hidden = !pwaState.deferredPrompt;
   $('#pwaSwStatus').textContent = pwaState.swText;
   $('#pwaModal').classList.add('open');
 }
@@ -1670,17 +1692,18 @@ $('#triggerNativeInstallBtn').onclick = () => {
   pwaState.deferredPrompt.prompt();
   pwaState.deferredPrompt.userChoice.then(() => {
     pwaState.deferredPrompt = null;
-    $('#nativeInstallWrap').style.display = 'none';
+    $('#nativeInstallWrap').hidden = true;
     $('#pwaModal').classList.remove('open');
   });
 };
 $('#closePwaModalBtn').onclick = () => $('#pwaModal').classList.remove('open');
+$('#pwaOkBtn')?.addEventListener('click', () => $('#pwaModal').classList.remove('open'));
 $('#pwaModal').onclick = e => { if (e.target === $('#pwaModal')) $('#pwaModal').classList.remove('open'); };
 
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault();
   pwaState.deferredPrompt = e;
-  $('#nativeInstallWrap').style.display = 'block';
+  $('#nativeInstallWrap').hidden = false;
 });
 
 window.addEventListener('appinstalled', () => {
@@ -1979,9 +2002,10 @@ function expOrderedCats(){
     .map(x => x.c);
 }
 
-function syncExpModalViewport(){
-  const m = $('#expFormModal'); if (!m || !m.classList.contains('open')) return;
-  const card = m.querySelector('.exp-modal-card');
+function syncSheetViewport(){
+  const m = document.querySelector('.sheet-wrap.open');
+  if (!m) return;
+  const card = m.querySelector('.sheet-card');
   if (window.visualViewport && card){
     const vv = window.visualViewport;
     m.style.height = vv.height + 'px';
@@ -1991,8 +2015,8 @@ function syncExpModalViewport(){
   }
 }
 if (window.visualViewport){
-  window.visualViewport.addEventListener('resize', syncExpModalViewport);
-  window.visualViewport.addEventListener('scroll', syncExpModalViewport);
+  window.visualViewport.addEventListener('resize', syncSheetViewport);
+  window.visualViewport.addEventListener('scroll', syncSheetViewport);
 }
 function closeExpModal(){
   const m = $('#expFormModal');
@@ -2179,7 +2203,7 @@ function openExpModal(editId = null){
   });
 
   $('#expFormModal').classList.add('open');
-  syncExpModalViewport();
+  syncSheetViewport();
   $('#expChips button[aria-pressed="true"]')?.scrollIntoView({inline:'nearest', block:'nearest'});
   if (window.innerWidth >= 700){
     setTimeout(() => (formAmt ? $('#expDesc') : $('#expJpy'))?.focus(), 60);
@@ -2208,7 +2232,7 @@ function renderExp(){
   // Filter list
   const qLower = expState.q.trim().toLowerCase();
   const advFilterCount = (expState.cat !== 'all' ? 1 : 0) + (expState.payer !== 'all' ? 1 : 0) + (expState.filterMethod !== 'all' ? 1 : 0) + (qLower ? 1 : 0);
-  const showFilterBar = expState.filterOpen || advFilterCount > 0;
+  const showFilterBar = expState.filterOpen;
   const filtered = list.filter(e => {
     if (expState.day !== 'all' && String(e.day) !== String(expState.day)) return false;
     if (expState.cat !== 'all' && expDetectCat(e) !== expState.cat) return false;
@@ -2264,7 +2288,7 @@ function renderExp(){
       </div>
       <div class="exp-hero-bot">
         <span class="exp-hero-sub">共 ${list.length} 筆 · 均 ${avgTwd}/人</span>
-        <button type="button" class="exp-rate-pill" id="expRefreshRate" title="點擊更新即時匯率">1 JPY=${rate} 🔄</button>
+        <button type="button" class="hero-pill-btn" id="expRefreshRate" title="點擊更新即時匯率">1 JPY=${rate} 🔄</button>
       </div>
     </div>
 
@@ -2386,7 +2410,7 @@ function renderExp(){
                 const sign = bTwd > 0 ? '+' : bTwd < 0 ? '-' : '';
                 const active = expState.member === n ? 'is-selected' : '';
                 return `<tr class="exp-bal-row ${active}" data-member="${esc(n)}" title="點擊查看 ${esc(n)} 相關明細">
-                  <td><b>${esc(n)}</b></td>
+                  <td><b>${esc(n)}</b><span class="exp-bal-chev" aria-hidden="true">›</span></td>
                   <td>${fTwd(paid[n] || 0)}</td>
                   <td>${fTwd(share[n] || 0)}</td>
                   <td class="exp-bal-net ${cls}">${sign}NT$${Math.abs(bTwd).toLocaleString()}</td>
@@ -2419,7 +2443,7 @@ function renderExp(){
               <text x="44" y="42" text-anchor="middle" class="exp-donut-n">${catRows.length} 類</text>
               <text x="44" y="54" text-anchor="middle" class="exp-donut-s">${list.length} 筆</text>
             </svg>
-            <div class="exp-bars" style="flex:1;min-width:0">
+            <div class="exp-bars">
               ${catRows.map(([c, v]) => {
                 const pct = total ? Math.round(v / total * 100) : 0;
                 const [col] = expCatColor(c);
@@ -2450,6 +2474,24 @@ function renderExp(){
   const dfEl = $('#expDayFilters');
   if (dfEl && prevDayScroll !== null) dfEl.scrollLeft = prevDayScroll;
 
+  // Scroll-aware FAB (only visible when Hero scrolls out on mobile ledger tab)
+  let heroOutOfView = false;
+  const syncFabVis = () => {
+    const show = heroOutOfView && expState.tab === 'ledger';
+    $('#expFab')?.classList.toggle('show', show);
+    document.body.classList.toggle('fab-visible', show);
+  };
+  if (window._expHeroObs) { window._expHeroObs.disconnect(); window._expHeroObs = null; }
+  const heroEl = el.querySelector('.exp-hero');
+  if (heroEl && 'IntersectionObserver' in window){
+    window._expHeroObs = new IntersectionObserver(entries => {
+      heroOutOfView = !entries[0].isIntersecting;
+      syncFabVis();
+    }, {threshold: 0.05});
+    window._expHeroObs.observe(heroEl);
+  }
+  syncFabVis();
+
   // Open add modal buttons
   $('#expAddBtn').onclick = () => openExpModal(null);
   $('#expFab')?.addEventListener('click', () => openExpModal(null));
@@ -2461,13 +2503,15 @@ function renderExp(){
     expState.tab = b.dataset.exptab;
     el.querySelector('.exp-layout')?.setAttribute('data-tab', expState.tab);
     el.querySelectorAll('[data-exptab]').forEach(x => x.setAttribute('aria-selected', x === b));
+    syncFabVis();
   });
 
   // Filters
   $('#expToggleFilter').onclick = () => {
     expState.filterOpen = !expState.filterOpen;
     const fb = $('#expFilterBar');
-    if (fb) fb.hidden = !(expState.filterOpen || advFilterCount > 0);
+    if (fb) fb.hidden = !expState.filterOpen;
+    $('#expToggleFilter')?.classList.toggle('active', expState.filterOpen || advFilterCount > 0);
   };
   el.querySelectorAll('#expDayFilters button').forEach(b => b.onclick = () => { expState.day = b.dataset.d; renderExp(); });
   $('#expCatFilter').onchange = e => { expState.cat = e.target.value; renderExp(); };
@@ -2492,7 +2536,15 @@ function renderExp(){
     expState.member = expState.member === name ? 'all' : name;
     if (expState.member !== 'all') expState.tab = 'ledger';
     renderExp();
-    if (expState.member !== 'all') showToast(`👤 已篩選「${name}」相關明細`);
+    if (expState.member !== 'all') {
+      showToast(`👤 已篩選「${name}」相關明細`);
+      const banner = $('.exp-member-banner');
+      if (banner){
+        banner.scrollIntoView({behavior:'smooth', block:'nearest'});
+        banner.classList.add('pulse');
+        setTimeout(() => banner.classList.remove('pulse'), 1800);
+      }
+    }
   });
 
   // Tap ledger row to expand/collapse actions
@@ -2624,7 +2676,7 @@ $('#calcToExpBtn')?.addEventListener('click', () => {
   setTimeout(() => openExpModal(null), 50);
 });
 
-[['#toggleBqBtn','#bqWrap','#bq'], ['#toggleTqBtn','#tqWrap','#tq'], ['#toggleFqBtn','#fqWrap','#fq']].forEach(([btnSel, wrapSel, inpSel]) => {
+[['#toggleTqBtn','#tqWrap','#tq'], ['#toggleFqBtn','#fqWrap','#fq']].forEach(([btnSel, wrapSel, inpSel]) => {
   const btn = $(btnSel), wrap = $(wrapSel), inp = $(inpSel);
   if (!btn || !wrap || !inp) return;
   btn.onclick = () => {
