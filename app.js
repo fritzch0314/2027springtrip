@@ -86,7 +86,7 @@ const ALL_PHRASES = [
    全域設定與工具函式
    ========================================================= */
 const APP_CONFIG = {
-  version: 'v50',
+  version: 'v51',
   storagePrefix: 'kanto27_',
   tripStart: [2027, 2, 1],
   defaultRate: 0.215,
@@ -228,11 +228,13 @@ function diffDays(dateStrA, dateStrB){
 
 function getBookingStatus(bk){
   const doneMap = store.get('chk', {});
+  const skipMap = store.get('bk_skip', {});
   const isDone = !!doneMap[bk.chkKey];
+  const isSkipped = !!skipMap[bk.id];
   const today = jstNow().date;
   const daysUntilOpen = diffDays(today, bk.openDate);
   const isOpen = daysUntilOpen <= 0;
-  return {isDone, isOpen, daysUntilOpen};
+  return {isDone, isSkipped, isOpen, daysUntilOpen};
 }
 
 /* =========================================================
@@ -319,7 +321,7 @@ function markDirty(...views){
 }
 
 function getOpenUnbookedCount(){
-  return BOOKINGS.filter(b => { const s = getBookingStatus(b); return s.isOpen && !s.isDone; }).length;
+  return BOOKINGS.filter(b => { const s = getBookingStatus(b); return !s.isSkipped && s.isOpen && !s.isDone; }).length;
 }
 function updateNavBadges(){
   const cnt = getOpenUnbookedCount();
@@ -990,19 +992,34 @@ function toggleBookingDone(chkKey){
   updateNavBadges();
 }
 
+function toggleBookingSkip(id){
+  const m = store.get('bk_skip', {});
+  m[id] = !m[id];
+  if (!m[id]) delete m[id];
+  store.set('bk_skip', m);
+  cloudSync.recordState('bk_skip', String(id), !!m[id]);
+  if (state.bookingStatus === 'skipped' && !Object.keys(m).length) state.bookingStatus = 'all';
+  showToast(m[id] ? '🚫 已標記免預訂（不計入提醒）' : '↩️ 已恢復訂票提醒');
+  markDirty('booking');
+  updateNavBadges();
+}
+
 function renderBookings(){
   const q = ($('#bq')?.value || '').trim().toLowerCase();
   const notesMap = store.get('bk_notes', {});
   const subChkMap = store.get('bk_sub', {});
 
-  let doneCnt = 0, openWaitCnt = 0, upcomingCnt = 0;
+  let doneCnt = 0, openWaitCnt = 0, upcomingCnt = 0, skippedCnt = 0;
   BOOKINGS.forEach(b => {
     const st = getBookingStatus(b);
-    if (st.isDone) doneCnt++;
+    if (st.isSkipped) skippedCnt++;
+    else if (st.isDone) doneCnt++;
     else if (st.isOpen) openWaitCnt++;
     else upcomingCnt++;
   });
-  const pct = Math.round(doneCnt / BOOKINGS.length * 100);
+  const activeTotal = BOOKINGS.length - skippedCnt;
+  const pct = activeTotal > 0 ? Math.round(doneCnt / activeTotal * 100) : 100;
+  if (state.bookingStatus === 'skipped' && skippedCnt === 0) state.bookingStatus = 'all';
 
   const bqOpen = $('#bqWrap') && !$('#bqWrap').hidden;
   const bqActive = bqOpen || !!q;
@@ -1011,8 +1028,8 @@ function renderBookings(){
     <div class="bk-hero">
       <div class="bk-hero-top">
         <div>
-          <div class="bk-hero-title">🎟️ 訂票提醒 · 已訂 <b>${doneCnt} / ${BOOKINGS.length}</b> 項（${pct}%）</div>
-          <div class="bk-hero-sub">🔥 待訂 ${openWaitCnt} · ⏳ 即將 ${upcomingCnt} · ⏰ 皆對照台／日時間</div>
+          <div class="bk-hero-title">🎟️ 訂票提醒 · 已訂 <b>${doneCnt} / ${activeTotal}</b> 項（${pct}%）</div>
+          <div class="bk-hero-sub">🔥 待訂 ${openWaitCnt} · ⏳ 即將 ${upcomingCnt}${skippedCnt ? ` · 🚫 免訂 ${skippedCnt}` : ''} · ⏰ 台／日時間</div>
         </div>
         <div class="bk-hero-actions">
           ${cloudSync.pillHtml()}
@@ -1035,11 +1052,12 @@ function renderBookings(){
   };
 
   const stOpts = [
-    ['all', `全部 (${BOOKINGS.length})`],
+    ['all', `全部 (${activeTotal})`],
     ['open', `🔥 待訂 (${openWaitCnt})`],
     ['upcoming', `⏳ 即將 (${upcomingCnt})`],
     ['done', `✅ 已訂 (${doneCnt})`]
   ];
+  if (skippedCnt > 0) stOpts.push(['skipped', `🚫 免預訂 (${skippedCnt})`]);
   $('#bookingStatusFilters').innerHTML = stOpts.map(([k,l]) => `<button data-bs="${k}" aria-pressed="${state.bookingStatus===k}">${esc(l)}</button>`).join('');
   $('#bookingStatusFilters').querySelectorAll('button').forEach(b => b.onclick = () => { state.bookingStatus = b.dataset.bs; renderBookings(); });
 
@@ -1050,9 +1068,13 @@ function renderBookings(){
   const filtered = BOOKINGS.filter(b => {
     if (state.bookingDay !== 'all' && !b.days.includes(+state.bookingDay)) return false;
     const st = getBookingStatus(b);
-    if (state.bookingStatus === 'open' && (st.isDone || !st.isOpen)) return false;
-    if (state.bookingStatus === 'upcoming' && (st.isDone || st.isOpen)) return false;
-    if (state.bookingStatus === 'done' && !st.isDone) return false;
+    if (state.bookingStatus === 'skipped') { if (!st.isSkipped) return false; }
+    else {
+      if (st.isSkipped) return false;
+      if (state.bookingStatus === 'open' && (st.isDone || !st.isOpen)) return false;
+      if (state.bookingStatus === 'upcoming' && (st.isDone || st.isOpen)) return false;
+      if (state.bookingStatus === 'done' && !st.isDone) return false;
+    }
     if (state.bookingCat !== 'all' && b.cat !== state.bookingCat) return false;
     if (q){
       const hay = `${b.id} ${b.title} ${b.dayLabel} ${b.openTwt} ${b.openJst} ${b.note} ${b.cat} ${(b.subItems||[]).join(' ')} ${notesMap[b.id]||''}`.toLowerCase();
@@ -1064,7 +1086,7 @@ function renderBookings(){
   if (state.bookingDay !== 'all'){
     $('#bookingDayBar').innerHTML = `<div class="box bk-day-bar">
       <span>📅 目前僅顯示 <b>Day ${esc(state.bookingDay)}</b> 相關預訂（共 ${filtered.length} 項）</span>
-      <button type="button" class="btn primary btn-sm" id="clearBookingDayBtn">顯示全部 ${BOOKINGS.length} 項預訂</button>
+      <button type="button" class="btn primary btn-sm" id="clearBookingDayBtn">顯示全部 ${activeTotal} 項預訂</button>
     </div>`;
     $('#clearBookingDayBtn').onclick = () => { state.bookingDay = 'all'; renderBookings(); };
   } else {
@@ -1073,12 +1095,14 @@ function renderBookings(){
 
   $('#bookingGrid').innerHTML = filtered.map(b => {
     const st = getBookingStatus(b);
-    const cardStateCls = st.isDone ? 'is-done' : st.isOpen ? 'is-open' : '';
-    const statusBadge = st.isDone
-      ? `<span class="pill done">✅ 已完成預訂</span>`
-      : st.isOpen
-        ? `<span class="pill urgent">🔥 已開放！立即可訂</span>`
-        : `<span class="pill upcoming">⏳ 倒數 ${st.daysUntilOpen} 天開放（${esc(b.openDate.replace(/-/g,'/'))}）</span>`;
+    const cardStateCls = st.isSkipped ? 'is-skipped' : st.isDone ? 'is-done' : st.isOpen ? 'is-open' : '';
+    const statusBadge = st.isSkipped
+      ? `<span class="pill">🚫 免預訂</span>`
+      : st.isDone
+        ? `<span class="pill done">✅ 已完成預訂</span>`
+        : st.isOpen
+          ? `<span class="pill urgent">🔥 已開放！立即可訂</span>`
+          : `<span class="pill upcoming">⏳ 倒數 ${st.daysUntilOpen} 天開放（${esc(b.openDate.replace(/-/g,'/'))}）</span>`;
 
     const subHtml = b.subItems ? `
       <div class="sub-chk-grid">
@@ -1101,11 +1125,16 @@ function renderBookings(){
       <div class="bk-open-twt">⏰ 最早可訂：<b>${esc(b.openTwt.split('\n')[0])}</b></div>
 
       <div class="bk-actions">
-        <button type="button" class="btn btn-sm ${st.isDone?'done-soft':'pending-soft'}" data-toggle-bk="${b.chkKey}">
-          ${st.isDone ? '✅ 已預訂' : '📌 標記已訂'}
-        </button>
-        <a class="btn primary btn-sm" href="${esc(b.url)}" target="_blank" rel="noopener">🔗 官網 ↗</a>
-        ${b.tel ? `<a class="btn btn-sm" href="tel:${esc(b.tel)}">📞 電話</a>` : ''}
+        ${st.isSkipped ? `
+          <button type="button" class="btn primary btn-sm" data-skip-bk="${b.id}">↩️ 恢復提醒</button>
+        ` : `
+          <button type="button" class="btn btn-sm ${st.isDone?'done-soft':'pending-soft'}" data-toggle-bk="${b.chkKey}">
+            ${st.isDone ? '✅ 已預訂' : '📌 標記已訂'}
+          </button>
+          <a class="btn primary btn-sm" href="${esc(b.url)}" target="_blank" rel="noopener">🔗 官網 ↗</a>
+          ${b.tel ? `<a class="btn btn-sm" href="tel:${esc(b.tel)}">📞 電話</a>` : ''}
+          ${!st.isDone ? `<button type="button" class="btn btn-sm" data-skip-bk="${b.id}" title="確定不需預訂此項目，移出提醒清單">🚫 免預訂</button>` : ''}
+        `}
       </div>
 
       <details class="collapsible">
@@ -1127,6 +1156,9 @@ function renderBookings(){
 
   $('#bookingGrid').querySelectorAll('[data-toggle-bk]').forEach(btn => {
     btn.onclick = () => toggleBookingDone(btn.dataset.toggleBk);
+  });
+  $('#bookingGrid').querySelectorAll('[data-skip-bk]').forEach(btn => {
+    btn.onclick = () => toggleBookingSkip(+btn.dataset.skipBk);
   });
   const syncNoteDebounced = debounce((id, val) => cloudSync.recordState('bk_notes', id, val), 500);
   $('#bookingGrid').querySelectorAll('[data-note-id]').forEach(inp => {
@@ -1908,11 +1940,13 @@ const cloudSync = (() => {
     // Queue all current local data for initial merge
     const p = getPending();
     const chk = store.get('chk', {});
+    const skip = store.get('bk_skip', {});
     const notes = store.get('bk_notes', {});
     const sub = store.get('bk_sub', {});
     const meta = getMeta();
     const now = Date.now();
     Object.keys(chk).forEach(k => { const fk = 'chk:' + k; if (!meta[fk]) meta[fk] = now; if (!p.stateKeys.includes(fk)) p.stateKeys.push(fk); });
+    Object.keys(skip).forEach(k => { const fk = 'bk_skip:' + k; if (!meta[fk]) meta[fk] = now; if (!p.stateKeys.includes(fk)) p.stateKeys.push(fk); });
     Object.keys(notes).forEach(k => { const fk = 'bk_notes:' + k; if (!meta[fk]) meta[fk] = now; if (!p.stateKeys.includes(fk)) p.stateKeys.push(fk); });
     Object.keys(sub).forEach(k => { const fk = 'bk_sub:' + k; if (!meta[fk]) meta[fk] = now; if (!p.stateKeys.includes(fk)) p.stateKeys.push(fk); });
     if (store.get('custom_chk', []).length) { if (!meta.custom_chk) meta.custom_chk = now; if (!p.stateKeys.includes('custom_chk')) p.stateKeys.push('custom_chk'); }
@@ -1942,6 +1976,7 @@ function encodeSyncCode(){
   const payload = {
     v: 1,
     chk: store.get('chk', {}),
+    bk_skip: store.get('bk_skip', {}),
     bk_notes: store.get('bk_notes', {}),
     bk_sub: store.get('bk_sub', {}),
     custom_chk: store.get('custom_chk', [])
@@ -1963,6 +1998,7 @@ function applySyncCode(raw){
     const data = JSON.parse(new TextDecoder().decode(bytes));
     if (!data || typeof data !== 'object') throw new Error('invalid');
     if (data.chk && typeof data.chk === 'object') store.set('chk', data.chk);
+    if (data.bk_skip && typeof data.bk_skip === 'object') store.set('bk_skip', data.bk_skip);
     if (data.bk_notes && typeof data.bk_notes === 'object') store.set('bk_notes', data.bk_notes);
     if (data.bk_sub && typeof data.bk_sub === 'object') store.set('bk_sub', data.bk_sub);
     if (Array.isArray(data.custom_chk)) store.set('custom_chk', data.custom_chk);

@@ -786,6 +786,7 @@ a.place:hover{background:color-mix(in srgb,var(--cat) 16%,transparent)}
 .bk-card{display:flex;flex-direction:column;gap:.5rem;position:relative;border-left:4px solid var(--upcoming)}
 .bk-card.is-open{border-left-color:var(--urgent)}
 .bk-card.is-done{border-left-color:var(--now)}
+.bk-card.is-skipped{border-left-color:var(--muted);opacity:.82}
 .bk-card-top,.tt-card-top,.food-card-top{display:flex;justify-content:space-between;align-items:center;gap:.4rem;flex-wrap:wrap}
 .bk-card-badges,.tt-card-badges{display:flex;gap:.35rem;align-items:center;flex-wrap:wrap}
 .bk-card h3,.tt-card h3{margin:.1rem 0 0;font-size:1.05rem}
