@@ -1025,6 +1025,7 @@ a.place:hover{background:color-mix(in srgb,var(--cat) 16%,transparent)}
 .progress > div{height:100%;background:var(--now);width:0;transition:width .3s}
 .add-chk-row{display:flex;gap:.45rem;flex-wrap:nowrap}
 .add-chk-row input{flex:1 1 auto;min-width:0;font:inherit;padding:.45rem .68rem;min-height:2.45rem;border-radius:10px;border:1px solid var(--line);background:var(--surface2);color:var(--text)}
+.add-chk-row .btn{flex:0 0 auto;white-space:nowrap}
 .pack-wrap{display:flex;flex-direction:column;gap:.75rem}
 .pack-details > summary{font-weight:800;font-size:1rem;color:var(--primary)}
 .pack-list{margin-top:.55rem;display:grid;grid-template-columns:minmax(0,1fr);gap:.1rem .9rem}

@@ -592,7 +592,7 @@ function buildPicker(){
     <button class="daychip" role="tab" data-i="${i}" aria-selected="${i===state.day}" aria-label="Day ${i+1} ${fmtDate(d)} ${d.title}">
       ${i===ti ? '<span class="todaydot">今天</span>' : ''}
       <span class="dn">Day ${i+1}</span>
-      <span class="dd">${fmtDate(d)}${d.tag ? ' ' + d.tag : ''}</span>
+      <span class="dd">${fmtDate(d)}</span>
     </button>`).join('');
   $('#daypicker').querySelectorAll('.daychip').forEach(b => b.addEventListener('click', () => selectDay(+b.dataset.i)));
 }
@@ -1655,7 +1655,7 @@ function renderInfo(){
 /* =========================================================
    PWA 安裝與離線 Service Worker 管理
    ========================================================= */
-const APP_VERSION = 'v39';
+const APP_VERSION = 'v40';
 if (location.search.includes('u=')) {
   const sp = new URLSearchParams(location.search);
   sp.delete('u');
