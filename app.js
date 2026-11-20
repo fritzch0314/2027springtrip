@@ -288,6 +288,9 @@ function go(view, push=true){
   if ($('#banner')) $('#banner').style.display = view === 'day' ? '' : 'none';
   document.body.classList.toggle('on-expense', view === 'expense');
   if (view === 'expense'){ renderExp(); autoLiveRate(); }
+  if (view === 'transit') requestAnimationFrame(() => scrollActiveFilter('#transitDayFilters', false));
+  if (view === 'food') requestAnimationFrame(() => scrollActiveFilter('#foodDayFilters', false));
+  if (view === 'day') requestAnimationFrame(() => { const c = $('#daypicker .daychip[aria-selected="true"]'); if (c) centerChip(c, false); });
   if (push) history.replaceState(null, '', '#' + view + (view==='day' ? '-' + (state.day+1) : ''));
   window.scrollTo({top:0});
 }
@@ -1114,11 +1117,15 @@ const TT_CAT_ICONS = {
   '自駕／景點設施':'🚗'
 };
 
-function scrollActiveFilter(sel){
+function scrollActiveFilter(sel, smooth = true){
   const box = $(sel);
-  if (!box || typeof box.scrollTo !== 'function') return;
+  if (!box || typeof box.scrollTo !== 'function' || !box.clientWidth) return;
   const active = box.querySelector('[aria-pressed="true"]');
-  if (active) box.scrollTo({left: Math.max(0, active.offsetLeft - box.offsetLeft - (box.clientWidth - active.offsetWidth)/2), behavior: 'smooth'});
+  if (!active) return;
+  const br = box.getBoundingClientRect();
+  const ar = active.getBoundingClientRect();
+  const targetLeft = box.scrollLeft + (ar.left - br.left) - (box.clientWidth - ar.width) / 2;
+  box.scrollTo({left: Math.max(0, targetLeft), behavior: smooth ? 'smooth' : 'auto'});
 }
 
 function renderTimetables(){
@@ -1655,7 +1662,7 @@ function renderInfo(){
 /* =========================================================
    PWA 安裝與離線 Service Worker 管理
    ========================================================= */
-const APP_VERSION = 'v41';
+const APP_VERSION = 'v42';
 if (location.search.includes('u=')) {
   const sp = new URLSearchParams(location.search);
   sp.delete('u');
