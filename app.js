@@ -287,6 +287,7 @@ function go(view, push=true){
   $('#subtabsMore').classList.toggle('show', parent === 'more');
   document.querySelectorAll('.subtabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.sub === view));
   if ($('#banner')) $('#banner').style.display = view === 'day' ? '' : 'none';
+  document.body.classList.toggle('on-expense', view === 'expense');
   if (view === 'expense'){ renderExp(); autoLiveRate(); }
   if (push) history.replaceState(null, '', '#' + view + (view==='day' ? '-' + (state.day+1) : ''));
   window.scrollTo({top:0});
@@ -1631,7 +1632,7 @@ function renderInfo(){
 /* =========================================================
    PWA 安裝與離線 Service Worker 管理
    ========================================================= */
-const APP_VERSION = 'v32';
+const APP_VERSION = 'v33';
 if (location.search.includes('u=')) {
   const sp = new URLSearchParams(location.search);
   sp.delete('u');
@@ -2355,6 +2356,7 @@ function renderExp(){
         </div>
       </aside>
     </div>
+    <button type="button" class="exp-fab" id="expFab" aria-label="新增一筆記帳">＋ 記一筆</button>
   `;
 
   // Restore horizontal scroll position
@@ -2363,6 +2365,7 @@ function renderExp(){
 
   // Open add modal buttons
   $('#expAddBtn').onclick = () => openExpModal(null);
+  $('#expFab')?.addEventListener('click', () => openExpModal(null));
   $('#expEmptyAddBtn')?.addEventListener('click', () => openExpModal(null));
   $('#expRefreshRate').onclick = () => fetchLiveRate(true);
 

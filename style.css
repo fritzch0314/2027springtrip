@@ -736,3 +736,18 @@ nav.tabs .tab-ic svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke
 @media (max-width:639px){
   .exp-modal-card{padding:0}
 }
+
+
+/* ===== v33 升級：暖橘高對比「＋ 記一筆」按鈕＋手機右下懸浮 FAB ===== */
+.exp-add-btn{background:linear-gradient(135deg,#d95836,#e57c23);color:#fff;padding:.46rem 1.15rem;font-size:.96rem;font-weight:900;letter-spacing:.03em;box-shadow:0 4px 14px rgba(217,88,54,.42),0 0 0 2px rgba(255,255,255,.22);min-height:2.45rem;transition:transform .15s,filter .15s}
+.exp-add-btn:hover{background:linear-gradient(135deg,#d95836,#e57c23);filter:brightness(1.07);transform:translateY(-1px)}
+[data-theme="dark"] .exp-add-btn{background:linear-gradient(135deg,#e06543,#eb8d34);color:#fff}
+.exp-fab{display:none}
+@media (max-width:899px){
+  .exp-add-btn{display:none}
+  #v-expense{padding-bottom:4.2rem}
+  .exp-fab{display:inline-flex;align-items:center;justify-content:center;gap:.25rem;position:fixed;right:1rem;bottom:calc(min(4.75rem,88px) + env(safe-area-inset-bottom));z-index:26;border:0;border-radius:999px;background:linear-gradient(135deg,#d95836,#e57c23);color:#fff;padding:.68rem 1.25rem;font-size:.98rem;font-weight:900;letter-spacing:.03em;box-shadow:0 6px 18px rgba(200,72,38,.45),0 2px 6px rgba(0,0,0,.18);min-height:2.95rem}
+  .exp-fab:active{transform:scale(.96)}
+  body.on-expense .back-top{bottom:calc(min(8.3rem,150px) + env(safe-area-inset-bottom))}
+}
+@media print{.exp-fab{display:none!important}}
