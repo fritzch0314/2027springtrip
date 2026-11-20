@@ -86,12 +86,12 @@ const ALL_PHRASES = [
    全域設定與工具函式
    ========================================================= */
 const APP_CONFIG = {
-  version: 'v49',
+  version: 'v50',
   storagePrefix: 'kanto27_',
   tripStart: [2027, 2, 1],
   defaultRate: 0.215,
   defaultMembers: ['全','言','甫','君','睿','曄'],
-  firebase: { projectId: '', apiKey: '' }
+  firebase: { projectId: 'springtrip-64841', apiKey: '' }
 };
 const APP_VERSION = APP_CONFIG.version;
 
@@ -1564,8 +1564,9 @@ const cloudSync = (() => {
 
   const getCfg = () => {
     const saved = store.get('fb_cfg', {});
+    const savedProj = (saved.projectId || '').trim();
     return {
-      projectId: (saved.projectId || APP_CONFIG.firebase.projectId || '').trim(),
+      projectId: (savedProj && savedProj !== '2027springtrip' ? savedProj : APP_CONFIG.firebase.projectId || '').trim(),
       apiKey: (saved.apiKey || APP_CONFIG.firebase.apiKey || '').trim(),
       room: (saved.room || '').trim().replace(/[^a-zA-Z0-9_-]/g, '')
     };
