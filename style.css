@@ -791,3 +791,8 @@ nav.tabs .tab-ic svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke
 #expFormBody #expWho button[aria-pressed="true"]{background:#e6f6ee;border:1.5px solid #269068;color:#0f6344;font-weight:800}
 #expFormBody #expWho button[aria-pressed="true"]::before{content:"✓";font-size:.74rem;margin-right:.12rem;font-weight:900}
 [data-theme="dark"] #expFormBody #expWho button[aria-pressed="true"]{background:#17362a;border-color:#3ddc97;color:#b8f3d8}
+
+/* 付款方式內嵌向量圖示 */
+#expFormBody .exp-method-pills button{display:inline-flex;align-items:center;justify-content:center;gap:.3rem}
+.pm-ic{display:inline-flex;align-items:center}
+.pm-ic svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;display:block}

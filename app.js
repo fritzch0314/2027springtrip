@@ -1632,7 +1632,7 @@ function renderInfo(){
 /* =========================================================
    PWA 安裝與離線 Service Worker 管理
    ========================================================= */
-const APP_VERSION = 'v34';
+const APP_VERSION = 'v35';
 if (location.search.includes('u=')) {
   const sp = new URLSearchParams(location.search);
   sp.delete('u');
@@ -1781,6 +1781,11 @@ function tipsHtml(p){
 
 const EXP_CATS = ['🍜 餐飲','🚆 交通','🚖 計程車','🎟️ 門票','🛍️ 購物','🎁 伴手禮','🏨 住宿','⛽ 油資/ETC','🅿️ 停車','☕ 飲料零食','💊 藥妝','📦 其他'];
 const EXP_METHODS = ['現金','刷卡','IC'];
+const EXP_METHOD_ICONS = {
+  '現金': '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6 9.5h.01M18 14.5h.01"/></svg>',
+  '刷卡': '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5.5" width="19" height="13" rx="2"/><path d="M2.5 10h19M6.5 14.5h4"/></svg>',
+  'IC': '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5.5" width="18" height="13" rx="2.2"/><path d="M7.5 12a3.5 3.5 0 0 1 1-2.5M10.5 12a1 1 0 0 1 .3-.7M13.5 9.5a3.5 3.5 0 0 1 0 5M16 7.8a6 6 0 0 1 0 8.4"/></svg>'
+};
 function normMethod(m){ if (!m) return '現金'; if (m.includes('刷卡')) return '刷卡'; if (m.includes('IC') || m.includes('Suica')) return 'IC'; return '現金'; }
 function normCat(c){
   const s = String(c || '').trim();
@@ -2054,7 +2059,7 @@ function openExpModal(editId = null){
       <div class="exp-pay-row">
         <span class="exp-mini-lbl">付款方式：</span>
         <div class="exp-method-pills" id="expMethodGroup">
-          ${EXP_METHODS.map(pm => `<button type="button" data-m="${esc(pm)}" aria-pressed="${formMethod === pm}">${esc(pm)}</button>`).join('')}
+          ${EXP_METHODS.map(pm => `<button type="button" data-m="${esc(pm)}" aria-pressed="${formMethod === pm}"><span class="pm-ic">${EXP_METHOD_ICONS[pm]||''}</span><span>${esc(pm)}</span></button>`).join('')}
         </div>
       </div>
 
