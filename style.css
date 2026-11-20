@@ -800,3 +800,43 @@ nav.tabs .tab-ic svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke
 /* v36：放大記帳類別晶片，提升手機單手點選舒適度 */
 #expFormBody .exp-chips{gap:.38rem}
 #expFormBody .exp-chips button{padding:.34rem .8rem;font-size:.93rem;min-height:2.4rem}
+
+
+/* ===== v37 升級：金額置頂黃金表單、圓底類別徽章、付款小計、分色圓環圖、點成員核帳 ===== */
+/* 1. 金額置頂強調區 */
+.exp-amt-hero{background:var(--surface);border:1.5px solid color-mix(in srgb,var(--primary) 26%,var(--line));border-radius:12px;padding:.5rem .55rem;box-shadow:0 2px 8px rgba(31,58,95,.06)}
+#expFormBody .exp-amt-hero #expJpy{border:0;background:transparent;font-size:1.35rem;font-weight:900;padding:.2rem .4rem;min-height:2.45rem;box-shadow:none}
+#expFormBody .exp-amt-hero #expJpy:focus{box-shadow:none}
+.exp-amt-hero .exp-conv-preview{padding:.22rem .2rem 0;border-top:1px dashed var(--line);margin-top:.32rem}
+.exp-meta-foot{display:flex;align-items:center;gap:.45rem}
+.exp-meta-foot .exp-day-sel{flex:0 0 6.5rem!important;width:6.5rem!important}
+.exp-meta-foot .exp-method-pills{flex:1 1 auto}
+
+/* 2. 花費明細：類別圓底徽章＋3 選單篩選列＋成員核帳提示條 */
+.exp-li-ic{width:2.1rem;height:2.1rem;border-radius:999px;border:1px solid transparent;display:inline-flex;align-items:center;justify-content:center;font-size:1rem}
+[data-theme="dark"] .exp-li-ic{background:var(--surface2)!important}
+.exp-filter-bar{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (min-width:600px){
+  .exp-filter-bar{grid-template-columns:1fr 1fr 1fr 1.3fr}
+  .exp-filter-bar input{grid-column:auto}
+}
+.exp-member-banner{display:flex;align-items:center;justify-content:space-between;gap:.4rem;background:#e6f0fb;border:1px solid #93c5fd;color:#183a63;border-radius:9px;padding:.34rem .6rem;font-size:.82rem;margin-bottom:.5rem}
+[data-theme="dark"] .exp-member-banner{background:#1b2e46;border-color:#4b7bb0;color:#dbeafe}
+.exp-member-banner button{border:0;background:rgba(255,255,255,.75);color:inherit;border-radius:999px;padding:.12rem .5rem;font-size:.76rem;font-weight:700}
+[data-theme="dark"] .exp-member-banner button{background:rgba(0,0,0,.3)}
+
+/* 3. 結算與統計：可點擊核帳列＋付款方式小計＋分色圓環圖 */
+.exp-bal-row{cursor:pointer;transition:background .14s}
+.exp-bal-row:hover{background:var(--surface2)}
+.exp-bal-row.is-selected{background:#e6f0fb}
+[data-theme="dark"] .exp-bal-row.is-selected{background:#1b2e46}
+.exp-pm-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.42rem}
+.exp-pm-box{background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:.45rem .4rem;text-align:center}
+.exp-pm-hd{display:inline-flex;align-items:center;justify-content:center;gap:.22rem;font-size:.78rem;font-weight:700;color:var(--muted);margin-bottom:.15rem}
+.exp-pm-box b{display:block;font-size:.92rem;font-weight:900;font-variant-numeric:tabular-nums}
+.exp-pm-box small{display:block;font-size:.74rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.exp-chart-wrap{display:flex;align-items:center;gap:.85rem}
+.exp-donut{width:86px;height:86px;flex:0 0 86px}
+.exp-donut-n{font-size:13px;font-weight:900;fill:var(--text)}
+.exp-donut-s{font-size:10px;font-weight:600;fill:var(--muted)}
+.exp-dot{display:inline-block;width:8px;height:8px;border-radius:999px;margin-right:.32rem;vertical-align:middle}

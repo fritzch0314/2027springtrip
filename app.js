@@ -1632,7 +1632,7 @@ function renderInfo(){
 /* =========================================================
    PWA 安裝與離線 Service Worker 管理
    ========================================================= */
-const APP_VERSION = 'v36';
+const APP_VERSION = 'v37';
 if (location.search.includes('u=')) {
   const sp = new URLSearchParams(location.search);
   sp.delete('u');
@@ -1780,6 +1780,21 @@ function tipsHtml(p){
 }
 
 const EXP_CATS = ['🍜 餐飲','🚆 交通','🚖 計程車','🎟️ 門票','🛍️ 購物','🎁 伴手禮','🏨 住宿','⛽ 油資/ETC','🅿️ 停車','☕ 飲料零食','💊 藥妝','📦 其他'];
+const EXP_CAT_COLORS = {
+  '🍜 餐飲': ['#e07a2f','#fff1e6'],
+  '🚆 交通': ['#2f6f9f','#e7f2fa'],
+  '🚖 計程車': ['#c99214','#fef7df'],
+  '🎟️ 門票': ['#b23a48','#fdebed'],
+  '🛍️ 購物': ['#8b4ea6','#f4ebf9'],
+  '🎁 伴手禮': ['#d4526e','#fdecf0'],
+  '🏨 住宿': ['#3d7d4a','#eaf6ec'],
+  '⛽ 油資/ETC': ['#c8553d','#fcece8'],
+  '🅿️ 停車': ['#4a6fa5','#ebf1f9'],
+  '☕ 飲料零食': ['#9b6b43','#f6efe8'],
+  '💊 藥妝': ['#2a9d8f','#e6f7f5'],
+  '📦 其他': ['#6c7585','#eff1f4']
+};
+function expCatColor(c){ return EXP_CAT_COLORS[c] || ['#6c7585','#eff1f4']; }
 const EXP_METHODS = ['現金','刷卡','IC'];
 const EXP_METHOD_ICONS = {
   '現金': '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6 9.5h.01M18 14.5h.01"/></svg>',
@@ -1903,6 +1918,8 @@ const expState = {
   day: 'all',
   cat: 'all',
   payer: 'all',
+  filterMethod: 'all',
+  member: 'all',
   q: '',
   formOpen: true,
   filterOpen: false,
@@ -2018,19 +2035,8 @@ function openExpModal(editId = null){
   $('#expModalSaveBtn').textContent = editing ? '✓ 更新' : '✓ 儲存';
   body.innerHTML = `
     <form id="expForm" class="exp-form-v2">
-      <div class="exp-chips" id="expChips" aria-label="選擇類別">
-        ${expOrderedCats().map(c => `<button type="button" data-v="${esc(c)}" aria-pressed="${formCat === c}">${esc(c)}</button>`).join('')}
-      </div>
-
-      <div class="exp-inline-row">
-        <select id="expDay" class="exp-day-sel" aria-label="日期">
-          <option value="0" ${+formDay === 0 ? 'selected' : ''}>行前</option>
-          ${DAYS.map((d,i) => `<option value="${i+1}" ${+formDay === i+1 ? 'selected' : ''}>${fmtMD(d)}</option>`).join('')}
-        </select>
-        <input id="expDesc" value="${esc(formDesc)}" placeholder="項目說明（留空用類別）" autocomplete="off" enterkeyhint="next" aria-label="項目說明">
-      </div>
-
-      <div class="exp-amt-block">
+      <!-- 1. 金額與幣別置頂（黃金動線） -->
+      <div class="exp-amt-hero">
         <div class="exp-amt-wrap">
           <div class="exp-cur-seg" id="expCurSeg">
             <button type="button" data-cur="JPY" aria-pressed="${formCur === 'JPY'}">¥ 日幣</button>
@@ -2041,6 +2047,15 @@ function openExpModal(editId = null){
         <div class="exp-conv-preview" id="expConvPreview"></div>
       </div>
 
+      <!-- 2. 常用類別晶片（自動依頻率前排） -->
+      <div class="exp-chips" id="expChips" aria-label="選擇類別">
+        ${expOrderedCats().map(c => `<button type="button" data-v="${esc(c)}" aria-pressed="${formCat === c}">${esc(c)}</button>`).join('')}
+      </div>
+
+      <!-- 3. 項目說明（選填全寬） -->
+      <input id="expDesc" value="${esc(formDesc)}" placeholder="項目說明（選填，留空則用類別名稱）" autocomplete="off" enterkeyhint="done" aria-label="項目說明">
+
+      <!-- 4. 付款人 & 分攤成員 -->
       <div class="exp-people-grid">
         <div class="exp-people-row">
           <span class="exp-mini-lbl">付款</span>
@@ -2063,8 +2078,12 @@ function openExpModal(editId = null){
         </div>
       </div>
 
-      <div class="exp-pay-row">
-        <span class="exp-mini-lbl">付款方式：</span>
+      <!-- 5. 日期 & 付款方式（有預設值，放底部低干擾區） -->
+      <div class="exp-meta-foot">
+        <select id="expDay" class="exp-day-sel" aria-label="日期">
+          <option value="0" ${+formDay === 0 ? 'selected' : ''}>行前</option>
+          ${DAYS.map((d,i) => `<option value="${i+1}" ${+formDay === i+1 ? 'selected' : ''}>${fmtMD(d)}</option>`).join('')}
+        </select>
         <div class="exp-method-pills" id="expMethodGroup">
           ${EXP_METHODS.map(pm => `<button type="button" data-m="${esc(pm)}" aria-pressed="${formMethod === pm}"><span class="pm-ic">${EXP_METHOD_ICONS[pm]||''}</span><span>${esc(pm)}</span></button>`).join('')}
         </div>
@@ -2077,15 +2096,15 @@ function openExpModal(editId = null){
     const pv = $('#expConvPreview'); if (!pv) return;
     const raw = parseFloat($('#expJpy')?.value);
     if (!raw || raw <= 0){ pv.textContent = ''; return; }
-    pv.textContent = expState.cur === 'JPY'
-      ? `≈ NT$${Math.round(raw * rate).toLocaleString()}`
-      : `≈ ¥${Math.round(raw / rate).toLocaleString()}（將以日幣換算值入帳）`;
+    const splitCnt = body.querySelectorAll('#expWho button[aria-pressed="true"]').length;
+    const twdTotal = expState.cur === 'JPY' ? Math.round(raw * rate) : Math.round(raw);
+    const conv = expState.cur === 'JPY'
+      ? `≈ NT$${twdTotal.toLocaleString()}`
+      : `≈ ¥${Math.round(raw / rate).toLocaleString()}`;
+    const each = splitCnt > 0 ? ` · ${splitCnt}人分攤每人約 NT$${Math.round(twdTotal / splitCnt).toLocaleString()}` : '';
+    pv.textContent = conv + each;
   };
   updatePreview();
-
-  $('#expDesc')?.addEventListener('keydown', e => {
-    if (e.key === 'Enter'){ e.preventDefault(); $('#expJpy')?.focus(); }
-  });
   body.querySelectorAll('#expChips button').forEach(b => b.onclick = () => {
     expState.selectedCat = b.dataset.v;
     body.querySelectorAll('#expChips button').forEach(x => x.setAttribute('aria-pressed', x === b));
@@ -2113,6 +2132,7 @@ function openExpModal(editId = null){
 
   const syncSplitState = () => {
     expState.selectedSplit = [...body.querySelectorAll('#expWho button[aria-pressed="true"]')].map(b => b.dataset.s);
+    updatePreview();
   };
   body.querySelectorAll('#expWho button').forEach(b => b.onclick = () => {
     b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') !== 'true');
@@ -2187,16 +2207,18 @@ function renderExp(){
 
   // Filter list
   const qLower = expState.q.trim().toLowerCase();
-  const advFilterCount = (expState.cat !== 'all' ? 1 : 0) + (expState.payer !== 'all' ? 1 : 0) + (qLower ? 1 : 0);
+  const advFilterCount = (expState.cat !== 'all' ? 1 : 0) + (expState.payer !== 'all' ? 1 : 0) + (expState.filterMethod !== 'all' ? 1 : 0) + (qLower ? 1 : 0);
   const showFilterBar = expState.filterOpen || advFilterCount > 0;
   const filtered = list.filter(e => {
     if (expState.day !== 'all' && String(e.day) !== String(expState.day)) return false;
     if (expState.cat !== 'all' && expDetectCat(e) !== expState.cat) return false;
     if (expState.payer !== 'all' && e.payer !== expState.payer) return false;
+    if (expState.filterMethod !== 'all' && normMethod(e.method) !== expState.filterMethod) return false;
+    if (expState.member !== 'all' && e.payer !== expState.member && !(e.split || []).includes(expState.member)) return false;
     if (qLower && !`${e.desc} ${e.payer} ${expDetectCat(e)} ${normMethod(e.method)}`.toLowerCase().includes(qLower)) return false;
     return true;
   });
-  const isFiltered = expState.day !== 'all' || advFilterCount > 0;
+  const isFiltered = expState.day !== 'all' || expState.member !== 'all' || advFilterCount > 0;
   const filteredTotal = filtered.reduce((acc, e) => acc + (Number(e.jpy) || 0), 0);
 
   // Group filtered entries by day (0..10)
@@ -2208,12 +2230,29 @@ function renderExp(){
   });
   const sortedGroupKeys = [...groups.keys()].sort((a, b) => a - b);
 
-  // Category totals for chart
+  // Category totals & SVG donut chart
   const catTotals = {};
-  list.forEach(e => { const c = expDetectCat(e); catTotals[c] = (catTotals[c] || 0) + (Number(e.jpy) || 0); });
+  const methodTotals = {'現金':0, '刷卡':0, 'IC':0};
+  list.forEach(e => {
+    const v = Number(e.jpy) || 0;
+    const c = expDetectCat(e);
+    catTotals[c] = (catTotals[c] || 0) + v;
+    const pm = normMethod(e.method);
+    methodTotals[pm] = (methodTotals[pm] || 0) + v;
+  });
   const catRows = Object.entries(catTotals).sort((a, b) => b[1] - a[1]);
+  const donutR = 34, donutC = 2 * Math.PI * donutR;
+  let donutOffset = 0;
+  const donutSegs = total > 0 ? catRows.map(([c, v]) => {
+    const len = (v / total) * donutC;
+    const [stroke] = expCatColor(c);
+    const seg = `<circle cx="44" cy="44" r="${donutR}" fill="none" stroke="${stroke}" stroke-width="12" stroke-dasharray="${len.toFixed(2)} ${(donutC - len).toFixed(2)}" stroke-dashoffset="${(-donutOffset).toFixed(2)}" transform="rotate(-90 44 44)"/>`;
+    donutOffset += len;
+    return seg;
+  }).join('') : '';
 
   const unsettledCnt = tx.filter(t => !settledMap[t.key]).length;
+  const allSettled = tx.length > 0 && unsettledCnt === 0;
   const avgTwd = m.length ? fTwd(total / m.length) : 'NT$0';
 
   el.innerHTML = `
@@ -2261,8 +2300,13 @@ function renderExp(){
               <option value="all">全部付款人</option>
               ${m.map(n => `<option value="${esc(n)}" ${expState.payer === n ? 'selected' : ''}>${esc(n)} 付</option>`).join('')}
             </select>
+            <select id="expMethodFilter" aria-label="篩選付款方式">
+              <option value="all">全部方式</option>
+              ${EXP_METHODS.map(pm => `<option value="${esc(pm)}" ${expState.filterMethod === pm ? 'selected' : ''}>${esc(pm)}</option>`).join('')}
+            </select>
             <input id="expSearchInp" type="search" value="${esc(expState.q)}" placeholder="🔍 搜尋項目">
           </div>
+          ${expState.member !== 'all' ? `<div class="exp-member-banner"><span>👤 僅看「<b>${esc(expState.member)}</b>」相關明細（付或攤）</span><button type="button" id="expClearMember">✕ 顯示全部</button></div>` : ''}
 
           ${isFiltered ? `<div class="exp-filter-sum">篩選：<b>${filtered.length} 筆</b>｜${fJpy(filteredTotal)}（${fTwd(filteredTotal)}）</div>` : ''}
 
@@ -2288,7 +2332,7 @@ function renderExp(){
                   const isOpen = expState.activeRowId === e.id;
                   return `<li class="${isOpen ? 'is-open' : ''}" data-row="${e.id}">
                     <div class="exp-li-body">
-                      <span class="exp-li-ic" title="${esc(cat)}">${esc(catIcon)}</span>
+                      <span class="exp-li-ic" style="background:${expCatColor(cat)[1]};border-color:${expCatColor(cat)[0]}33" title="${esc(cat)}">${esc(catIcon)}</span>
                       <div class="exp-li-mid">
                         <div class="exp-li-title">${esc(e.desc)}</div>
                         <div class="exp-li-meta">${metaParts.join(' · ')}</div>
@@ -2314,7 +2358,10 @@ function renderExp(){
       <!-- 結算、收支表、類別佔比、輕量工具列 -->
       <aside class="exp-side">
         <div class="box exp-card">
-          <h3 style="margin:0 0 .45rem;font-size:.98rem">🤝 智慧結算（最少轉帳）</h3>
+          <div class="exp-card-hd" style="margin-bottom:.4rem">
+            <h3 style="margin:0;font-size:.98rem">🤝 智慧結算（最少轉帳）</h3>
+            ${allSettled ? '<span class="pill done">🎉 全員已結清</span>' : ''}
+          </div>
           ${tx.length ? `<div class="exp-tx-list">${tx.map(t => {
             const done = !!settledMap[t.key];
             return `<label class="exp-tx-row ${done ? 'done' : ''}">
@@ -2326,7 +2373,10 @@ function renderExp(){
         </div>
 
         <div class="box exp-card">
-          <h3 style="margin:0 0 .4rem;font-size:.98rem">👥 每人收支明細</h3>
+          <div class="exp-card-hd" style="margin-bottom:.35rem">
+            <h3 style="margin:0;font-size:.98rem">👥 每人收支明細</h3>
+            <small style="color:var(--muted);font-size:.74rem">點成員核帳 ↗</small>
+          </div>
           <table class="exp-bal-tbl">
             <thead><tr><th>成員</th><th>已付</th><th>應攤</th><th>結餘</th></tr></thead>
             <tbody>
@@ -2334,7 +2384,8 @@ function renderExp(){
                 const bTwd = Math.round((bal[n] || 0) * rate);
                 const cls = bTwd > 0 ? 'pos' : bTwd < 0 ? 'neg' : '';
                 const sign = bTwd > 0 ? '+' : bTwd < 0 ? '-' : '';
-                return `<tr>
+                const active = expState.member === n ? 'is-selected' : '';
+                return `<tr class="exp-bal-row ${active}" data-member="${esc(n)}" title="點擊查看 ${esc(n)} 相關明細">
                   <td><b>${esc(n)}</b></td>
                   <td>${fTwd(paid[n] || 0)}</td>
                   <td>${fTwd(share[n] || 0)}</td>
@@ -2345,16 +2396,39 @@ function renderExp(){
           </table>
         </div>
 
-        ${catRows.length ? `<div class="box exp-card">
-          <h3 style="margin:0 0 .45rem;font-size:.98rem">📊 類別花費佔比</h3>
-          <div class="exp-bars">
-            ${catRows.map(([c, v]) => {
-              const pct = total ? Math.round(v / total * 100) : 0;
-              return `<div class="exp-bar-row">
-                <div class="exp-bar-top"><span>${esc(c)}</span><span><b>${fJpy(v)}</b> <small>(${pct}%)</small></span></div>
-                <div class="exp-bar-track"><i style="width:${pct}%"></i></div>
+        ${list.length ? `<div class="box exp-card">
+          <h3 style="margin:0 0 .45rem;font-size:.98rem">💳 付款方式小計</h3>
+          <div class="exp-pm-grid">
+            ${EXP_METHODS.map(pm => {
+              const v = methodTotals[pm] || 0;
+              return `<div class="exp-pm-box">
+                <div class="exp-pm-hd"><span class="pm-ic">${EXP_METHOD_ICONS[pm]}</span><span>${esc(pm)}</span></div>
+                <b>${fJpy(v)}</b>
+                <small>${fTwd(v)}</small>
               </div>`;
             }).join('')}
+          </div>
+        </div>` : ''}
+
+        ${catRows.length ? `<div class="box exp-card">
+          <h3 style="margin:0 0 .5rem;font-size:.98rem">📊 類別花費佔比</h3>
+          <div class="exp-chart-wrap">
+            <svg class="exp-donut" viewBox="0 0 88 88" aria-hidden="true">
+              <circle cx="44" cy="44" r="${donutR}" fill="none" stroke="var(--surface2)" stroke-width="12"/>
+              ${donutSegs}
+              <text x="44" y="42" text-anchor="middle" class="exp-donut-n">${catRows.length} 類</text>
+              <text x="44" y="54" text-anchor="middle" class="exp-donut-s">${list.length} 筆</text>
+            </svg>
+            <div class="exp-bars" style="flex:1;min-width:0">
+              ${catRows.map(([c, v]) => {
+                const pct = total ? Math.round(v / total * 100) : 0;
+                const [col] = expCatColor(c);
+                return `<div class="exp-bar-row">
+                  <div class="exp-bar-top"><span><i class="exp-dot" style="background:${col}"></i>${esc(c)}</span><span><b>${fJpy(v)}</b> <small>(${pct}%)</small></span></div>
+                  <div class="exp-bar-track"><i style="width:${pct}%;background:${col}"></i></div>
+                </div>`;
+              }).join('')}
+            </div>
           </div>
         </div>` : ''}
 
@@ -2398,6 +2472,8 @@ function renderExp(){
   el.querySelectorAll('#expDayFilters button').forEach(b => b.onclick = () => { expState.day = b.dataset.d; renderExp(); });
   $('#expCatFilter').onchange = e => { expState.cat = e.target.value; renderExp(); };
   $('#expPayerFilter').onchange = e => { expState.payer = e.target.value; renderExp(); };
+  $('#expMethodFilter').onchange = e => { expState.filterMethod = e.target.value; renderExp(); };
+  $('#expClearMember')?.addEventListener('click', () => { expState.member = 'all'; renderExp(); });
   $('#expSearchInp').oninput = e => {
     expState.q = e.target.value;
     const pos = e.target.selectionStart;
@@ -2406,8 +2482,17 @@ function renderExp(){
     if (inp){ inp.focus(); inp.setSelectionRange(pos, pos); }
   };
   $('#expResetFilter')?.addEventListener('click', () => {
-    expState.day = 'all'; expState.cat = 'all'; expState.payer = 'all'; expState.q = ''; expState.filterOpen = false;
+    expState.day = 'all'; expState.cat = 'all'; expState.payer = 'all'; expState.filterMethod = 'all'; expState.member = 'all'; expState.q = ''; expState.filterOpen = false;
     renderExp();
+  });
+
+  // Click member in balance table -> jump to ledger filtered by that member
+  el.querySelectorAll('.exp-bal-row[data-member]').forEach(tr => tr.onclick = () => {
+    const name = tr.dataset.member;
+    expState.member = expState.member === name ? 'all' : name;
+    if (expState.member !== 'all') expState.tab = 'ledger';
+    renderExp();
+    if (expState.member !== 'all') showToast(`👤 已篩選「${name}」相關明細`);
   });
 
   // Tap ledger row to expand/collapse actions
@@ -2434,12 +2519,12 @@ function renderExp(){
     showToast('🗑️ 已刪除');
   });
 
-  // Settled checkboxes
+  // Settled checkboxes (re-render to update unsettled count & all-settled badge)
   el.querySelectorAll('[data-settle]').forEach(inp => inp.onchange = () => {
     const s = EXP.settled();
     s[inp.dataset.settle] = inp.checked;
     EXP.saveSettled(s);
-    inp.closest('.exp-tx-row')?.classList.toggle('done', inp.checked);
+    renderExp();
   });
 
   // Copy LINE summary
