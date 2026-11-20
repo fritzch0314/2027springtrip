@@ -751,3 +751,43 @@ nav.tabs .tab-ic svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke
   body.on-expense .back-top{bottom:calc(min(8.3rem,150px) + env(safe-area-inset-bottom))}
 }
 @media print{.exp-fab{display:none!important}}
+
+
+/* ===== v34 升級：記帳彈窗視覺層級重設計（唯一暖橘主 CTA＋分色柔和選中態） ===== */
+/* 1. 全彈窗唯一實心高對比主按鈕：暖橘漸層「✓ 儲存」 */
+.exp-hd-save{background:linear-gradient(135deg,#d95836,#e57c23);color:#fff;padding:.36rem 1rem;font-size:.92rem;font-weight:900;letter-spacing:.03em;box-shadow:0 3px 10px rgba(217,88,54,.38);min-height:2.2rem}
+.exp-hd-save:hover{filter:brightness(1.07)}
+.exp-hd-cancel{background:transparent;border-color:transparent;color:var(--muted);padding:.28rem .5rem;font-weight:700}
+.exp-hd-cancel:hover{background:var(--surface2);color:var(--text)}
+
+/* 2. 輸入欄層級：白底細框＋金額字體放大加粗 */
+#expFormBody{background:var(--bg)}
+#expFormBody .exp-form-v2{gap:.62rem}
+#expFormBody input:not([type=checkbox]),#expFormBody select{background:var(--surface);border:1.5px solid var(--line);transition:border-color .15s,box-shadow .15s}
+#expFormBody input:focus,#expFormBody select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px color-mix(in srgb,var(--primary) 14%,transparent)}
+#expFormBody #expJpy{font-size:1.06rem;font-weight:800;font-variant-numeric:tabular-nums}
+#expFormBody #expJpy::placeholder{font-weight:400;font-size:.92rem}
+
+/* 3. 類別晶片：白底細框 → 選中為柔和冰藍底＋深藍框（非實心深藍塊） */
+#expFormBody .exp-chips button{background:var(--surface);border:1.5px solid var(--line);color:var(--text);transition:all .14s}
+#expFormBody .exp-chips button[aria-pressed="true"]{background:#e6f0fb;border-color:#2f6f9f;color:#183a63;font-weight:800}
+[data-theme="dark"] #expFormBody .exp-chips button[aria-pressed="true"]{background:#1e3552;border-color:#7cc0ff;color:#dbeafe}
+
+/* 4. 幣別 & 付款方式：iOS 風格淺灰軌道＋純白浮起選中滑塊 */
+#expFormBody .exp-cur-seg{background:var(--surface2);border:1px solid var(--line);padding:.16rem;border-radius:10px}
+#expFormBody .exp-cur-seg button{color:var(--muted);font-weight:700;border-radius:8px;transition:all .14s}
+#expFormBody .exp-cur-seg button[aria-pressed="true"]{background:var(--surface);color:var(--primary);font-weight:900;box-shadow:0 1px 4px rgba(20,30,50,.12)}
+#expFormBody .exp-method-pills{background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:.18rem;gap:.18rem}
+#expFormBody .exp-method-pills button{border:0;background:transparent;color:var(--muted);border-radius:8px;min-height:1.95rem;font-size:.86rem;transition:all .14s}
+#expFormBody .exp-method-pills button[aria-pressed="true"]{background:var(--surface);color:var(--primary);font-weight:800;box-shadow:0 1px 4px rgba(20,30,50,.12)}
+
+/* 5. 付款人（單選）：柔和琥珀暖色底＋深棕字，自然區隔「誰付」與「誰攤」 */
+#expFormBody #expPayerGroup button{background:var(--surface);border:1.5px solid var(--line);color:var(--muted);transition:all .14s}
+#expFormBody #expPayerGroup button[aria-pressed="true"]{background:#fff2dc;border-color:#d4841c;color:#8c4a06;font-weight:900}
+[data-theme="dark"] #expFormBody #expPayerGroup button[aria-pressed="true"]{background:#3f2d14;border-color:#f0a846;color:#fde6b8}
+
+/* 6. 分攤成員（多選）：柔和薄荷淡綠底＋小勾勾，未選中虛線淡灰，徹底告別大片深藍塊 */
+#expFormBody #expWho button{background:transparent;border:1.5px dashed var(--line);color:var(--muted);font-weight:600;transition:all .14s}
+#expFormBody #expWho button[aria-pressed="true"]{background:#e6f6ee;border:1.5px solid #269068;color:#0f6344;font-weight:800}
+#expFormBody #expWho button[aria-pressed="true"]::before{content:"✓";font-size:.74rem;margin-right:.12rem;font-weight:900}
+[data-theme="dark"] #expFormBody #expWho button[aria-pressed="true"]{background:#17362a;border-color:#3ddc97;color:#b8f3d8}
