@@ -1662,7 +1662,7 @@ function renderInfo(){
 /* =========================================================
    PWA 安裝與離線 Service Worker 管理
    ========================================================= */
-const APP_VERSION = 'v42';
+const APP_VERSION = 'v43';
 if (location.search.includes('u=')) {
   const sp = new URLSearchParams(location.search);
   sp.delete('u');
