@@ -558,7 +558,6 @@ function openSearchModal(){
   $('#searchModal').classList.add('open');
   setTimeout(() => { $('#q')?.focus(); $('#q')?.select(); }, 40);
 }
-$('#topSearchBtn')?.addEventListener('click', openSearchModal);
 $('#closeSearchBtn').addEventListener('click', () => $('#searchModal').classList.remove('open'));
 $('#searchModal').addEventListener('click', e => { if (e.target === $('#searchModal')) $('#searchModal').classList.remove('open'); });
 
@@ -1571,9 +1570,11 @@ function renderInfo(){
     </div>
     <div class="info-btn-row">
       <button type="button" class="btn primary btn-sm" id="infoInstallBtn">📲 安裝 App</button>
+      <button type="button" class="btn btn-sm" id="searchBtn">🔍 全站搜尋</button>
       <button type="button" class="btn btn-sm" id="refreshCacheBtn">🔄 檢查更新</button>
     </div></div>`;
 
+  $('#searchBtn').onclick = openSearchModal;
   $('#themeSeg')?.querySelectorAll('button').forEach(b => {
     b.onclick = () => setTheme(b.dataset.theme);
   });
@@ -1654,7 +1655,7 @@ function renderInfo(){
 /* =========================================================
    PWA 安裝與離線 Service Worker 管理
    ========================================================= */
-const APP_VERSION = 'v38';
+const APP_VERSION = 'v39';
 if (location.search.includes('u=')) {
   const sp = new URLSearchParams(location.search);
   sp.delete('u');
@@ -2280,14 +2281,14 @@ function renderExp(){
   const avgTwd = m.length ? fTwd(total / m.length) : 'NT$0';
 
   el.innerHTML = `
-    <!-- 精簡總覽條＋醒目「＋ 記一筆」鈕 -->
+    <!-- 精簡總覽條＋同寬對齊「＋ 記一筆」與匯率膠囊 -->
     <div class="exp-hero">
-      <div class="exp-hero-top">
+      <div class="exp-hero-info">
         <div class="exp-hero-amt">${fJpy(total)} <span class="exp-hero-twd">≈ ${fTwd(total)}</span></div>
-        <button type="button" class="exp-add-btn" id="expAddBtn">＋ 記一筆</button>
+        <div class="exp-hero-sub">共 ${list.length} 筆 · 均 ${avgTwd}/人</div>
       </div>
-      <div class="exp-hero-bot">
-        <span class="exp-hero-sub">共 ${list.length} 筆 · 均 ${avgTwd}/人</span>
+      <div class="exp-hero-actions">
+        <button type="button" class="exp-add-btn" id="expAddBtn">＋ 記一筆</button>
         <button type="button" class="hero-pill-btn" id="expRefreshRate" title="點擊更新即時匯率">1 JPY=${rate} 🔄</button>
       </div>
     </div>

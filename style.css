@@ -821,7 +821,31 @@ a.place:hover{background:color-mix(in srgb,var(--cat) 16%,transparent)}
 /* =========================================================
    6. View: Expense (#v-expense) & Expense Modal
    ========================================================= */
-.exp-hero-bot{display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap}
+.exp-hero{
+  flex-direction:row;
+  align-items:center;
+  justify-content:space-between;
+  gap:.65rem;
+}
+.exp-hero-info{
+  min-width:0;
+  flex:1 1 auto;
+  display:flex;
+  flex-direction:column;
+  gap:.22rem;
+}
+.exp-hero-actions{
+  flex:0 0 auto;
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  gap:.34rem;
+}
+.exp-hero-actions .exp-add-btn,
+.exp-hero-actions .hero-pill-btn{
+  width:100%;
+  justify-content:center;
+}
 .exp-hero-amt{font-size:1.36rem;font-weight:900;line-height:1.2}
 .exp-hero-twd{font-size:.92rem;font-weight:700;opacity:.92}
 .exp-add-btn{
@@ -836,6 +860,9 @@ a.place:hover{background:color-mix(in srgb,var(--cat) 16%,transparent)}
   box-shadow:0 4px 14px rgba(217,88,54,.42),0 0 0 2px rgba(255,255,255,.2);
   min-height:2.4rem;
   white-space:nowrap;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
   transition:transform .15s,filter .15s;
 }
 .exp-add-btn:hover{filter:brightness(1.07);transform:translateY(-1px)}
@@ -1268,10 +1295,10 @@ a.place:hover{background:color-mix(in srgb,var(--cat) 16%,transparent)}
 @media (max-width:639px){
   .sheet-wrap{align-items:flex-end;padding:0}
   .sheet-card{border-radius:18px 18px 0 0;max-width:100%}
-  .exp-hero-top{flex-wrap:nowrap;gap:.4rem}
+  .exp-hero{gap:.5rem}
   .exp-hero-amt{font-size:1.18rem;min-width:0}
   .exp-hero-twd{font-size:.82rem;display:inline-block}
-  .exp-add-btn{padding:.34rem .8rem;font-size:.84rem;min-height:2.2rem;flex:0 0 auto}
+  .exp-add-btn{padding:.34rem .8rem;font-size:.84rem;min-height:2.2rem}
 }
 
 @media (min-width:680px){
@@ -1385,8 +1412,8 @@ a.place:hover{background:color-mix(in srgb,var(--cat) 16%,transparent)}
   .tools{
     flex:1 1 100%;
     display:grid;
-    grid-template-columns:repeat(5,minmax(0,1fr));
-    gap:5px;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:6px;
   }
   .iconbtn{
     width:100%;
