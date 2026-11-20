@@ -723,3 +723,16 @@ nav.tabs .tab-ic svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke
   .exp-hero-twd{font-size:.82rem;display:inline-block}
   .exp-add-btn{padding:.3rem .72rem;font-size:.84rem;min-height:2rem;flex:0 0 auto}
 }
+
+
+/* ===== v32 升級：記帳彈窗頂部固定「✕ 取消｜新增記帳｜✓ 儲存」防鍵盤遮擋 ===== */
+.exp-modal-card{display:flex;flex-direction:column;padding:0;overflow:hidden}
+.exp-modal-hd{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:.4rem;padding:.72rem .9rem;margin:0;background:var(--surface);border-bottom:1px solid var(--line);flex:0 0 auto}
+.exp-modal-hd h3{text-align:center;font-size:1rem;font-weight:800;margin:0;flex:1}
+.exp-hd-cancel{border:1px solid var(--line);background:var(--surface2);color:var(--muted);border-radius:999px;padding:.28rem .72rem;font-size:.86rem;font-weight:700;min-height:2.1rem;white-space:nowrap}
+.exp-hd-save{border:0;background:var(--primary);color:var(--primary-ink);border-radius:999px;padding:.3rem .88rem;font-size:.88rem;font-weight:800;min-height:2.1rem;white-space:nowrap;box-shadow:0 1px 6px rgba(31,58,95,.22)}
+.exp-hd-save:hover{filter:brightness(1.08)}
+#expFormBody{padding:.75rem .9rem calc(.95rem + env(safe-area-inset-bottom));overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1 1 auto;min-height:0}
+@media (max-width:639px){
+  .exp-modal-card{padding:0}
+}

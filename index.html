@@ -268,9 +268,10 @@
 <!-- 🧾 新增／編輯記帳彈窗（手機底部抽屜／桌機置中） -->
 <div class="modal-backdrop exp-modal-wrap" id="expFormModal" role="dialog" aria-modal="true" aria-labelledby="expModalTitle">
   <div class="modal-card exp-modal-card">
-    <div class="modal-hd">
-      <h3 id="expModalTitle">➕ 新增記帳</h3>
-      <button type="button" class="modal-close" id="closeExpModalBtn">✕ 關閉</button>
+    <div class="modal-hd exp-modal-hd">
+      <button type="button" class="exp-hd-cancel" id="closeExpModalBtn">✕ 取消</button>
+      <h3 id="expModalTitle">新增記帳</h3>
+      <button type="button" class="exp-hd-save" id="expModalSaveBtn">✓ 儲存</button>
     </div>
     <div id="expFormBody"></div>
   </div>

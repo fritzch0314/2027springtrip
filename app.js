@@ -568,7 +568,8 @@ document.addEventListener('keydown', e => {
     $('#phraseModal').classList.remove('open');
     return;
   }
-  ['#placeModal','#phraseHubModal','#searchModal','#taxiModal','#calcModal','#guideModal','#pwaModal','#expFormModal'].forEach(s => $(s)?.classList.remove('open'));
+  closeExpModal();
+  ['#placeModal','#phraseHubModal','#searchModal','#taxiModal','#calcModal','#guideModal','#pwaModal'].forEach(s => $(s)?.classList.remove('open'));
 });
 
 /* =========================================================
@@ -1630,7 +1631,7 @@ function renderInfo(){
 /* =========================================================
    PWA 安裝與離線 Service Worker 管理
    ========================================================= */
-const APP_VERSION = 'v31';
+const APP_VERSION = 'v32';
 if (location.search.includes('u=')) {
   const sp = new URLSearchParams(location.search);
   sp.delete('u');
@@ -1948,11 +1949,36 @@ function expDetectCat(e){
   return hit || '📦 其他';
 }
 
+function syncExpModalViewport(){
+  const m = $('#expFormModal'); if (!m || !m.classList.contains('open')) return;
+  const card = m.querySelector('.exp-modal-card');
+  if (window.visualViewport && card){
+    const vv = window.visualViewport;
+    m.style.height = vv.height + 'px';
+    m.style.top = vv.offsetTop + 'px';
+    m.style.bottom = 'auto';
+    card.style.maxHeight = Math.max(220, Math.floor(vv.height * 0.94)) + 'px';
+  }
+}
+if (window.visualViewport){
+  window.visualViewport.addEventListener('resize', syncExpModalViewport);
+  window.visualViewport.addEventListener('scroll', syncExpModalViewport);
+}
 function closeExpModal(){
-  $('#expFormModal')?.classList.remove('open');
+  const m = $('#expFormModal');
+  if (m){
+    m.classList.remove('open');
+    m.style.height = ''; m.style.top = ''; m.style.bottom = '';
+    const card = m.querySelector('.exp-modal-card');
+    if (card) card.style.maxHeight = '';
+  }
   expState.editId = null;
 }
 $('#closeExpModalBtn')?.addEventListener('click', closeExpModal);
+$('#expModalSaveBtn')?.addEventListener('click', () => {
+  const f = $('#expForm');
+  if (f) f.requestSubmit ? f.requestSubmit() : f.dispatchEvent(new Event('submit', {cancelable:true}));
+});
 $('#expFormModal')?.addEventListener('click', e => { if (e.target === $('#expFormModal')) closeExpModal(); });
 
 function openExpModal(editId = null){
@@ -1975,7 +2001,8 @@ function openExpModal(editId = null){
   if (expState.prefillJpy !== null) expState.prefillJpy = null;
   expState.cur = formCur;
 
-  $('#expModalTitle').textContent = editing ? '✏️ 編輯記帳' : '➕ 新增記帳';
+  $('#expModalTitle').textContent = editing ? '編輯記帳' : '新增記帳';
+  $('#expModalSaveBtn').textContent = editing ? '✓ 更新' : '✓ 儲存';
   body.innerHTML = `
     <form id="expForm" class="exp-form-v2">
       <div class="exp-chips" id="expChips" aria-label="選擇類別">
@@ -1987,7 +2014,7 @@ function openExpModal(editId = null){
           <option value="0" ${+formDay === 0 ? 'selected' : ''}>行前</option>
           ${DAYS.map((d,i) => `<option value="${i+1}" ${+formDay === i+1 ? 'selected' : ''}>${fmtMD(d)}</option>`).join('')}
         </select>
-        <input id="expDesc" value="${esc(formDesc)}" placeholder="項目說明（留空用類別）" autocomplete="off" aria-label="項目說明">
+        <input id="expDesc" value="${esc(formDesc)}" placeholder="項目說明（留空用類別）" autocomplete="off" enterkeyhint="next" aria-label="項目說明">
       </div>
 
       <div class="exp-amt-block">
@@ -1996,7 +2023,7 @@ function openExpModal(editId = null){
             <button type="button" data-cur="JPY" aria-pressed="${formCur === 'JPY'}">¥ 日幣</button>
             <button type="button" data-cur="TWD" aria-pressed="${formCur === 'TWD'}">$ 台幣</button>
           </div>
-          <input id="expJpy" type="number" inputmode="decimal" min="1" step="any" value="${esc(String(formAmt))}" placeholder="${formCur === 'JPY' ? '輸入日幣金額' : '輸入台幣金額'}" required aria-label="金額">
+          <input id="expJpy" type="number" inputmode="decimal" min="1" step="any" value="${esc(String(formAmt))}" placeholder="${formCur === 'JPY' ? '輸入日幣金額' : '輸入台幣金額'}" enterkeyhint="done" required aria-label="金額">
         </div>
         <div class="exp-conv-preview" id="expConvPreview"></div>
       </div>
@@ -2030,10 +2057,7 @@ function openExpModal(editId = null){
         </div>
       </div>
 
-      <div style="display:flex;gap:.45rem;margin-top:.15rem">
-        <button class="btn primary exp-submit-btn" type="submit">${editing ? '💾 儲存修改' : '＋ 儲存這筆記帳'}</button>
-        ${editing ? `<button class="btn" type="button" id="expCancelEdit2" style="margin:0;padding:.45rem .85rem">取消</button>` : ''}
-      </div>
+      <button type="submit" hidden aria-hidden="true"></button>
     </form>`;
 
   const updatePreview = () => {
@@ -2046,7 +2070,9 @@ function openExpModal(editId = null){
   };
   updatePreview();
 
-  $('#expCancelEdit2')?.addEventListener('click', closeExpModal);
+  $('#expDesc')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter'){ e.preventDefault(); $('#expJpy')?.focus(); }
+  });
   body.querySelectorAll('#expChips button').forEach(b => b.onclick = () => {
     expState.selectedCat = b.dataset.v;
     body.querySelectorAll('#expChips button').forEach(x => x.setAttribute('aria-pressed', x === b));
@@ -2120,7 +2146,10 @@ function openExpModal(editId = null){
   });
 
   $('#expFormModal').classList.add('open');
-  setTimeout(() => (formAmt ? $('#expDesc') : $('#expJpy'))?.focus(), 60);
+  syncExpModalViewport();
+  if (window.innerWidth >= 700){
+    setTimeout(() => (formAmt ? $('#expDesc') : $('#expJpy'))?.focus(), 60);
+  }
 }
 
 function renderExp(){
