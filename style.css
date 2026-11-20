@@ -947,9 +947,30 @@ a.place:hover{background:color-mix(in srgb,var(--cat) 16%,transparent)}
 .exp-bar-track i{display:block;height:100%;border-radius:3px}
 .exp-dot{display:inline-block;width:8px;height:8px;border-radius:999px;margin-right:.32rem;vertical-align:middle}
 
-.exp-tools-bar{display:flex;gap:.3rem;flex-wrap:wrap;justify-content:center;padding:.15rem 0 .4rem}
-.exp-tools-bar button{border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:999px;padding:.28rem .65rem;font-size:.8rem;font-weight:700;min-height:2.2rem}
+.exp-tools-bar{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:.32rem;
+  padding:.15rem 0 .4rem;
+}
+.exp-tools-bar button{
+  border:1px solid var(--line);
+  background:var(--surface);
+  color:var(--text);
+  border-radius:999px;
+  padding:.28rem .2rem;
+  font-size:clamp(11px,.76rem,13px);
+  font-weight:700;
+  min-height:2.25rem;
+  min-width:0;
+  white-space:nowrap;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:2px;
+}
 .exp-tools-bar button:hover{background:var(--surface2)}
+#expClear{color:var(--urgent)}
 
 /* Floating FAB: Only appears after Hero scrolls out on mobile Ledger tab */
 .exp-fab{
