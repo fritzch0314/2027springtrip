@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kanto-trip-2027-v44';
+const CACHE_NAME = 'kanto-trip-2027-v45';
 const CORE_ASSETS = [
   './',
   './index.html',
@@ -50,8 +50,8 @@ self.addEventListener('fetch', event => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
 
-  // HTML / CSS / JS: Network-first bypassing stale HTTP cache, with offline cache fallback
-  const isCode = req.mode === 'navigate' || /\.(html|css|js)$/i.test(url.pathname) || url.pathname.endsWith('/');
+  // HTML / CSS / JS / Manifest: Network-first bypassing stale HTTP cache, with offline cache fallback
+  const isCode = req.mode === 'navigate' || /\.(html|css|js|json)$/i.test(url.pathname) || url.pathname.endsWith('/');
   if (isCode) {
     event.respondWith(
       fetch(req, { cache: 'no-cache' })
