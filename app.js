@@ -86,7 +86,7 @@ const ALL_PHRASES = [
    全域設定與工具函式
    ========================================================= */
 const APP_CONFIG = {
-  version: 'v46',
+  version: 'v47',
   storagePrefix: 'kanto27_',
   tripStart: [2027, 2, 1],
   defaultRate: 0.215,
@@ -2169,7 +2169,7 @@ function openExpModal(editId = null){
       <!-- 4. 付款人 & 分攤成員 -->
       <div class="exp-people-grid">
         <div class="exp-people-row">
-          <span class="exp-mini-lbl">付款</span>
+          <div class="exp-split-hd"><span class="exp-mini-lbl">付款</span></div>
           <div class="exp-member-pills" id="expPayerGroup">
             ${m.map(n => `<button type="button" data-p="${esc(n)}" aria-pressed="${formPayer === n}">${esc(n)}</button>`).join('')}
           </div>

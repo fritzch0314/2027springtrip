@@ -999,8 +999,8 @@ a.place:hover{background:color-mix(in srgb,var(--cat) 16%,transparent)}
 .exp-chips button[aria-pressed="true"]{background:var(--chip-active-bg);border-color:var(--chip-active-border);color:var(--chip-active-ink);font-weight:800}
 
 .exp-people-grid{display:grid;gap:.48rem;grid-template-columns:1fr}
-.exp-people-row{display:flex;flex-direction:column;gap:.26rem;min-width:0}
-.exp-split-hd{display:flex;align-items:center;justify-content:space-between;gap:.3rem}
+.exp-people-row{display:flex;flex-direction:column;justify-content:space-between;gap:.26rem;min-width:0}
+.exp-split-hd{display:flex;align-items:center;justify-content:space-between;gap:.3rem;min-height:1.9rem}
 .exp-mini-lbl{font-size:.78rem;font-weight:700;color:var(--muted)}
 .exp-quick-split{display:inline-flex;gap:.25rem}
 .exp-quick-split button{border:0;background:transparent;color:var(--primary);font-size:.78rem;font-weight:700;padding:.1rem .35rem;border-radius:6px;min-height:1.9rem}
