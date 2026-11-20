@@ -86,11 +86,12 @@ const ALL_PHRASES = [
    全域設定與工具函式
    ========================================================= */
 const APP_CONFIG = {
-  version: 'v47',
+  version: 'v48',
   storagePrefix: 'kanto27_',
   tripStart: [2027, 2, 1],
   defaultRate: 0.215,
-  defaultMembers: ['全','言','甫','君','睿','曄']
+  defaultMembers: ['全','言','甫','君','睿','曄'],
+  firebase: { projectId: '', apiKey: '' }
 };
 const APP_VERSION = APP_CONFIG.version;
 
@@ -881,6 +882,7 @@ function renderDay(){
       const s = store.get('chk', {});
       s[inp.dataset.prepId] = inp.checked;
       store.set('chk', s);
+      cloudSync.recordState('chk', inp.dataset.prepId, inp.checked);
       const lbl = inp.closest('.check');
       if (lbl) lbl.classList.toggle('done', inp.checked);
       const cnt = d.prep.filter((_, j) => s[`d${d.idx}-${j}`]).length;
@@ -982,6 +984,7 @@ function toggleBookingDone(chkKey){
   const s = store.get('chk', {});
   s[chkKey] = !s[chkKey];
   store.set('chk', s);
+  cloudSync.recordState('chk', chkKey, s[chkKey]);
   renderBanner();
   markDirty('booking', 'packing', 'day');
   updateNavBadges();
@@ -1012,6 +1015,7 @@ function renderBookings(){
           <div class="bk-hero-sub">🔥 待訂 ${openWaitCnt} · ⏳ 即將 ${upcomingCnt} · ⏰ 皆對照台／日時間</div>
         </div>
         <div class="bk-hero-actions">
+          ${cloudSync.pillHtml()}
           <button type="button" class="hero-pill-btn ${bqActive ? 'active' : ''}" id="toggleBqBtn">🔍 搜尋</button>
           <button type="button" class="hero-pill-btn" id="exportIcsBtn">📥 匯出 .ics</button>
         </div>
@@ -1019,6 +1023,7 @@ function renderBookings(){
       <div class="bk-hero-prog" aria-hidden="true"><i style="width:${pct}%"></i></div>
     </div>`;
 
+  $('#bookingDash .sync-pill')?.addEventListener('click', () => cloudSync.syncNow(false));
   $('#exportIcsBtn').onclick = downloadAllBookingICS;
   $('#toggleBqBtn').onclick = () => {
     const wrap = $('#bqWrap'), inp = $('#bq'), btn = $('#toggleBqBtn');
@@ -1123,11 +1128,13 @@ function renderBookings(){
   $('#bookingGrid').querySelectorAll('[data-toggle-bk]').forEach(btn => {
     btn.onclick = () => toggleBookingDone(btn.dataset.toggleBk);
   });
+  const syncNoteDebounced = debounce((id, val) => cloudSync.recordState('bk_notes', id, val), 500);
   $('#bookingGrid').querySelectorAll('[data-note-id]').forEach(inp => {
     inp.oninput = () => {
       const m = store.get('bk_notes', {});
       m[inp.dataset.noteId] = inp.value;
       store.set('bk_notes', m);
+      syncNoteDebounced(inp.dataset.noteId, inp.value);
     };
   });
   $('#bookingGrid').querySelectorAll('[data-sub]').forEach(chk => {
@@ -1135,6 +1142,7 @@ function renderBookings(){
       const m = store.get('bk_sub', {});
       m[chk.dataset.sub] = chk.checked;
       store.set('bk_sub', m);
+      cloudSync.recordState('bk_sub', chk.dataset.sub, chk.checked);
       renderBookings();
     };
   });
@@ -1505,6 +1513,7 @@ function renderChecks(){
   };
   $('#checks').querySelectorAll('input[type=checkbox]').forEach(inp => inp.onchange = () => {
     const s = store.get('chk', {}); s[inp.dataset.id] = inp.checked; store.set('chk', s);
+    cloudSync.recordState('chk', inp.dataset.id, inp.checked);
     if (state.onlyUnchecked) renderChecks();
     else { inp.closest('.check').classList.toggle('done', inp.checked); upd(); }
   });
@@ -1514,6 +1523,7 @@ function renderChecks(){
     const arr = store.get('custom_chk', []);
     arr.splice(idx, 1);
     store.set('custom_chk', arr);
+    cloudSync.recordKey('custom_chk', arr);
     renderChecks();
   });
   upd();
@@ -1526,6 +1536,7 @@ $('#addCustomChkBtn').onclick = () => {
   const arr = store.get('custom_chk', []);
   arr.push(v);
   store.set('custom_chk', arr);
+  cloudSync.recordKey('custom_chk', arr);
   inp.value = '';
   renderChecks();
 };
@@ -1534,11 +1545,381 @@ $('#filterUncheckedBtn').onclick = () => { state.onlyUnchecked = !state.onlyUnch
 $('#resetChk').onclick = () => {
   if (confirm('確定要清除所有攜帶物品的勾選紀錄嗎？')){
     const s = store.get('chk', {});
-    Object.keys(s).forEach(k => { if (/^(p\d+|c-\d+)$/.test(k)) delete s[k]; });
+    const changed = [];
+    Object.keys(s).forEach(k => { if (/^(p\d+|c-\d+)$/.test(k)) { delete s[k]; changed.push(k); } });
     store.set('chk', s);
+    changed.forEach(k => cloudSync.recordState('chk', k, false));
     renderChecks();
   }
 };
+
+/* =========================================================
+   Firebase Firestore 雲端同步引擎（REST API，離線優先＋逐筆合併）
+   ========================================================= */
+const cloudSync = (() => {
+  let syncing = false;
+  let lastStatus = 'idle'; // idle | syncing | ok | err
+  let lastSyncTs = store.get('sync_last_ts', 0);
+
+  const getCfg = () => {
+    const saved = store.get('fb_cfg', {});
+    return {
+      projectId: (saved.projectId || APP_CONFIG.firebase.projectId || '').trim(),
+      apiKey: (saved.apiKey || APP_CONFIG.firebase.apiKey || '').trim(),
+      room: (saved.room || '').trim().replace(/[^a-zA-Z0-9_-]/g, '')
+    };
+  };
+  const isReady = () => { const c = getCfg(); return !!(c.projectId && c.room); };
+  const getPending = () => store.get('sync_pending', { stateKeys: [], expIds: [] });
+  const setPending = p => store.set('sync_pending', p);
+  const getMeta = () => store.get('sync_meta', {});
+  const setMeta = m => store.set('sync_meta', m);
+
+  const baseUrl = () => {
+    const { projectId } = getCfg();
+    return `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(projectId)}/databases/(default)/documents`;
+  };
+  const qsKey = () => {
+    const { apiKey } = getCfg();
+    return apiKey ? `key=${encodeURIComponent(apiKey)}` : '';
+  };
+
+  function toFsVal(v){
+    if (v === null || v === undefined) return { nullValue: null };
+    if (typeof v === 'boolean') return { booleanValue: v };
+    if (typeof v === 'number') return Number.isInteger(v) ? { integerValue: String(v) } : { doubleValue: v };
+    if (typeof v === 'string') return { stringValue: v };
+    if (Array.isArray(v)) return { arrayValue: { values: v.map(toFsVal) } };
+    if (typeof v === 'object') {
+      const fields = {};
+      Object.entries(v).forEach(([k, val]) => { if (val !== undefined) fields[k] = toFsVal(val); });
+      return { mapValue: { fields } };
+    }
+    return { stringValue: String(v) };
+  }
+  function fromFsVal(fv){
+    if (!fv || typeof fv !== 'object') return undefined;
+    if ('nullValue' in fv) return null;
+    if ('booleanValue' in fv) return fv.booleanValue;
+    if ('integerValue' in fv) return Number(fv.integerValue);
+    if ('doubleValue' in fv) return Number(fv.doubleValue);
+    if ('stringValue' in fv) return fv.stringValue;
+    if ('arrayValue' in fv) return (fv.arrayValue.values || []).map(fromFsVal);
+    if ('mapValue' in fv) {
+      const out = {};
+      Object.entries(fv.mapValue.fields || {}).forEach(([k, val]) => { out[k] = fromFsVal(val); });
+      return out;
+    }
+    return undefined;
+  }
+
+  const encodeField = k => k.replace(/[^a-zA-Z0-9_]/g, c => '_' + c.charCodeAt(0).toString(16) + '_');
+  const refreshPills = () => {
+    document.querySelectorAll('.sync-pill').forEach(el => {
+      const p = getPending();
+      const pendCnt = p.stateKeys.length + p.expIds.length;
+      el.classList.toggle('pending', pendCnt > 0 && lastStatus !== 'err');
+      el.classList.toggle('err', lastStatus === 'err');
+      el.textContent = syncing ? '🔄 同步中'
+        : lastStatus === 'err' ? '⚠️ 同步失敗'
+        : pendCnt > 0 ? `⏳ 待上傳 (${pendCnt})`
+        : '☁️ 已同步';
+    });
+    const stEl = $('#cloudStatusText');
+    if (stEl) stEl.textContent = statusSummary();
+  };
+
+  function statusSummary(){
+    const c = getCfg();
+    if (!c.projectId) return '尚未設定 Firebase Project ID';
+    if (!c.room) return '尚未加入家族同步房間';
+    const p = getPending();
+    const pendCnt = p.stateKeys.length + p.expIds.length;
+    const tStr = lastSyncTs ? new Date(lastSyncTs).toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit'}) : '尚未';
+    if (syncing) return `🔄 正在同步房間「${c.room}」…`;
+    if (lastStatus === 'err') return `⚠️ 連線失敗（待上傳 ${pendCnt} 項），有網路將自動重試`;
+    if (pendCnt > 0) return `⏳ 房間「${c.room}」· 待上傳 ${pendCnt} 項`;
+    return `✅ 已連線房間「${c.room}」· 上次同步：${tStr}`;
+  }
+
+  function pillHtml(){
+    if (!isReady()) return '';
+    const p = getPending();
+    const pendCnt = p.stateKeys.length + p.expIds.length;
+    const cls = lastStatus === 'err' ? 'err' : pendCnt > 0 ? 'pending' : '';
+    const txt = syncing ? '🔄 同步中' : lastStatus === 'err' ? '⚠️ 同步失敗' : pendCnt > 0 ? `⏳ 待上傳 (${pendCnt})` : '☁️ 已同步';
+    return `<button type="button" class="sync-pill ${cls}" title="點擊立即與家族雲端同步">${txt}</button>`;
+  }
+
+  const pushDebounced = debounce(() => { if (navigator.onLine && isReady()) syncNow(true); }, 600);
+
+  function recordState(group, subKey, val){
+    const fullKey = `${group}:${subKey}`;
+    const meta = getMeta();
+    meta[fullKey] = Date.now();
+    setMeta(meta);
+    if (!isReady()) return;
+    const p = getPending();
+    if (!p.stateKeys.includes(fullKey)) p.stateKeys.push(fullKey);
+    setPending(p);
+    refreshPills();
+    pushDebounced();
+  }
+
+  function recordKey(key, val){
+    const meta = getMeta();
+    meta[key] = Date.now();
+    setMeta(meta);
+    if (!isReady()) return;
+    const p = getPending();
+    if (!p.stateKeys.includes(key)) p.stateKeys.push(key);
+    setPending(p);
+    refreshPills();
+    pushDebounced();
+  }
+
+  function recordExpense(entry){
+    if (!isReady()) return;
+    const id = String(entry.id);
+    const p = getPending();
+    if (!p.expIds.includes(id)) p.expIds.push(id);
+    setPending(p);
+    refreshPills();
+    pushDebounced();
+  }
+
+  function readLocalStateVal(fullKey){
+    if (fullKey.includes(':')) {
+      const [group, ...rest] = fullKey.split(':');
+      const subKey = rest.join(':');
+      const obj = store.get(group, {});
+      return obj[subKey];
+    }
+    return store.get(fullKey, null);
+  }
+
+  function writeLocalStateVal(fullKey, val){
+    if (fullKey.includes(':')) {
+      const [group, ...rest] = fullKey.split(':');
+      const subKey = rest.join(':');
+      const obj = store.get(group, {});
+      if (val === false && group === 'chk') delete obj[subKey];
+      else obj[subKey] = val;
+      store.set(group, obj);
+    } else {
+      store.set(fullKey, val);
+    }
+  }
+
+  async function ensureParentDoc(){
+    const { room } = getCfg();
+    const k = qsKey();
+    const url = `${baseUrl()}/trips/${encodeURIComponent(room)}${k ? '?' + k : ''}`;
+    await fetch(url, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fields: { updatedAt: toFsVal(Date.now()) } })
+    });
+  }
+
+  async function pushPending(){
+    const { room } = getCfg();
+    const p = getPending();
+    const k = qsKey();
+    if (p.stateKeys.length) {
+      await ensureParentDoc();
+      const meta = getMeta();
+      const fields = {};
+      const mask = [];
+      p.stateKeys.forEach(fullKey => {
+        const fName = encodeField(fullKey);
+        const val = readLocalStateVal(fullKey);
+        fields[fName] = toFsVal({ k: fullKey, v: JSON.stringify(val ?? null), t: meta[fullKey] || Date.now() });
+        mask.push(`updateMask.fieldPaths=${encodeURIComponent(fName)}`);
+      });
+      const url = `${baseUrl()}/trips/${encodeURIComponent(room)}/meta/state?${mask.join('&')}${k ? '&' + k : ''}`;
+      const r = await fetch(url, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fields })
+      });
+      if (!r.ok) throw new Error('meta push failed ' + r.status);
+      p.stateKeys = [];
+      setPending(p);
+    }
+
+    if (p.expIds.length) {
+      await ensureParentDoc();
+      const rawList = EXP.rawList();
+      const remaining = [];
+      for (const id of p.expIds) {
+        const entry = rawList.find(e => String(e.id) === id);
+        if (!entry) continue;
+        const url = `${baseUrl()}/trips/${encodeURIComponent(room)}/expenses/${encodeURIComponent(id)}${k ? '?' + k : ''}`;
+        const r = await fetch(url, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fields: toFsVal(entry).mapValue.fields })
+        });
+        if (!r.ok) { remaining.push(id); throw new Error('exp push failed ' + r.status); }
+      }
+      p.expIds = remaining;
+      setPending(p);
+    }
+  }
+
+  async function pullAndMerge(){
+    const { room } = getCfg();
+    const k = qsKey();
+    let changedViews = new Set();
+
+    // 1. Pull meta/state
+    const metaUrl = `${baseUrl()}/trips/${encodeURIComponent(room)}/meta/state${k ? '?' + k : ''}`;
+    const mr = await fetch(metaUrl, { cache: 'no-store' });
+    if (mr.ok) {
+      const doc = await mr.json();
+      const localMeta = getMeta();
+      const toPushBack = [];
+      Object.values(doc.fields || {}).forEach(fv => {
+        const item = fromFsVal(fv);
+        if (!item || !item.k) return;
+        const localT = localMeta[item.k] || 0;
+        if (item.t > localT) {
+          try {
+            const val = JSON.parse(item.v);
+            writeLocalStateVal(item.k, val);
+            localMeta[item.k] = item.t;
+            if (item.k.startsWith('chk:') || item.k.startsWith('bk_') || item.k === 'custom_chk') {
+              changedViews.add('booking'); changedViews.add('packing'); changedViews.add('day');
+            } else {
+              changedViews.add('expense');
+            }
+          } catch (e) {}
+        } else if (localT > item.t) {
+          toPushBack.push(item.k);
+        }
+      });
+      setMeta(localMeta);
+      if (toPushBack.length) {
+        const p = getPending();
+        toPushBack.forEach(fk => { if (!p.stateKeys.includes(fk)) p.stateKeys.push(fk); });
+        setPending(p);
+      }
+    } else if (mr.status !== 404) {
+      throw new Error('meta pull failed ' + mr.status);
+    }
+
+    // 2. Pull expenses subcollection
+    const expUrl = `${baseUrl()}/trips/${encodeURIComponent(room)}/expenses?pageSize=300${k ? '&' + k : ''}`;
+    const er = await fetch(expUrl, { cache: 'no-store' });
+    if (er.ok) {
+      const data = await er.json();
+      const remoteDocs = (data.documents || []).map(d => fromFsVal({ mapValue: { fields: d.fields || {} } }));
+      const localRaw = EXP.rawList();
+      const mergedMap = new Map(localRaw.map(e => [String(e.id), e]));
+      let expChanged = false;
+      const toPushExp = [];
+
+      remoteDocs.forEach(re => {
+        if (!re || !re.id) return;
+        const id = String(re.id);
+        const le = mergedMap.get(id);
+        const rT = Number(re.updatedAt) || 0;
+        const lT = Number(le?.updatedAt) || 0;
+        if (!le || rT > lT) {
+          mergedMap.set(id, re);
+          expChanged = true;
+        } else if (lT > rT) {
+          toPushExp.push(id);
+        }
+      });
+      // Push local-only expenses not yet on server
+      const remoteIds = new Set(remoteDocs.map(r => String(r.id)));
+      localRaw.forEach(le => { if (!remoteIds.has(String(le.id))) toPushExp.push(String(le.id)); });
+
+      if (expChanged) {
+        EXP.saveRaw([...mergedMap.values()].sort((a, b) => Number(a.id) - Number(b.id)));
+        changedViews.add('expense');
+      }
+      if (toPushExp.length) {
+        const p = getPending();
+        toPushExp.forEach(id => { if (!p.expIds.includes(id)) p.expIds.push(id); });
+        setPending(p);
+      }
+    } else if (er.status !== 404) {
+      throw new Error('exp pull failed ' + er.status);
+    }
+
+    if (changedViews.size) {
+      renderBanner();
+      markDirty(...changedViews);
+      updateNavBadges();
+    }
+    return changedViews.size > 0;
+  }
+
+  async function syncNow(silent = true){
+    if (!isReady() || !navigator.onLine || syncing) return;
+    syncing = true;
+    lastStatus = 'syncing';
+    refreshPills();
+    try {
+      await pushPending();
+      const hasChanges = await pullAndMerge();
+      if (getPending().stateKeys.length || getPending().expIds.length) await pushPending();
+      lastStatus = 'ok';
+      lastSyncTs = Date.now();
+      store.set('sync_last_ts', lastSyncTs);
+      if (!silent) showToast(hasChanges ? '☁️ 已同步並更新最新資料' : '☁️ 雲端資料已是最新');
+      else if (hasChanges) showToast('☁️ 已同步家人最新變更');
+    } catch (e) {
+      lastStatus = 'err';
+      if (!silent) showToast('⚠️ 雲端同步失敗，請檢查 Firebase 設定或網路');
+    } finally {
+      syncing = false;
+      refreshPills();
+    }
+  }
+
+  function setConfig(partial){
+    const cur = store.get('fb_cfg', {});
+    store.set('fb_cfg', { ...cur, ...partial });
+    refreshPills();
+  }
+
+  function joinRoom(room){
+    const clean = String(room || '').trim().replace(/[^a-zA-Z0-9_-]/g, '');
+    if (!clean) return false;
+    setConfig({ room: clean });
+    // Queue all current local data for initial merge
+    const p = getPending();
+    const chk = store.get('chk', {});
+    const notes = store.get('bk_notes', {});
+    const sub = store.get('bk_sub', {});
+    const meta = getMeta();
+    const now = Date.now();
+    Object.keys(chk).forEach(k => { const fk = 'chk:' + k; if (!meta[fk]) meta[fk] = now; if (!p.stateKeys.includes(fk)) p.stateKeys.push(fk); });
+    Object.keys(notes).forEach(k => { const fk = 'bk_notes:' + k; if (!meta[fk]) meta[fk] = now; if (!p.stateKeys.includes(fk)) p.stateKeys.push(fk); });
+    Object.keys(sub).forEach(k => { const fk = 'bk_sub:' + k; if (!meta[fk]) meta[fk] = now; if (!p.stateKeys.includes(fk)) p.stateKeys.push(fk); });
+    if (store.get('custom_chk', []).length) { if (!meta.custom_chk) meta.custom_chk = now; if (!p.stateKeys.includes('custom_chk')) p.stateKeys.push('custom_chk'); }
+    if (store.get('exp_members', null)) { if (!meta.exp_members) meta.exp_members = now; if (!p.stateKeys.includes('exp_members')) p.stateKeys.push('exp_members'); }
+    if (Object.keys(store.get('exp_settled', {})).length) { if (!meta.exp_settled) meta.exp_settled = now; if (!p.stateKeys.includes('exp_settled')) p.stateKeys.push('exp_settled'); }
+    EXP.rawList().forEach(e => { const id = String(e.id); if (!p.expIds.includes(id)) p.expIds.push(id); });
+    setMeta(meta);
+    setPending(p);
+    syncNow(false);
+    return true;
+  }
+
+  function leaveRoom(){
+    setConfig({ room: '' });
+    setPending({ stateKeys: [], expIds: [] });
+    lastStatus = 'idle';
+    refreshPills();
+  }
+
+  return { getCfg, isReady, setConfig, joinRoom, leaveRoom, recordState, recordKey, recordExpense, syncNow, pillHtml, statusSummary, refreshPills };
+})();
 
 /* =========================================================
    家族進度離線同步（免帳號／LINE 群組貼上同步）
@@ -1585,6 +1966,7 @@ function applySyncCode(raw){
    ========================================================= */
 function renderInfo(){
   const isDark = document.documentElement.dataset.theme === 'dark';
+  const fb = cloudSync.getCfg();
   $('#infoGrid').innerHTML = `
   <div class="box"><h3>🚨 日本緊急聯絡 ＆ 實用連結</h3>
     <div class="sos-pills">
@@ -1612,19 +1994,44 @@ function renderInfo(){
       <button type="button" class="btn btn-sm" id="openCarNaviFromInfoBtn">🚗 河口湖車機導航</button>
     </div></div>
 
-  <div class="box"><h3>👨‍👩‍👦‍👦 家族進度同步（離線免帳號）</h3>
-    <div class="info-desc">將本機的「訂票完成、預約備註、攜帶物品與每日準備」打包成代碼，貼到 LINE 群組即可一鍵同步。</div>
-    <div class="info-btn-row">
-      <button type="button" class="btn primary btn-sm" id="exportSyncBtn">📤 複製進度代碼</button>
-      <button type="button" class="btn btn-sm" id="toggleImportSyncBtn">📥 匯入家人代碼</button>
+  <div class="box"><h3>☁️ 家族雲端同步（訂票與記帳）</h3>
+    <div class="cloud-box">
+      <div id="cloudStatusText" style="font-weight:700">${esc(cloudSync.statusSummary())}</div>
+      ${fb.projectId ? '' : '<div style="font-size:.8rem;color:var(--muted)">💡 需先於下方「Firebase 設定」填入 Project ID（或寫入 app.js），即可啟用多人即時雲端合併同步。</div>'}
     </div>
-    <div id="syncImportWrap" class="sync-wrap" hidden>
-      <textarea id="syncCodeInp" rows="3" placeholder="貼上家人分享的 KANTO2027:... 代碼"></textarea>
-      <div class="info-btn-row" style="margin-top:.45rem">
-        <button type="button" class="btn primary btn-sm" id="applySyncBtn">✅ 確認套用</button>
-        <button type="button" class="btn btn-sm" id="cancelSyncBtn">取消</button>
+    ${fb.room ? `
+      <div class="info-btn-row">
+        <button type="button" class="btn primary btn-sm" id="cloudSyncNowBtn">🔄 立即同步</button>
+        <button type="button" class="btn btn-sm" id="copySyncLinkBtn">🔗 複製邀請連結</button>
+        <button type="button" class="btn btn-sm" id="leaveRoomBtn">退出房間</button>
       </div>
-    </div></div>
+    ` : `
+      <div class="cloud-row">
+        <input id="cloudRoomInp" class="cloud-inp" type="text" value="${esc(fb.room)}" placeholder="輸入家族房間碼（例：kanto2027）" autocomplete="off">
+        <button type="button" class="btn primary btn-sm" id="joinRoomBtn">☁️ 加入／建立</button>
+      </div>
+    `}
+    <details class="collapsible" style="margin-top:.55rem">
+      <summary style="font-size:.84rem;font-weight:700;color:var(--muted)">⚙️ Firebase 設定 ＆ 無網路離線代碼備援</summary>
+      <div style="margin-top:.5rem;display:grid;gap:.45rem">
+        <div class="cloud-row">
+          <input id="fbProjInp" class="cloud-inp" type="text" value="${esc(fb.projectId)}" placeholder="Firebase Project ID（必填）" autocomplete="off">
+          <input id="fbKeyInp" class="cloud-inp" type="text" value="${esc(fb.apiKey)}" placeholder="Web API Key（選填）" autocomplete="off">
+          <button type="button" class="btn btn-sm" id="saveFbCfgBtn">💾 儲存</button>
+        </div>
+        <div class="info-btn-row" style="padding-top:.35rem;border-top:1px dashed var(--line)">
+          <button type="button" class="btn btn-sm" id="exportSyncBtn">📤 複製離線代碼</button>
+          <button type="button" class="btn btn-sm" id="toggleImportSyncBtn">📥 匯入離線代碼</button>
+        </div>
+        <div id="syncImportWrap" class="sync-wrap" hidden>
+          <textarea id="syncCodeInp" rows="3" placeholder="貼上家人分享的 KANTO2027:... 代碼"></textarea>
+          <div class="info-btn-row" style="margin-top:.45rem">
+            <button type="button" class="btn primary btn-sm" id="applySyncBtn">✅ 確認套用</button>
+            <button type="button" class="btn btn-sm" id="cancelSyncBtn">取消</button>
+          </div>
+        </div>
+      </div>
+    </details></div>
 
   <div class="box"><h3>🔧 顯示設定 ＆ 離線狀態</h3>
     <div class="exp-mob-tabs" id="themeSeg" role="group" aria-label="色彩主題" style="margin-bottom:.55rem">
@@ -1643,6 +2050,31 @@ function renderInfo(){
       <button type="button" class="btn btn-sm" id="refreshCacheBtn">🔄 檢查更新</button>
     </div></div>`;
 
+  $('#saveFbCfgBtn')?.addEventListener('click', () => {
+    cloudSync.setConfig({ projectId: $('#fbProjInp').value.trim(), apiKey: $('#fbKeyInp').value.trim() });
+    showToast('✅ 已儲存 Firebase 設定');
+    renderInfo();
+    if (cloudSync.isReady()) cloudSync.syncNow(false);
+  });
+  $('#joinRoomBtn')?.addEventListener('click', () => {
+    const r = $('#cloudRoomInp')?.value;
+    if (!cloudSync.joinRoom(r)) return showToast('請輸入英文或數字房間碼');
+    renderInfo();
+    markDirty('booking', 'expense');
+  });
+  $('#cloudSyncNowBtn')?.addEventListener('click', () => cloudSync.syncNow(false));
+  $('#copySyncLinkBtn')?.addEventListener('click', () => {
+    const c = cloudSync.getCfg();
+    const url = `${location.href.split('#')[0]}#sync=${encodeURIComponent(c.room)}`;
+    navigator.clipboard?.writeText(url).then(() => showToast('🔗 已複製家族同步連結，請貼給家人點擊'), () => showToast('複製失敗'));
+  });
+  $('#leaveRoomBtn')?.addEventListener('click', () => {
+    if (confirm('確定退出雲端同步房間？（本機資料仍會保留）')) {
+      cloudSync.leaveRoom();
+      renderInfo();
+      markDirty('booking', 'expense');
+    }
+  });
   $('#searchBtn').onclick = openSearchModal;
   $('#themeSeg')?.querySelectorAll('button').forEach(b => {
     b.onclick = () => setTheme(b.dataset.theme);
@@ -2043,7 +2475,9 @@ const expState = {
 
 const EXP = {
   members(){ return store.get('exp_members', APP_CONFIG.defaultMembers); },
-  list(){ return store.get('exp_list', []); },
+  rawList(){ return store.get('exp_list', []); },
+  saveRaw(l){ store.set('exp_list', l); },
+  list(){ return EXP.rawList().filter(e => !e.deleted); },
   save(l){ store.set('exp_list', l); },
   settled(){ return store.get('exp_settled', {}); },
   saveSettled(s){ store.set('exp_settled', s); },
@@ -2262,8 +2696,9 @@ function openExpModal(editId = null){
     const cat = body.querySelector('#expChips button[aria-pressed="true"]')?.dataset.v || expState.selectedCat;
     const desc = $('#expDesc').value.trim() || cat.replace(/^\S+\s*/, '');
     const jpy = expState.cur === 'TWD' ? Math.round(rawAmt / rate) : Math.round(rawAmt);
+    const now = Date.now();
     const entry = {
-      id: editing ? editing.id : Date.now(),
+      id: editing ? editing.id : now,
       desc,
       cat,
       jpy,
@@ -2272,9 +2707,11 @@ function openExpModal(editId = null){
       method: body.querySelector('#expMethodGroup button[aria-pressed="true"]')?.dataset.m || expState.method,
       day: +$('#expDay').value,
       payer: chosenPayer,
-      split
+      split,
+      updatedAt: now,
+      deleted: false
     };
-    const nextList = EXP.list();
+    const nextList = EXP.rawList();
     if (editing){
       const pos = nextList.findIndex(x => x.id === editing.id);
       if (pos >= 0) nextList[pos] = entry;
@@ -2284,7 +2721,8 @@ function openExpModal(editId = null){
       nextList.push(entry);
       showToast(`✅ 已記帳：${desc} ¥${Math.round(jpy).toLocaleString()}`);
     }
-    EXP.save(nextList);
+    EXP.saveRaw(nextList);
+    cloudSync.recordExpense(entry);
     closeExpModal();
     renderExp();
   });
@@ -2376,6 +2814,7 @@ function renderExp(){
       <div class="exp-hero-actions">
         <button type="button" class="exp-add-btn" id="expAddBtn">＋ 記一筆</button>
         <button type="button" class="hero-pill-btn" id="expRefreshRate" title="點擊更新即時匯率">1 JPY=${rate} 🔄</button>
+        ${cloudSync.pillHtml()}
       </div>
     </div>
 
@@ -2584,6 +3023,7 @@ function renderExp(){
   $('#expFab')?.addEventListener('click', () => openExpModal(null));
   $('#expEmptyAddBtn')?.addEventListener('click', () => openExpModal(null));
   $('#expRefreshRate').onclick = () => fetchLiveRate(true);
+  $('#expPage .sync-pill')?.addEventListener('click', () => cloudSync.syncNow(false));
 
   // Mobile sub-tabs
   el.querySelectorAll('[data-exptab]').forEach(b => b.onclick = () => {
@@ -2650,10 +3090,16 @@ function renderExp(){
   el.querySelectorAll('[data-del]').forEach(b => b.onclick = ev => {
     ev.stopPropagation();
     const id = +b.dataset.del;
-    const item = EXP.list().find(x => x.id === id);
+    const raw = EXP.rawList();
+    const pos = raw.findIndex(x => x.id === id);
+    const item = pos >= 0 ? raw[pos] : null;
     if (!confirm(`確定刪除「${item?.desc || '這筆'}」？`)) return;
     if (expState.activeRowId === id) expState.activeRowId = null;
-    EXP.save(EXP.list().filter(e => e.id !== id));
+    if (pos >= 0) {
+      raw[pos] = { ...item, deleted: true, updatedAt: Date.now() };
+      EXP.saveRaw(raw);
+      cloudSync.recordExpense(raw[pos]);
+    }
     renderExp();
     showToast('🗑️ 已刪除');
   });
@@ -2663,6 +3109,7 @@ function renderExp(){
     const s = EXP.settled();
     s[inp.dataset.settle] = inp.checked;
     EXP.saveSettled(s);
+    cloudSync.recordKey('exp_settled', s);
     renderExp();
   });
 
@@ -2720,13 +3167,25 @@ function renderExp(){
         mode = mode.trim();
         if (mode !== '1' && mode !== '2') return showToast('已取消匯入（請輸入 1 或 2）');
       }
+      const now = Date.now();
+      const stamped = items.map(it => ({ ...it, updatedAt: now, deleted: false }));
       if (extraMembers.length){
-        store.set('exp_members', [...m, ...extraMembers]);
+        const nextM = [...m, ...extraMembers];
+        store.set('exp_members', nextM);
+        cloudSync.recordKey('exp_members', nextM);
         expState.selectedSplit = null;
       }
-      const next = mode === '2' ? items : [...list, ...items];
-      EXP.save(next);
-      if (mode === '2') EXP.saveSettled({});
+      const rawExisting = EXP.rawList();
+      const next = mode === '2'
+        ? [...rawExisting.map(e => ({ ...e, deleted: true, updatedAt: now })), ...stamped]
+        : [...rawExisting, ...stamped];
+      EXP.saveRaw(next);
+      if (mode === '2') {
+        EXP.saveSettled({});
+        cloudSync.recordKey('exp_settled', {});
+        rawExisting.forEach(e => cloudSync.recordExpense({ ...e, deleted: true, updatedAt: now }));
+      }
+      stamped.forEach(e => cloudSync.recordExpense(e));
       expState.editId = null;
       expState.activeRowId = null;
       renderExp();
@@ -2741,7 +3200,13 @@ function renderExp(){
     const v = prompt('輸入成員名稱，以逗號分隔（預設：全,言,甫,君,睿,曄）', m.join(','));
     if (v){
       const n = v.split(/[,，]/).map(x => x.trim()).filter(Boolean);
-      if (n.length){ store.set('exp_members', n); expState.selectedSplit = null; renderExp(); showToast('👥 已更新成員名單'); }
+      if (n.length){
+        store.set('exp_members', n);
+        cloudSync.recordKey('exp_members', n);
+        expState.selectedSplit = null;
+        renderExp();
+        showToast('👥 已更新成員名單');
+      }
     }
   };
 
@@ -2749,7 +3214,13 @@ function renderExp(){
   $('#expClear').onclick = () => {
     if (!list.length) return showToast('目前已經是空的');
     if (confirm(`確定要清空全部 ${list.length} 筆記帳紀錄嗎？此動作無法復原。`)){
-      EXP.save([]); EXP.saveSettled({}); expState.editId = null; expState.activeRowId = null; renderExp(); showToast('🗑️ 已清空所有記帳');
+      const now = Date.now();
+      const nextRaw = EXP.rawList().map(e => e.deleted ? e : { ...e, deleted: true, updatedAt: now });
+      EXP.saveRaw(nextRaw);
+      EXP.saveSettled({});
+      cloudSync.recordKey('exp_settled', {});
+      nextRaw.forEach(e => { if (e.updatedAt === now) cloudSync.recordExpense(e); });
+      expState.editId = null; expState.activeRowId = null; renderExp(); showToast('🗑️ 已清空所有記帳');
     }
   };
 }
@@ -2783,6 +3254,7 @@ updateNetUI();
 const ti = todayIdx();
 state.day = ti >= 0 ? ti : store.get('day', 0);
 const hash = location.hash.slice(1);
+const syncMatch = hash.match(/^sync=([a-zA-Z0-9_-]+)$/);
 const hm = hash.match(/^day-(\d+)$/);
 if (hm) state.day = Math.min(9, Math.max(0, +hm[1]-1));
 state.foodDay = String(state.day);
@@ -2796,7 +3268,25 @@ renderHotels();
 renderChecks();
 renderInfo();
 renderBanner();
-go(ALL_VIEWS.includes(hash) ? hash : 'day', false);
+go(ALL_VIEWS.includes(hash) ? hash : (syncMatch ? 'info' : 'day'), false);
+if (syncMatch) {
+  cloudSync.joinRoom(decodeURIComponent(syncMatch[1]));
+  renderInfo();
+  showToast(`☁️ 已自動加入家族同步房間「${decodeURIComponent(syncMatch[1])}」`);
+  history.replaceState(null, '', '#info');
+} else if (cloudSync.isReady()) {
+  cloudSync.syncNow(true);
+}
+window.addEventListener('online', () => { if (cloudSync.isReady()) cloudSync.syncNow(true); });
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && cloudSync.isReady()) cloudSync.syncNow(true);
+});
+setInterval(() => {
+  if (document.visibilityState === 'visible' && navigator.onLine && cloudSync.isReady()) {
+    const v = getActiveView();
+    if (v === 'booking' || v === 'expense' || v === 'info') cloudSync.syncNow(true);
+  }
+}, 25000);
 function centerChip(chip, smooth){
   const p = $('#daypicker');
   p.scrollTo({left: chip.offsetLeft - p.offsetLeft - (p.clientWidth - chip.offsetWidth)/2, behavior: smooth ? 'smooth' : 'auto'});

@@ -763,6 +763,22 @@ a.place:hover{background:color-mix(in srgb,var(--cat) 16%,transparent)}
   gap:.25rem;
 }
 .hero-pill-btn:hover,.hero-pill-btn.active{background:rgba(255,255,255,.28)}
+.sync-pill{
+  border:1px solid rgba(255,255,255,.28);
+  background:rgba(255,255,255,.12);
+  color:var(--hero-ink);
+  border-radius:999px;
+  padding:.2rem .62rem;
+  font-size:.76rem;
+  font-weight:700;
+  white-space:nowrap;
+  display:inline-flex;
+  align-items:center;
+  gap:.25rem;
+}
+.sync-pill:hover{background:rgba(255,255,255,.24)}
+.sync-pill.pending{border-color:#fbbf24;background:rgba(251,191,36,.22)}
+.sync-pill.err{border-color:#fca5a5;background:rgba(248,113,113,.22)}
 .bk-hero-prog{height:6px;border-radius:3px;background:rgba(255,255,255,.22);margin-top:.25rem;overflow:hidden}
 .bk-hero-prog i{display:block;height:100%;background:#4ade80;border-radius:3px;transition:width .3s}
 
@@ -1060,6 +1076,9 @@ a.place:hover{background:color-mix(in srgb,var(--cat) 16%,transparent)}
 .info-desc{font-size:.85rem;color:var(--muted);margin-bottom:.5rem}
 .sync-wrap{margin-top:.55rem;padding-top:.55rem;border-top:1px dashed var(--line)}
 .sync-wrap textarea{width:100%;font:inherit;font-size:.84rem;padding:.45rem .6rem;border-radius:9px;border:1px solid var(--line);background:var(--surface2);color:var(--text);resize:vertical}
+.cloud-box{background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:.55rem .7rem;font-size:.85rem;margin-bottom:.55rem;display:flex;flex-direction:column;gap:.35rem}
+.cloud-row{display:flex;gap:.4rem;align-items:center;flex-wrap:wrap}
+.cloud-inp{flex:1 1 8rem;min-width:0;font:inherit;font-size:.88rem;padding:.38rem .6rem;min-height:2.35rem;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--text)}
 .pwa-mini-list{display:flex;flex-direction:column;gap:.24rem;font-size:.83rem;background:var(--surface2);border-radius:9px;padding:.5rem .68rem;border:1px solid var(--line);margin:.55rem 0}
 .pwa-mini-list > div{display:flex;gap:.55rem;align-items:baseline}
 .pwa-mini-list > div > span:first-child{color:var(--muted);font-weight:700;flex:0 0 2.4rem}
