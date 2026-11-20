@@ -796,3 +796,7 @@ nav.tabs .tab-ic svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke
 #expFormBody .exp-method-pills button{display:inline-flex;align-items:center;justify-content:center;gap:.3rem}
 .pm-ic{display:inline-flex;align-items:center}
 .pm-ic svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;display:block}
+
+/* v36：放大記帳類別晶片，提升手機單手點選舒適度 */
+#expFormBody .exp-chips{gap:.38rem}
+#expFormBody .exp-chips button{padding:.34rem .8rem;font-size:.93rem;min-height:2.4rem}

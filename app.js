@@ -1632,7 +1632,7 @@ function renderInfo(){
 /* =========================================================
    PWA 安裝與離線 Service Worker 管理
    ========================================================= */
-const APP_VERSION = 'v35';
+const APP_VERSION = 'v36';
 if (location.search.includes('u=')) {
   const sp = new URLSearchParams(location.search);
   sp.delete('u');
@@ -1954,6 +1954,13 @@ function expDetectCat(e){
   const hit = EXP_CATS.find(c => String(e.desc || '').startsWith(c.split(' ')[0]));
   return hit || '📦 其他';
 }
+function expOrderedCats(){
+  const freq = {};
+  EXP.list().forEach(e => { const c = expDetectCat(e); freq[c] = (freq[c] || 0) + 1; });
+  return EXP_CATS.map((c, idx) => ({c, idx, n: freq[c] || 0}))
+    .sort((a, b) => (b.n - a.n) || (a.idx - b.idx))
+    .map(x => x.c);
+}
 
 function syncExpModalViewport(){
   const m = $('#expFormModal'); if (!m || !m.classList.contains('open')) return;
@@ -2012,7 +2019,7 @@ function openExpModal(editId = null){
   body.innerHTML = `
     <form id="expForm" class="exp-form-v2">
       <div class="exp-chips" id="expChips" aria-label="選擇類別">
-        ${EXP_CATS.map(c => `<button type="button" data-v="${esc(c)}" aria-pressed="${formCat === c}">${esc(c)}</button>`).join('')}
+        ${expOrderedCats().map(c => `<button type="button" data-v="${esc(c)}" aria-pressed="${formCat === c}">${esc(c)}</button>`).join('')}
       </div>
 
       <div class="exp-inline-row">
@@ -2153,6 +2160,7 @@ function openExpModal(editId = null){
 
   $('#expFormModal').classList.add('open');
   syncExpModalViewport();
+  $('#expChips button[aria-pressed="true"]')?.scrollIntoView({inline:'nearest', block:'nearest'});
   if (window.innerWidth >= 700){
     setTimeout(() => (formAmt ? $('#expDesc') : $('#expJpy'))?.focus(), 60);
   }
