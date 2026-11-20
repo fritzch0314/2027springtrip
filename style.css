@@ -687,3 +687,39 @@ html{scroll-padding-top:5rem}
   .sos-pill.wide{gap:.4rem;padding:.45rem .65rem}
   .sos-pill.wide b{font-size:1.05rem}
 }
+
+
+/* ===== v30 升級：備案淡藍提醒、SVG 高辨識導覽圖示、記帳彈窗／底部抽屜 ===== */
+:root{--alt-bg:#e8f3fc;--alt-line:#2f6f9f}
+[data-theme="dark"]{--alt-bg:#1a2d42;--alt-line:#7cc0ff}
+.tip.alt{background:var(--alt-bg);border-color:var(--alt-line)}
+.tip b{font-weight:800}
+
+/* 導覽列統一向量 SVG 圖示（白底／深色模式皆高對比清晰） */
+nav.bottom button{color:#566173;padding:.3rem .15rem .22rem;gap:.12rem;font-weight:600}
+[data-theme="dark"] nav.bottom button{color:#9aa6b8}
+nav.bottom button .ic{display:inline-flex;align-items:center;justify-content:center;width:2.3rem;height:1.6rem;border-radius:999px;transition:background .15s}
+nav.bottom button .ic svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.95;stroke-linecap:round;stroke-linejoin:round;display:block}
+nav.bottom button[aria-current="page"]{color:var(--primary);font-weight:800;background:transparent}
+nav.bottom button[aria-current="page"] .ic{background:color-mix(in srgb,var(--primary) 13%,transparent)}
+nav.bottom button[aria-current="page"] .ic svg{stroke-width:2.35}
+nav.tabs button{display:inline-flex;align-items:center;gap:.35rem}
+nav.tabs .tab-ic{display:inline-flex;align-items:center}
+nav.tabs .tab-ic svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;display:block}
+
+/* 記帳總覽條「＋ 記一筆」主鈕與新增／編輯彈窗（手機底部抽屜） */
+.exp-hero-top{display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap}
+.exp-add-btn{border:0;background:#fff;color:#1f3a5f;border-radius:999px;padding:.36rem .9rem;font-size:.9rem;font-weight:900;box-shadow:0 2px 8px rgba(0,0,0,.18);white-space:nowrap;min-height:2.2rem}
+.exp-add-btn:hover{background:#f0f6ff}
+[data-theme="dark"] .exp-add-btn{background:#8fb8ff;color:#0d1420}
+.exp-modal-card{max-width:33rem;width:100%;text-align:left;max-height:88dvh;overflow-y:auto}
+@media (max-width:639px){
+  .exp-modal-wrap{align-items:flex-end;padding:0}
+  .exp-modal-card{border-radius:18px 18px 0 0;max-width:100%;padding:1rem .95rem calc(1rem + env(safe-area-inset-bottom));max-height:88dvh}
+}
+@media (max-width:520px){
+  .exp-hero-top{flex-wrap:nowrap;gap:.4rem}
+  .exp-hero-amt{font-size:1.18rem;min-width:0}
+  .exp-hero-twd{font-size:.82rem;display:inline-block}
+  .exp-add-btn{padding:.3rem .72rem;font-size:.84rem;min-height:2rem;flex:0 0 auto}
+}
