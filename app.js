@@ -1541,6 +1541,7 @@ function renderInfo(){
       <button class="btn btn-sm" id="openCarNaviFromInfoBtn">🚗 河口湖車機導航</button>
     </div>
     <div class="pwa-mini-list">
+      <div><span>版本</span><b>${APP_VERSION}</b></div>
       <div><span>網路</span><b id="infoNetStatus">${navigator.onLine ? '✅ 在線' : '📴 離線模式'}</b></div>
       <div><span>模式</span><b>${(window.matchMedia('(display-mode: standalone)').matches || navigator.standalone) ? '✅ 獨立 App' : '🌐 瀏覽器分頁'}</b></div>
       <div><span>快取</span><span id="infoSwStatus">${esc(pwaState.swText)}</span></div>
@@ -1608,22 +1609,34 @@ function renderInfo(){
     }
   };
   $('#refreshCacheBtn').onclick = async () => {
-    if ('serviceWorker' in navigator) {
-      const reg = await navigator.serviceWorker.getRegistration();
-      if (reg) {
-        await reg.update();
-        if (reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
-        alert('✅ 已完成檢查更新與離線快取同步！');
-        return;
+    showToast('🔄 正在清除舊快取並載入最新版本…');
+    try {
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map(k => caches.delete(k)));
       }
-    }
-    location.reload();
+      if ('serviceWorker' in navigator) {
+        const reg = await navigator.serviceWorker.getRegistration();
+        if (reg) {
+          await reg.update();
+          if (reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
+        }
+      }
+    } catch (e) {}
+    location.replace(location.pathname + '?u=' + Date.now() + (location.hash || ''));
   };
 }
 
 /* =========================================================
    PWA 安裝與離線 Service Worker 管理
    ========================================================= */
+const APP_VERSION = 'v31';
+if (location.search.includes('u=')) {
+  const sp = new URLSearchParams(location.search);
+  sp.delete('u');
+  const qs = sp.toString();
+  history.replaceState(null, '', location.pathname + (qs ? '?' + qs : '') + location.hash);
+}
 const pwaState = {
   deferredPrompt: null,
   swText: '尚未啟用（需透過網站伺服器或 HTTPS 開啟）'
@@ -1674,14 +1687,26 @@ window.addEventListener('appinstalled', () => {
 });
 
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+  let swReloaded = false;
+  const hadController = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadController || swReloaded) return;
+    swReloaded = true;
+    location.reload();
+  });
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').then(reg => {
-      updateSwUI('✅ 已完成全站離線快取（無網路時仍可完整瀏覽行程、訂票提醒、班次速查、餐廳與清單）');
+    navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then(reg => {
+      updateSwUI(`✅ 已完成全站離線快取（${APP_VERSION}，無網路也能完整瀏覽）`);
+      reg.update().catch(() => {});
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') reg.update().catch(() => {});
+      });
       reg.addEventListener('updatefound', () => {
         const nw = reg.installing;
         if (nw) nw.addEventListener('statechange', () => {
           if (nw.state === 'installed' && navigator.serviceWorker.controller) {
-            updateSwUI('✨ 偵測到新版行程資料，重新整理即可套用！');
+            updateSwUI('✨ 偵測到新版，正在自動套用…');
+            nw.postMessage({type:'SKIP_WAITING'});
           }
         });
       });
@@ -1747,7 +1772,7 @@ function tipsHtml(p){
   return p.tips.map(t => {
     const k = t.kind || (t.warn ? 'warn' : 'tip');
     const cls = k === 'warn' ? 'warn' : k === 'alt' ? 'alt' : '';
-    const lbl = k === 'warn' ? '⚠️ 注意：' : k === 'alt' ? '🔄 備案：' : '💡 小提醒：';
+    const lbl = k === 'warn' ? '⚠️ 注意：' : k === 'alt' ? '🔄 備案：' : '💡 提醒：';
     return `<div class="tip ${cls}"><b>${lbl}</b>${esc(t.text)}</div>`;
   }).join('');
 }

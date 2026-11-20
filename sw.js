@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kanto-trip-2027-v30';
+const CACHE_NAME = 'kanto-trip-2027-v31';
 const CORE_ASSETS = [
   './',
   './index.html',
@@ -16,7 +16,13 @@ const CORE_ASSETS = [
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(CORE_ASSETS))
+      .then(cache => Promise.all(
+        CORE_ASSETS.map(url =>
+          fetch(new Request(url, { cache: 'reload' })).then(res => {
+            if (res && res.status === 200) return cache.put(url, res);
+          })
+        )
+      ))
       .then(() => self.skipWaiting())
   );
 });
@@ -44,19 +50,21 @@ self.addEventListener('fetch', event => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
 
-  // HTML / CSS / JS: Network-first with offline cache fallback so updates apply immediately
+  // HTML / CSS / JS: Network-first bypassing stale HTTP cache, with offline cache fallback
   const isCode = req.mode === 'navigate' || /\.(html|css|js)$/i.test(url.pathname) || url.pathname.endsWith('/');
   if (isCode) {
     event.respondWith(
-      fetch(req)
+      fetch(req, { cache: 'no-cache' })
         .then(res => {
           if (res && res.status === 200) {
             const copy = res.clone();
-            caches.open(CACHE_NAME).then(cache => cache.put(req, copy));
+            const cacheKey = req.mode === 'navigate' ? './index.html' : url.pathname;
+            caches.open(CACHE_NAME).then(cache => cache.put(cacheKey, copy));
           }
           return res;
         })
-        .catch(() => caches.match(req).then(r => r || (req.mode === 'navigate' ? caches.match('./index.html') : undefined)))
+        .catch(() => caches.match(req.mode === 'navigate' ? './index.html' : url.pathname)
+          .then(r => r || caches.match(req) || (req.mode === 'navigate' ? caches.match('./index.html') : undefined)))
     );
     return;
   }
