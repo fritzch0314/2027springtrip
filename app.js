@@ -86,7 +86,7 @@ const ALL_PHRASES = [
    全域設定與工具函式
    ========================================================= */
 const APP_CONFIG = {
-  version: 'v48',
+  version: 'v49',
   storagePrefix: 'kanto27_',
   tripStart: [2027, 2, 1],
   defaultRate: 0.215,
@@ -1559,6 +1559,7 @@ $('#resetChk').onclick = () => {
 const cloudSync = (() => {
   let syncing = false;
   let lastStatus = 'idle'; // idle | syncing | ok | err
+  let lastErrMsg = '';
   let lastSyncTs = store.get('sync_last_ts', 0);
 
   const getCfg = () => {
@@ -1637,9 +1638,18 @@ const cloudSync = (() => {
     const pendCnt = p.stateKeys.length + p.expIds.length;
     const tStr = lastSyncTs ? new Date(lastSyncTs).toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit'}) : '尚未';
     if (syncing) return `🔄 正在同步房間「${c.room}」…`;
-    if (lastStatus === 'err') return `⚠️ 連線失敗（待上傳 ${pendCnt} 項），有網路將自動重試`;
+    if (lastStatus === 'err') return `⚠️ 同步失敗：${lastErrMsg || '連線異常'}（待上傳 ${pendCnt} 項）`;
     if (pendCnt > 0) return `⏳ 房間「${c.room}」· 待上傳 ${pendCnt} 項`;
     return `✅ 已連線房間「${c.room}」· 上次同步：${tStr}`;
+  }
+
+  async function parseFsErr(res, label){
+    let detail = `HTTP ${res.status}`;
+    try {
+      const j = await res.json();
+      if (j?.error?.message) detail = `${res.status}: ${j.error.message}`;
+    } catch (e) {}
+    return new Error(`${label} (${detail})`);
   }
 
   function pillHtml(){
@@ -1743,7 +1753,7 @@ const cloudSync = (() => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fields })
       });
-      if (!r.ok) throw new Error('meta push failed ' + r.status);
+      if (!r.ok) throw await parseFsErr(r, '狀態寫入');
       p.stateKeys = [];
       setPending(p);
     }
@@ -1761,7 +1771,7 @@ const cloudSync = (() => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ fields: toFsVal(entry).mapValue.fields })
         });
-        if (!r.ok) { remaining.push(id); throw new Error('exp push failed ' + r.status); }
+        if (!r.ok) { remaining.push(id); throw await parseFsErr(r, '記帳寫入'); }
       }
       p.expIds = remaining;
       setPending(p);
@@ -1806,7 +1816,7 @@ const cloudSync = (() => {
         setPending(p);
       }
     } else if (mr.status !== 404) {
-      throw new Error('meta pull failed ' + mr.status);
+      throw await parseFsErr(mr, '狀態讀取');
     }
 
     // 2. Pull expenses subcollection
@@ -1847,7 +1857,7 @@ const cloudSync = (() => {
         setPending(p);
       }
     } else if (er.status !== 404) {
-      throw new Error('exp pull failed ' + er.status);
+      throw await parseFsErr(er, '記帳讀取');
     }
 
     if (changedViews.size) {
@@ -1862,19 +1872,22 @@ const cloudSync = (() => {
     if (!isReady() || !navigator.onLine || syncing) return;
     syncing = true;
     lastStatus = 'syncing';
+    lastErrMsg = '';
     refreshPills();
     try {
       await pushPending();
       const hasChanges = await pullAndMerge();
       if (getPending().stateKeys.length || getPending().expIds.length) await pushPending();
       lastStatus = 'ok';
+      lastErrMsg = '';
       lastSyncTs = Date.now();
       store.set('sync_last_ts', lastSyncTs);
       if (!silent) showToast(hasChanges ? '☁️ 已同步並更新最新資料' : '☁️ 雲端資料已是最新');
       else if (hasChanges) showToast('☁️ 已同步家人最新變更');
     } catch (e) {
       lastStatus = 'err';
-      if (!silent) showToast('⚠️ 雲端同步失敗，請檢查 Firebase 設定或網路');
+      lastErrMsg = e?.message || '網路或權限錯誤';
+      if (!silent) showToast('⚠️ ' + lastErrMsg);
     } finally {
       syncing = false;
       refreshPills();
