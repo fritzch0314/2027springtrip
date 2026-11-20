@@ -86,7 +86,7 @@ const ALL_PHRASES = [
    全域設定與工具函式
    ========================================================= */
 const APP_CONFIG = {
-  version: 'v51',
+  version: 'v52',
   storagePrefix: 'kanto27_',
   tripStart: [2027, 2, 1],
   defaultRate: 0.215,
@@ -1029,10 +1029,9 @@ function renderBookings(){
       <div class="bk-hero-top">
         <div>
           <div class="bk-hero-title">🎟️ 訂票提醒 · 已訂 <b>${doneCnt} / ${activeTotal}</b> 項（${pct}%）</div>
-          <div class="bk-hero-sub">🔥 待訂 ${openWaitCnt} · ⏳ 即將 ${upcomingCnt}${skippedCnt ? ` · 🚫 免訂 ${skippedCnt}` : ''} · ⏰ 台／日時間</div>
+          <div class="bk-hero-sub">🔥 待訂 ${openWaitCnt} · ⏳ 即將 ${upcomingCnt}${skippedCnt ? ` · 🚫 免訂 ${skippedCnt}` : ''} · ⏰ 台／日時間${cloudSync.pillHtml() ? ` · ${cloudSync.pillHtml()}` : ''}</div>
         </div>
         <div class="bk-hero-actions">
-          ${cloudSync.pillHtml()}
           <button type="button" class="hero-pill-btn ${bqActive ? 'active' : ''}" id="toggleBqBtn">🔍 搜尋</button>
           <button type="button" class="hero-pill-btn" id="exportIcsBtn">📥 匯出 .ics</button>
         </div>
@@ -1132,8 +1131,6 @@ function renderBookings(){
             ${st.isDone ? '✅ 已預訂' : '📌 標記已訂'}
           </button>
           <a class="btn primary btn-sm" href="${esc(b.url)}" target="_blank" rel="noopener">🔗 官網 ↗</a>
-          ${b.tel ? `<a class="btn btn-sm" href="tel:${esc(b.tel)}">📞 電話</a>` : ''}
-          ${!st.isDone ? `<button type="button" class="btn btn-sm" data-skip-bk="${b.id}" title="確定不需預訂此項目，移出提醒清單">🚫 免預訂</button>` : ''}
         `}
       </div>
 
@@ -1148,6 +1145,8 @@ function renderBookings(){
             ${b.days.slice(0,4).map(dNum => `<button type="button" class="btn btn-sm" onclick="go('day');selectDay(${dNum-1})">Day ${dNum} →</button>`).join('')}
             ${(b.cal || []).map(ev => `<a class="btn btn-sm" href="${gcalUrl(ev, b)}" target="_blank" rel="noopener">📅 行事曆（${esc(ev.label)}）</a>`).join('')}
             ${(b.ttIds || []).map(tid => `<button type="button" class="btn btn-sm" onclick="jumpToTimetableId(${tid})">🕒 時刻表 #${tid}</button>`).join('')}
+            ${!st.isSkipped && b.tel ? `<a class="btn btn-sm" href="tel:${esc(b.tel)}">📞 電話</a>` : ''}
+            ${!st.isSkipped && !st.isDone ? `<button type="button" class="btn btn-sm" data-skip-bk="${b.id}" title="確定不需預訂此項目，移出提醒清單">🚫 免預訂</button>` : ''}
           </div>
         </div>
       </details>
@@ -2859,12 +2858,11 @@ function renderExp(){
     <div class="exp-hero">
       <div class="exp-hero-info">
         <div class="exp-hero-amt">${fJpy(total)} <span class="exp-hero-twd">≈ ${fTwd(total)}</span></div>
-        <div class="exp-hero-sub">共 ${list.length} 筆 · 均 ${avgTwd}/人</div>
+        <div class="exp-hero-sub">共 ${list.length} 筆 · 均 ${avgTwd}/人${cloudSync.pillHtml() ? ` · ${cloudSync.pillHtml()}` : ''}</div>
       </div>
       <div class="exp-hero-actions">
         <button type="button" class="exp-add-btn" id="expAddBtn">＋ 記一筆</button>
         <button type="button" class="hero-pill-btn" id="expRefreshRate" title="點擊更新即時匯率">1 JPY=${rate} 🔄</button>
-        ${cloudSync.pillHtml()}
       </div>
     </div>
 

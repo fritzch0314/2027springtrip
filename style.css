@@ -764,21 +764,25 @@ a.place:hover{background:color-mix(in srgb,var(--cat) 16%,transparent)}
 }
 .hero-pill-btn:hover,.hero-pill-btn.active{background:rgba(255,255,255,.28)}
 .sync-pill{
-  border:1px solid rgba(255,255,255,.28);
-  background:rgba(255,255,255,.12);
+  border:0;
+  background:transparent;
   color:var(--hero-ink);
-  border-radius:999px;
-  padding:.2rem .62rem;
-  font-size:.76rem;
+  border-radius:6px;
+  padding:1px 6px;
+  font-size:.78rem;
   font-weight:700;
+  opacity:.92;
   white-space:nowrap;
   display:inline-flex;
   align-items:center;
-  gap:.25rem;
+  gap:.22rem;
+  vertical-align:baseline;
+  line-height:1.3;
+  transition:background .15s,opacity .15s;
 }
-.sync-pill:hover{background:rgba(255,255,255,.24)}
-.sync-pill.pending{border-color:#fbbf24;background:rgba(251,191,36,.22)}
-.sync-pill.err{border-color:#fca5a5;background:rgba(248,113,113,.22)}
+.sync-pill:hover{background:rgba(255,255,255,.16);opacity:1}
+.sync-pill.pending{background:rgba(251,191,36,.24);opacity:1}
+.sync-pill.err{background:rgba(248,113,113,.26);opacity:1}
 .bk-hero-prog{height:6px;border-radius:3px;background:rgba(255,255,255,.22);margin-top:.25rem;overflow:hidden}
 .bk-hero-prog i{display:block;height:100%;background:#4ade80;border-radius:3px;transition:width .3s}
 
