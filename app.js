@@ -83,15 +83,52 @@ const ALL_PHRASES = [
 ];
 
 /* =========================================================
-   工具函式
+   全域設定與工具函式
    ========================================================= */
+const APP_CONFIG = {
+  version: 'v46',
+  storagePrefix: 'kanto27_',
+  tripStart: [2027, 2, 1],
+  defaultRate: 0.215,
+  defaultMembers: ['全','言','甫','君','睿','曄']
+};
+const APP_VERSION = APP_CONFIG.version;
+
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const mapUrl = q => 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q);
-const store = {
-  get(k, d){ try{ const v = localStorage.getItem('kanto27_'+k); return v===null ? d : JSON.parse(v); }catch(e){ return d; } },
-  set(k, v){ try{ localStorage.setItem('kanto27_'+k, JSON.stringify(v)); }catch(e){} }
-};
+const debounce = (fn, ms = 120) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
+
+const store = (() => {
+  const rawCache = new Map();
+  return {
+    get(k, d){
+      try {
+        let raw = rawCache.get(k);
+        if (raw === undefined) {
+          raw = localStorage.getItem(APP_CONFIG.storagePrefix + k);
+          rawCache.set(k, raw);
+        }
+        return raw === null ? d : JSON.parse(raw);
+      } catch(e) { return d; }
+    },
+    set(k, v){
+      try {
+        const raw = JSON.stringify(v);
+        rawCache.set(k, raw);
+        localStorage.setItem(APP_CONFIG.storagePrefix + k, raw);
+      } catch(e) {}
+    }
+  };
+})();
+
+function bindModal(modalSel, closeSel, onClose){
+  const m = $(modalSel);
+  if (!m) return;
+  const close = () => { if (onClose) onClose(); m.classList.remove('open'); };
+  if (closeSel) $(closeSel)?.addEventListener('click', close);
+  m.addEventListener('click', e => { if (e.target === m) close(); });
+}
 const TYPES = {
   flight:{label:'航班', ic:'✈️'}, transit:{label:'交通', ic:'🚆'}, sight:{label:'景點', ic:'📍'},
   food:{label:'餐食', ic:'🍽️'}, hotel:{label:'住宿/行李', ic:'🏨'}, event:{label:'活動/提醒', ic:'✨'}
@@ -141,8 +178,7 @@ function openPlaceModal(name, fallbackArea){
   $('#placeModal').classList.add('open');
 }
 $('#plSpeakBtn').addEventListener('click', () => speakJapanese(plCurrentJa));
-$('#closePlaceBtn').addEventListener('click', () => { if ('speechSynthesis' in window) window.speechSynthesis.cancel(); $('#placeModal').classList.remove('open'); });
-$('#placeModal').addEventListener('click', e => { if (e.target === $('#placeModal')) { if ('speechSynthesis' in window) window.speechSynthesis.cancel(); $('#placeModal').classList.remove('open'); } });
+bindModal('#placeModal', '#closePlaceBtn', () => { if ('speechSynthesis' in window) window.speechSynthesis.cancel(); });
 
 function renderText(text, day){
   return String(text).split(/(【.+?】)/g).map(part => {
@@ -257,9 +293,45 @@ const ALL_VIEWS = ['day','transit','food','booking','expense','hotel','packing',
 const SUB_PARENT = {hotel:'more', packing:'more', info:'more'};
 const lastSub = {more:'packing'};
 
+const dirtyViews = new Set();
+function getActiveView(){
+  const el = document.querySelector('.view.active');
+  return el ? el.id.slice(2) : 'day';
+}
+function renderViewByName(view){
+  dirtyViews.delete(view);
+  if (view === 'day') renderDay();
+  else if (view === 'transit') renderTimetables();
+  else if (view === 'food') renderFood();
+  else if (view === 'booking') renderBookings();
+  else if (view === 'expense') { renderExp(); autoLiveRate(); }
+  else if (view === 'hotel') renderHotels();
+  else if (view === 'packing') renderChecks();
+  else if (view === 'info') renderInfo();
+}
+function markDirty(...views){
+  const cur = getActiveView();
+  views.forEach(v => {
+    if (v === cur) renderViewByName(v);
+    else dirtyViews.add(v);
+  });
+}
+
+function getOpenUnbookedCount(){
+  return BOOKINGS.filter(b => { const s = getBookingStatus(b); return s.isOpen && !s.isDone; }).length;
+}
+function updateNavBadges(){
+  const cnt = getOpenUnbookedCount();
+  document.querySelectorAll('[data-view="booking"] .nav-badge').forEach(el => {
+    el.textContent = cnt;
+    el.title = `${cnt} 項已開放待預訂`;
+    el.hidden = cnt <= 0;
+  });
+}
+
 function buildNav(){
-  const openUnbookedCount = BOOKINGS.filter(b => { const s = getBookingStatus(b); return s.isOpen && !s.isDone; }).length;
-  const badgeHtml = openUnbookedCount > 0 ? `<span class="nav-badge" title="${openUnbookedCount} 項已開放待預訂">${openUnbookedCount}</span>` : '';
+  const cnt = getOpenUnbookedCount();
+  const badgeHtml = `<span class="nav-badge" title="${cnt} 項已開放待預訂"${cnt <= 0 ? ' hidden' : ''}>${cnt}</span>`;
   document.querySelector('nav.bottom').innerHTML = VIEWS.map(([id,ic,lb,shortLb]) =>
     `<button data-view="${id}"><span class="ic" aria-hidden="true">${NAV_ICONS[id] || ic}</span><span>${shortLb}</span>${id==='booking'?badgeHtml:''}</button>`).join('');
   document.querySelector('nav.tabs').innerHTML = VIEWS.map(([id,ic,lb]) =>
@@ -267,7 +339,7 @@ function buildNav(){
   document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => {
     if (b.dataset.view === 'booking' && state.bookingDay !== 'all') {
       state.bookingDay = 'all';
-      renderBookings();
+      dirtyViews.add('booking');
     }
     go(b.dataset.view);
   }));
@@ -287,7 +359,7 @@ function go(view, push=true){
   document.querySelectorAll('.subtabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.sub === view));
   if ($('#banner')) $('#banner').style.display = view === 'day' ? '' : 'none';
   document.body.classList.toggle('on-expense', view === 'expense');
-  if (view === 'expense'){ renderExp(); autoLiveRate(); }
+  if (dirtyViews.has(view) || view === 'expense') renderViewByName(view);
   if (view === 'transit') requestAnimationFrame(() => scrollActiveFilter('#transitDayFilters', false));
   if (view === 'food') requestAnimationFrame(() => scrollActiveFilter('#foodDayFilters', false));
   if (view === 'day') requestAnimationFrame(() => { const c = $('#daypicker .daychip[aria-selected="true"]'); if (c) centerChip(c, false); });
@@ -324,8 +396,7 @@ function openCalcModal(){
   setTimeout(() => { $('#mJpyInp').focus(); $('#mJpyInp').select(); }, 50);
 }
 $('#calcBtn').addEventListener('click', openCalcModal);
-$('#closeCalcBtn').addEventListener('click', () => $('#calcModal').classList.remove('open'));
-$('#calcModal').addEventListener('click', e => { if (e.target === $('#calcModal')) $('#calcModal').classList.remove('open'); });
+bindModal('#calcModal', '#closeCalcBtn');
 const syncModalCalc = src => {
   const prevR = store.get('rate', 0.215);
   const r = Math.max(0.01, +$('#mRateInp').value || 0.215);
@@ -386,8 +457,7 @@ function openTaxiModal(key){
   $('#taxiTel').href = 'tel:' + t.tel;
   $('#taxiModal').classList.add('open');
 }
-$('#closeTaxiBtn').addEventListener('click', () => $('#taxiModal').classList.remove('open'));
-$('#taxiModal').addEventListener('click', e => { if (e.target === $('#taxiModal')) $('#taxiModal').classList.remove('open'); });
+bindModal('#taxiModal', '#closeTaxiBtn');
 
 const GUIDE_MODALS = {
   skyliner: {
@@ -506,8 +576,7 @@ function openGuideModal(key){
   $('#guideBody').innerHTML = g.html();
   $('#guideModal').classList.add('open');
 }
-$('#closeGuideBtn').addEventListener('click', () => $('#guideModal').classList.remove('open'));
-$('#guideModal').addEventListener('click', e => { if (e.target === $('#guideModal')) $('#guideModal').classList.remove('open'); });
+bindModal('#guideModal', '#closeGuideBtn');
 
 const hubState = { scene: 'all', q: '' };
 function renderPhraseHub(){
@@ -553,16 +622,14 @@ function openPhraseHub(scene = 'all'){
   $('#phraseHubModal').classList.add('open');
 }
 $('#phraseHubBtn').addEventListener('click', () => openPhraseHub('all'));
-$('#closeHubBtn').addEventListener('click', () => $('#phraseHubModal').classList.remove('open'));
-$('#phraseHubModal').addEventListener('click', e => { if (e.target === $('#phraseHubModal')) $('#phraseHubModal').classList.remove('open'); });
+bindModal('#phraseHubModal', '#closeHubBtn');
 $('#hubSearch').addEventListener('input', e => { hubState.q = e.target.value; renderPhraseHub(); });
 
 function openSearchModal(){
   $('#searchModal').classList.add('open');
   setTimeout(() => { $('#q')?.focus(); $('#q')?.select(); }, 40);
 }
-$('#closeSearchBtn').addEventListener('click', () => $('#searchModal').classList.remove('open'));
-$('#searchModal').addEventListener('click', e => { if (e.target === $('#searchModal')) $('#searchModal').classList.remove('open'); });
+bindModal('#searchModal', '#closeSearchBtn');
 
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
@@ -609,8 +676,7 @@ function selectDay(i, scroll=true){
   const chip = $('#daypicker').querySelector(`[data-i="${state.day}"]`);
   if (chip && scroll) centerChip(chip, true);
   renderDay();
-  renderFood();
-  renderTimetables();
+  markDirty('food', 'transit');
   history.replaceState(null, '', '#day-' + (state.day+1));
 }
 
@@ -844,7 +910,8 @@ function renderDay(){
    ========================================================= */
 function renderBanner(){
   const now = jstNow(), ti = todayIdx();
-  const start = Date.UTC(2027,1,1), today = Date.UTC(...now.date.split('-').map((v,i)=> i===1 ? v-1 : +v));
+  const [sy, sm, sd] = APP_CONFIG.tripStart;
+  const start = Date.UTC(sy, sm - 1, sd), today = Date.UTC(...now.date.split('-').map((v,i)=> i===1 ? v-1 : +v));
   let html = '';
   if (today < start){
     const days = Math.round((start - today) / 864e5);
@@ -915,11 +982,9 @@ function toggleBookingDone(chkKey){
   const s = store.get('chk', {});
   s[chkKey] = !s[chkKey];
   store.set('chk', s);
-  renderBookings();
-  renderChecks();
   renderBanner();
-  renderDay();
-  buildNav();
+  markDirty('booking', 'packing', 'day');
+  updateNavBadges();
 }
 
 function renderBookings(){
@@ -1191,7 +1256,7 @@ $('#tq').addEventListener('input', renderTimetables);
 /* =========================================================
    推薦餐廳指南 (v-food) & 點餐溝通卡
    ========================================================= */
-const phraseState = { cat: 'all', adults: 4, kids: 2, currentJa: '' };
+const phraseState = { adults: 4, kids: 2, currentJa: '' };
 
 function getDynamicPhrase(p){
   const a = phraseState.adults, k = phraseState.kids, total = a + k;
@@ -1246,8 +1311,7 @@ $('#adultPlus').onclick = () => { phraseState.adults = Math.min(12, phraseState.
 $('#kidMinus').onclick = () => { phraseState.kids = Math.max(0, phraseState.kids - 1); renderPhraseHub(); };
 $('#kidPlus').onclick = () => { phraseState.kids = Math.min(10, phraseState.kids + 1); renderPhraseHub(); };
 $('#speakPhraseBtn').onclick = () => speakJapanese(phraseState.currentJa);
-$('#closeModalBtn').onclick = () => { if ('speechSynthesis' in window) window.speechSynthesis.cancel(); $('#phraseModal').classList.remove('open'); };
-$('#phraseModal').onclick = e => { if (e.target === $('#phraseModal')) { if ('speechSynthesis' in window) window.speechSynthesis.cancel(); $('#phraseModal').classList.remove('open'); } };
+bindModal('#phraseModal', '#closeModalBtn', () => { if ('speechSynthesis' in window) window.speechSynthesis.cancel(); });
 
 function renderFood(){
   const q = ($('#fq')?.value || '').trim().toLowerCase();
@@ -1299,7 +1363,7 @@ $('#fq').addEventListener('input', renderFood);
 /* =========================================================
    全站搜尋彈窗（涵蓋行程、訂票提醒、時刻表與推薦餐廳）
    ========================================================= */
-$('#q').addEventListener('input', e => {
+$('#q').addEventListener('input', debounce(e => {
   const q = e.target.value.trim();
   if (!q){ $('#results').innerHTML=''; $('#searchHint').style.display=''; return; }
   const re = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'gi');
@@ -1346,7 +1410,7 @@ $('#q').addEventListener('input', e => {
     else if (h.kind === 'transit') jumpToTimetableId(h.id);
     else { go('day'); selectDay(h.i); }
   });
-});
+}, 100));
 
 /* =========================================================
    住宿 ＆ 大行李動線
@@ -1507,11 +1571,9 @@ function applySyncCode(raw){
     if (data.bk_notes && typeof data.bk_notes === 'object') store.set('bk_notes', data.bk_notes);
     if (data.bk_sub && typeof data.bk_sub === 'object') store.set('bk_sub', data.bk_sub);
     if (Array.isArray(data.custom_chk)) store.set('custom_chk', data.custom_chk);
-    renderBookings();
-    renderChecks();
-    renderDay();
     renderBanner();
-    buildNav();
+    markDirty('booking', 'packing', 'day');
+    updateNavBadges();
     return {ok:true, msg:'✅ 已成功匯入家人進度並同步全部頁面！'};
   } catch (e) {
     return {ok:false, msg:'代碼解析失敗，請確認未遺漏任何字元'};
@@ -1662,7 +1724,6 @@ function renderInfo(){
 /* =========================================================
    PWA 安裝與離線 Service Worker 管理
    ========================================================= */
-const APP_VERSION = 'v45';
 if (location.search.includes('u=')) {
   const sp = new URLSearchParams(location.search);
   sp.delete('u');
@@ -1971,7 +2032,6 @@ const expState = {
   filterMethod: 'all',
   member: 'all',
   q: '',
-  formOpen: true,
   filterOpen: false,
   cur: 'JPY',
   method: '現金',
@@ -1982,7 +2042,7 @@ const expState = {
 };
 
 const EXP = {
-  members(){ return store.get('exp_members', ['全','言','甫','君','睿','曄']); },
+  members(){ return store.get('exp_members', APP_CONFIG.defaultMembers); },
   list(){ return store.get('exp_list', []); },
   save(l){ store.set('exp_list', l); },
   settled(){ return store.get('exp_settled', {}); },

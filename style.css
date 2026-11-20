@@ -344,14 +344,6 @@ main{max-width:1200px;margin:0 auto;padding:1rem}
 .btn:hover{border-color:color-mix(in srgb,var(--primary) 45%,var(--line))}
 .btn.primary{background:var(--primary);color:var(--primary-ink);border-color:var(--primary)}
 .btn.primary:hover{filter:brightness(1.08)}
-.btn.cta{
-  background:var(--cta-bg);
-  color:var(--cta-ink);
-  border-color:transparent;
-  font-weight:900;
-  box-shadow:0 3px 10px rgba(217,88,54,.32);
-}
-.btn.cta:hover{filter:brightness(1.07);transform:translateY(-1px)}
 .btn.done-soft{
   background:var(--done-bg);
   color:var(--done-ink);
@@ -751,7 +743,7 @@ a.place:hover{background:color-mix(in srgb,var(--cat) 16%,transparent)}
   flex-direction:column;
   gap:.28rem;
 }
-.bk-hero-top,.exp-hero-top{display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap}
+.bk-hero-top{display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap}
 .bk-hero-title{font-size:1.05rem;font-weight:800;display:flex;align-items:center;gap:.35rem;flex-wrap:wrap}
 .bk-hero-title b{font-size:1.18rem;font-weight:900}
 .bk-hero-sub,.exp-hero-sub{font-size:.8rem;opacity:.88}
