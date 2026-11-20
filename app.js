@@ -845,7 +845,7 @@ function renderDay(){
     const prepDone = d.prep.filter((_, j) => done[`d${d.idx}-${j}`]).length;
     side += `<div class="box">
       <div class="prep-hd">
-        <h3>📝 當日行前提醒與準備</h3>
+        <h3>📝 行前提醒與準備</h3>
         <span class="pill ${prepDone===d.prep.length?'done':''}" id="dayPrepProg">${prepDone} / ${d.prep.length}</span>
       </div>
       <div class="pbar" aria-hidden="true"><i id="dayPrepBar" style="width:${Math.round(prepDone/d.prep.length*100)}%"></i></div>
