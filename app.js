@@ -1662,7 +1662,7 @@ function renderInfo(){
 /* =========================================================
    PWA 安裝與離線 Service Worker 管理
    ========================================================= */
-const APP_VERSION = 'v43';
+const APP_VERSION = 'v44';
 if (location.search.includes('u=')) {
   const sp = new URLSearchParams(location.search);
   sp.delete('u');
@@ -1791,12 +1791,31 @@ async function loadWeather(d){
 (function(){
   let last = window.scrollY;
   window.addEventListener('scroll', () => {
-    if (innerWidth >= 900) return;
+    if (innerWidth >= 900 && innerHeight >= 600) return;
     const y = window.scrollY, h = document.querySelector('header.top');
     if (y > last + 8 && y > 120) h.classList.add('hide');
     else if (y < last - 8 || y < 60) h.classList.remove('hide');
     last = y;
   }, {passive:true});
+
+  let rotTimer = null;
+  const onRotate = () => {
+    clearTimeout(rotTimer);
+    rotTimer = setTimeout(() => {
+      document.querySelector('header.top')?.classList.remove('hide');
+      syncSheetViewport();
+      if ($('#v-day')?.classList.contains('active')) {
+        const c = $('#daypicker .daychip[aria-selected="true"]');
+        if (c) centerChip(c, false);
+      } else if ($('#v-transit')?.classList.contains('active')) {
+        scrollActiveFilter('#transitDayFilters', false);
+      } else if ($('#v-food')?.classList.contains('active')) {
+        scrollActiveFilter('#foodDayFilters', false);
+      }
+    }, 120);
+  };
+  window.addEventListener('orientationchange', onRotate);
+  window.addEventListener('resize', onRotate);
 })();
 
 /* ===== DEMO：長交通項目「重點＋展開」、記帳分帳 ===== */
